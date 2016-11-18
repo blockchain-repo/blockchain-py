@@ -662,3 +662,7 @@ class Bigchain(object):
                 return Bigchain.BLOCK_INVALID
         else:
             return Bigchain.BLOCK_UNDECIDED
+
+    # zy@secn
+    def get_backlog_tx_number(self):
+        return self.backend.count_backlog_txs()

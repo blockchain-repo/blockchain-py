@@ -27,6 +27,8 @@ from bigchaindb import db
 from bigchaindb.commands import utils
 from bigchaindb import processes
 
+from bigchaindb.monitor import Monitor
+monitor = Monitor()
 
 logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__name__)
@@ -196,7 +198,8 @@ def _run_load(tx_left, stats):
     while True:
         tx = Transaction.create([b.me], [b.me])
         tx = tx.sign([b.me_private])
-        b.write_transaction(tx)
+        with monitor.timer('write_transaction', rate=0.01):
+            b.write_transaction(tx)
 
         stats['transactions'] += 1
 
