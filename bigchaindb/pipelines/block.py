@@ -123,7 +123,8 @@ class BlockPipeline:
         Returns:
             :class:`~bigchaindb.models.Block`: The Block.
         """
-        logger.info('Write new block %s with %s transactions', block.id, block.transactions)
+        logger.info('Write new block %s with %s transactions', block.id, len(block.transactions))
+        #logger.info('Write new block %s with %s transactions', block.id, block.transactions)
         # zy@secn
         if monitor is not None:
             #with monitor.timer('write_block', rate=config['statsd']['rate']):

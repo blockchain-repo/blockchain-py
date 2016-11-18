@@ -12,6 +12,8 @@ import bigchaindb
 from bigchaindb.models import Transaction
 from bigchaindb.web.views.base import make_error
 
+import rapidjson
+import uuid
 
 transaction_views = Blueprint('transaction_views', __name__)
 transaction_api = Api(transaction_views)
@@ -111,6 +113,34 @@ class TransactionListApi(Resource):
 
         return tx
 
+
+class TransactionTest(Resource):
+    def post(self):
+        """API endpoint to push transactions to the Federation.
+
+                Return:
+                    A ``dict`` containing the data about the transaction.
+                """
+        pool = current_app.config['bigchain_pool']
+        monitor = current_app.config['monitor']
+
+        # `force` will try to format the body of the POST request even if the `content-type` header is not
+        # set to `application/json`
+        tx1 = request.get_json(force=True)
+        payload_dict = {}
+        with pool() as b:
+            payload_dict['msg'] = str(uuid.uuid4())
+            tx = Transaction.create([b.me], [b.me], metadata=payload_dict)
+            tx = tx.sign([b.me_private])
+            rate = bigchaindb.config['statsd']['rate']
+            with monitor.timer('write_transaction', rate=rate):
+                b.write_transaction(tx)
+        tx = tx.to_dict()
+        del tx1
+        del payload_dict
+        return rapidjson.dumps(tx)
+
+
 transaction_api.add_resource(TransactionApi,
                              '/transactions/<string:tx_id>',
                              strict_slashes=False)
@@ -119,4 +149,7 @@ transaction_api.add_resource(TransactionStatusApi,
                              strict_slashes=False)
 transaction_api.add_resource(TransactionListApi,
                              '/transactions',
+                             strict_slashes=False)
+transaction_api.add_resource(TransactionTest,
+                             '/transactions/test',
                              strict_slashes=False)
