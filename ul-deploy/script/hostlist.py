@@ -44,9 +44,10 @@ with open(blockchain_nodes_path) as f:
                 continue
             port = groups[2]
             pwd = groups[3]
-            public_dns_names.append(host)
+
+            hosts = "{}@{}:{}".format(username, host, port)
+            public_dns_names.append(hosts)
             public_pwds.append(pwd)
-            public_host_pwds[host] = pwd
+            public_host_pwds[hosts] = pwd
 
     os.chdir(old_cwd)
-print("public_dns_names {}".format(public_dns_names))

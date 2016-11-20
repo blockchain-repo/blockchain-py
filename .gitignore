@@ -83,6 +83,7 @@ ntools/one-m/ansible/ansible.cfg
 ul-deploy/conf/collectd.conf
 ul-deploy/conf/rethinkdb.conf
 ul-deploy/conf/unichain_confiles
+ul-deploy/conf/keypairs.py
 
 #first push should commend and none after
 ul-deploy/conf/blockchain_nodes

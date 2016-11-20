@@ -1,8 +1,15 @@
-#example: username@host:port passwd
+#example	content					result
+#example1: username@host:port passwd             username@host:port passwd
+#example2:   username@host:port passwd           username@host:port passwd
+#example3: username@host:port passwd #comment    username@host:port passwd
+#example4: #username@host:port passwd
 
+#all nodes as follow:
 
-bc2@10.2.1.22:22 bc2 eee
-bc6@10.2.1.36:22 bc6 #bc6@10.2.1.36:22 bc62
-bc7@10.2.1.37:22 bc7#
+#bc1@10.2.1.31:22 bc1 #bc1
 
-bc434@22.11.2.33:22 bc99 #
+bc2@10.2.1.32:22 bc2 eee #bc2
+
+bc3@10.2.1.34:22 bc6 #bc6@10.2.1.36:22 bc62
+bc4@10.2.1.34:22 bc7#
+bc5@10.2.1.35:22 bc99 #

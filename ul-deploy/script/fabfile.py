@@ -146,6 +146,22 @@ def send_confile(confile):
     run('unichain show-config')
 
 
+# Install BigchainDB from a Git archive file
+# named unichain-archive.tar.gz
+@task
+@parallel
+def install_unichain_from_git_archive():
+    put('../unichain-archive.tar.gz')
+    user_group = env.user
+    sudo("echo 'create unichain directory....' ")
+    sudo("mkdir -p ~/unichain/")
+    sudo("chown -R " + user_group + ':' + user_group + ' ~/unichain')
+    run('tar xvfz unichain-archive.tar.gz  -C ~/unichain')
+    sudo('pip3 install -i http://pypi.douban.com/simple --upgrade setuptools')
+    # sudo('pip3 install . --upgrade')
+    sudo('cd ~/unichain && sudo python3 setup.py install')
+    run('rm ~/unichain-archive.tar.gz')
+
 
 # install localdb
 @task
@@ -194,7 +210,7 @@ def init_localdb():
 @parallel
 def uninstall_unichain():
     with settings(warn_only=True):
-        sudo(" echo 'uninstall unichain app in usr/local/bin' ")
+        sudo("echo 'uninstall unichain app in usr/local/bin' ")
         sudo('rm /usr/local/bin/unichain')
         sudo('rm -rf /usr/local/lib/python3.4/dist-packages/BigchainDB-*')
         sudo('rm -rf ~/unichain')
@@ -382,9 +398,9 @@ def init_all_nodes():
     with settings(warn_only=True):
         sudo('killall -9 unichain')
         sudo('killall -9 rethinkdb')
-        sudo('pip3 uninstall unichain')
+        # sudo('pip3 uninstall unichain')
         sudo('rm -rf /data/rethinkdb/*')
-        # sudo('rm -rf /data/localdb/*')
+        sudo('rm -rf /data/localdb/*')
 
 
 @task
@@ -511,9 +527,6 @@ def destroy_all_nodes():
         sudo('killall -9 unichain')
         sudo('killall -9 rethinkdb')
 
-        sudo('pip3 uninstall unichain')
-        sudo('pip3 uninstall bigchaindb')
-        sudo('pip3 uninstall simplechaindb')
         sudo('rm -rf /data/rethinkdb/*')
         sudo('rm -rf /data/localdb/*')
 
