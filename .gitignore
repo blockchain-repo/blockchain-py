@@ -84,7 +84,8 @@ ul-deploy/conf/collectd.conf
 ul-deploy/conf/rethinkdb.conf
 ul-deploy/conf/unichain_confiles
 
-#ul-deploy/conf/blockchain_nodes
-#ul-deploy/conf/monitor_config
+#first push should commend and none after
+ul-deploy/conf/blockchain_nodes
+ul-deploy/conf/monitor_config
 
 #ul-tests/
