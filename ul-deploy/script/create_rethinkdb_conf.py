@@ -8,7 +8,7 @@ from __future__ import unicode_literals
 import os.path
 import shutil
 
-from hostlist import public_dns_names
+from hostlist import public_hosts
 
 
 conf_filename = "rethinkdb.conf"
@@ -43,9 +43,9 @@ print("Create file {} success!".format(conf_filename))
 # Append additional lines to rethinkdb.conf
 with open(conf_file_path, 'a') as f:
     f.write('## The host:port of a node that RethinkDB will connect to\n')
-    if public_dns_names is not None and len(public_dns_names) > 1 :
-        for public_dns_name in public_dns_names:
-            f.write('join=' + public_dns_name + ':29015\n')
+    if public_hosts is not None and len(public_hosts) > 1 :
+        for public_host in public_hosts:
+            f.write('join=' + public_host + ':29015\n')
 
 os.chdir(old_cwd)
 

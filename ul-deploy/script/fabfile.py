@@ -16,12 +16,13 @@ from fabric.contrib.files import sed
 from fabric.operations import run, put
 from fabric.context_managers import settings
 
-from hostlist import public_dns_names as public_hosts,public_pwds,public_host_pwds
+from hostlist import public_hosts,public_pwds,public_host_pwds
 
 
 ################################ Fabric Initial Config Data  ######################################
-env['hosts'] = public_hosts
+
 env['passwords'] = public_host_pwds
+env['hosts']=env['passwords'].keys()
 ################################ First Install  ######################################
 # DON'T PUT @parallel
 @task

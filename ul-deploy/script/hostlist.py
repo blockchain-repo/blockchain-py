@@ -24,6 +24,7 @@ if not existNodesConfig:
 
 # for fabric use
 public_dns_names = []
+public_hosts = []
 public_pwds = []
 public_host_pwds = {}
 
@@ -47,6 +48,7 @@ with open(blockchain_nodes_path) as f:
 
             hosts = "{}@{}:{}".format(username, host, port)
             public_dns_names.append(hosts)
+            public_hosts.append(host)
             public_pwds.append(pwd)
             public_host_pwds[hosts] = pwd
 

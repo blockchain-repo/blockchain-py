@@ -23,7 +23,7 @@ import argparse
 import json
 import os
 
-from hostlist import public_dns_names
+from hostlist import public_hosts
 from monitor_server import gMonitorServer
 
 unichain_confiles = os.getcwd()
@@ -105,7 +105,7 @@ for i, filename in enumerate(conf_files):
         # to port 9984
         conf_dict['server']['bind'] = '0.0.0.0:9984'
         # Set the api_endpoint
-        conf_dict['api_endpoint'] = 'http://' + public_dns_names[i] + \
+        conf_dict['api_endpoint'] = 'http://' + public_hosts[i] + \
                                     ':9984/api/v1'
         # Set Statsd host
         conf_dict['statsd']['host'] = gMonitorServer
