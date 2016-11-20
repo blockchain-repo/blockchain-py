@@ -1,0 +1,8 @@
+#example: username@host:port passwd
+
+
+bc2@10.2.1.22:22 bc2 eee
+bc6@10.2.1.36:22 bc6 #bc6@10.2.1.36:22 bc62
+bc7@10.2.1.37:22 bc7#
+
+bc434@22.11.2.33:22 bc99 #

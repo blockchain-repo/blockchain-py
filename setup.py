@@ -99,7 +99,7 @@ setup(
 
     entry_points={
         'console_scripts': [
-            'bigchaindb=bigchaindb.commands.bigchain:main'
+            'unichain=bigchaindb.commands.bigchain:main'
         ],
     },
     install_requires=install_requires,
