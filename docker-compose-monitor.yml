@@ -3,20 +3,24 @@ services:
   influxdb:
     image: tutum/influxdb
     ports:
-        - "8083:8083"
-        - "8086:8086"
+        - "33:8083"
+        - "36:8086"
         - "8090"
         - "8099"
+        - "25826:25826/udp"
     environment:
       PRE_CREATE_DB: "telegraf"
+      COLLECTD_DB: "collectdb"
+      COLLECTD_BINDING: ':25826'
     volumes:
       - $INFLUXDB_DATA:/data
 
   grafana:
-    image: bigchaindb/grafana-bigchaindb-docker
-    tty: true
+    # image: bigchaindb/grafana-bigchaindb-docker
+    # tty: true
+    build: ./grafana-unichain-docker
     ports:
-      - "3000:3000"
+      - "30:3000"
     environment:
       INFLUXDB_HOST: "influxdb"
 
