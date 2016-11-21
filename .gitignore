@@ -66,15 +66,6 @@ target/
 .python-version
 .idea
 
-# Some files created when deploying a cluster on AWS
-deploy-cluster-aws/conf/rethinkdb.conf
-deploy-cluster-aws/confiles/
-deploy-cluster-aws/client_confile
-deploy-cluster-aws/hostlist.py
-deploy-cluster-aws/ssh_key.py
-benchmarking-tests/hostlist.py
-benchmarking-tests/ssh_key.py
-
 # Ansible-specific files
 ntools/one-m/ansible/hosts
 ntools/one-m/ansible/ansible.cfg

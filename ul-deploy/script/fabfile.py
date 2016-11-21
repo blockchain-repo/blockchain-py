@@ -16,7 +16,7 @@ from fabric.contrib.files import sed
 from fabric.operations import run, put
 from fabric.context_managers import settings
 
-from hostlist import public_hosts,public_pwds,public_host_pwds
+from hostlist import public_dns_names as public_hosts,public_pwds,public_host_pwds
 
 
 ################################ Fabric Initial Config Data  ######################################
@@ -35,7 +35,7 @@ def set_host(host_index):
         host_index (int): 0, 1, 2, 3, etc.
     Example:
         fab set_host:4 fab_task_A fab_task_B
-        will set env.hosts = [public_dns_names[4]]
+        will set env.hosts = [public_hosts[4]]
         but only for doing fab_task_A and fab_task_B
     """
     env.hosts = [public_hosts[int(host_index)]]
@@ -247,7 +247,7 @@ def drop_unichain():
 # Set the number of shards (tables[bigchain,votes,backlog])
 @task
 @hosts(public_hosts[0])
-def set_shards(num_shards):
+def set_shards(num_shards=len(public_hosts)):
     # num_shards = len(public_hosts)
     run('unichain set-shards {}'.format(num_shards))
 
