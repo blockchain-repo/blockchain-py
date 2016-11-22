@@ -32,8 +32,8 @@ def createTrans():
         with monitor.timer('write_transaction', rate=rate):
             b.write_transaction(tx)
     tx = tx.to_dict()
-    print(tx['transaction']['metadata']['data']['postcount'], end="-postcount,")
-    print(tx['transaction']['metadata']['data']['createcount'],end="-createcount,")
+    # print(tx['transaction']['metadata']['data']['postcount'], end="-postcount,")
+    # print(tx['transaction']['metadata']['data']['createcount'],end="-createcount,")
     return flask.jsonify(**tx)
 
 @testVeracity_api.route('get', methods=['POST','GET'])
