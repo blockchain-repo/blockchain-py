@@ -125,7 +125,7 @@ class Bigchain(object):
         else:
             # There is no other node to assign to
             new_assignee = self.me
-        print("reassign:"+str(transaction['id']))
+        # print("reassign:"+str(transaction['id']))
         return self.backend.update_transaction(
                 transaction['id'],
                 {'assignee': new_assignee, 'assignment_timestamp': time()})
