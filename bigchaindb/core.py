@@ -659,7 +659,10 @@ class Bigchain(object):
             if counts.most_common()[0][1] > math.floor(n_voters / 2):
                 return Bigchain.BLOCK_VALID
             else:
-                return Bigchain.BLOCK_INVALID
+                if len(votes) < n_voters:
+                    return Bigchain.BLOCK_UNDECIDED
+                else:
+                    return Bigchain.BLOCK_INVALID
         else:
             return Bigchain.BLOCK_UNDECIDED
 
