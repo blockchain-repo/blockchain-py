@@ -47,8 +47,9 @@ class Election:
         logger.info('Rewriting %s transactions from invalid block %s',
                     len(invalid_block.transactions),
                     invalid_block.id)
-        for tx in invalid_block.transactions:
-            self.bigchain.write_transaction(tx)
+        if self.bigchain.me == invalid_block.node_pubkey:
+            for tx in invalid_block.transactions:
+                self.bigchain.write_transaction(tx)
         return invalid_block
 
 
