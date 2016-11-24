@@ -35,6 +35,9 @@ Options:
     return 0
 }
 
+chmod +755 *.sh 2>/dev/null
+chmod +755 *.py 2>/dev/null
+
 case $1 in
     h|help|-h|-help)
         usage
