@@ -5,10 +5,10 @@
 set -e
 
 function printErr()
-    {
-        echo "usage: ./configure_unichain.sh <number_of_files>"
-        echo "No argument $1 supplied"
-    }
+{
+    echo "usage: ./configure_unichain.sh <number_of_files>"
+    echo "No argument $1 supplied"
+}
 
 if [ -z "$1" ]; then
     printErr "<number_of_files>"
@@ -47,3 +47,6 @@ for (( HOST=0 ; HOST<$NUM_NODES ; HOST++ )); do
     echo "Sending "$CONFILE
     fab set_host:$HOST send_confile:$CONFILE
 done
+
+
+exit 0

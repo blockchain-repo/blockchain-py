@@ -23,6 +23,29 @@ from hostlist import public_dns_names as public_hosts,public_pwds,public_host_pw
 
 env['passwords'] = public_host_pwds
 env['hosts']=env['passwords'].keys()
+
+################################ Check envl  ######################################
+#step:check port&process&data,conf path
+@task
+def check_rethinkdb():
+    with settings(warn_only=True):
+        #TODO:
+        pass
+
+#step:check port&process&data,conf path
+@task
+def check_localdb():
+    with settings(warn_only=True):
+        #TODO:
+        pass
+
+#step:check port&process&data,conf path
+@task
+def check_unichain_pro():
+    with settings(warn_only=True):
+        #TODO:
+        pass
+
 ################################ First Install  ######################################
 # DON'T PUT @parallel
 @task
@@ -40,7 +63,6 @@ def set_host(host_index):
     """
     env.hosts = [public_hosts[int(host_index)]]
     env.password = [public_pwds[int(host_index)]]
-
 
 # Install base software
 @task
@@ -540,3 +562,31 @@ def destroy_all_nodes():
         sudo('rm -rf ~/unichain')
         # sudo('apt-get purge rabbitmq-server')
 
+################################ Detect server ######################################
+#step: get port & detect port & detect process
+@task
+def detect_rethinkdb():
+    with settings(warn_only=True):
+        #TODO:
+        pass
+
+#step: get port & detect port & detect process
+@task
+def detect_localdb():
+    with settings(warn_only=True):
+        #TODO:
+        pass
+
+#step: get port & detect port & detect process
+@task
+def detect_unichain_pro():
+    with settings(warn_only=True):
+        #TODO:
+        pass
+
+#step: get port & detect port & detect process
+@task
+def detect_unichain_api():
+    with settings(warn_only=True):
+        #TODO:
+        pass

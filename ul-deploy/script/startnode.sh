@@ -1,4 +1,3 @@
-
 #! /bin/bash
 
 host=
@@ -33,20 +32,16 @@ done
 
 hostandport=${host}":22"
 
-# start rethinkdb 
+# start rethinkdb
 if [ $rethinkdb != false ]
 then
-    echo "start rethinkdb..."
+    echo -e  "[INFO]==========start rethinkdb[$hostandport]...=========="
     fab set_node:$hostandport,password=$password start_rethinkdb
 fi
 
 #start unichain
 if [ $unichain != false ]
 then
-    echo "start unichain..."
+    echo -e "[INFO]=========start unichain[$hostandport]...=========="
     fab set_node:$hostandport,password=$password start_unichain
 fi
-
-
-
-

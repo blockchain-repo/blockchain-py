@@ -1,6 +1,4 @@
-
 #! /bin/bash
-
 
 if [ $# != 1 ]
 then
@@ -9,19 +7,18 @@ then
 fi
 
 # start or stop cluster
-
 if [ $1 == "start" ]
 then
-   echo "start cluster..."
+   echo -e "[INFO]==========start cluster rethinkdb...=========="
    fab start_rethinkdb
+   echo -e "[INFO]==========start cluster unichain...=========="
    fab start_unichain
 elif [ $1 == "stop" ]
 then
-   echo "stop cluster..."
+   echo -e "[INFO]=========stop cluster unichain...=========="
    fab stop_unichain
+   echo -e "[INFO]==========stop cluster rethinkdb...=========="
    fab stop_rethinkdb
 fi
 
-
-
-
+exit 0
