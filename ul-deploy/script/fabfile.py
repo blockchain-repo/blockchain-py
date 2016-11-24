@@ -176,15 +176,20 @@ def send_confile(confile):
 def install_unichain_from_git_archive():
     put('../unichain-archive.tar.gz')
     user_group = env.user
-    sudo("echo 'create unichain directory....' ")
-    sudo("mkdir -p ~/unichain/")
-    sudo("chown -R " + user_group + ':' + user_group + ' ~/unichain')
-    run('tar xvfz unichain-archive.tar.gz  -C ~/unichain')
-    sudo('pip3 install -i http://pypi.douban.com/simple --upgrade setuptools')
-    # sudo('pip3 install . --upgrade')
-    sudo('cd ~/unichain && sudo python3 setup.py install')
-    run('rm ~/unichain-archive.tar.gz')
-
+    with settings(warn_only=True):
+        if run("test -d ./unichain").failed:
+            run("echo 'create unichain directory' ")
+            run("mkdir -p ./unichain")
+            sudo("chown -R " + user_group + ':' + user_group + ' ./unichain')
+        else:
+            run("echo 'remove old unichain directory' ")
+            sudo("rm -rf ./unichain/*")
+    with cd('~/unichain'):
+        run('tar xvfz ../unichain-archive.tar.gz >/dev/null 2>&1')
+        sudo('pip3 install -i http://pypi.douban.com/simple --upgrade setuptools')
+        sudo('python3 setup.py install')
+    sudo('rm unichain-archive.tar.gz')
+    run('echo install_unichain_from_git_archive done!')
 
 # install localdb
 @task
