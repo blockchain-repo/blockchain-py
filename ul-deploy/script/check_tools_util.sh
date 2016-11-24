@@ -8,7 +8,7 @@
 ##output: python_bin|python_bin_path
 function get_all_python
 {
-    for p_python in `whereis python|sed "s/$/ $/g"|grep -oE "/.*/bin/python[.0-9]+[ ]+"|sort -u`
+    for p_python in `whereis python|sed "s/$/ /g"|grep -oE "/[a-zA-Z/]+/bin/python[.0-9]+[ ]+"|sort -u`
     do
         bin_python=`echo -e "$p_python"|awk -F"/" '{print $NF}'`
         #v_cmd_python="${bin_python} --version"
@@ -36,7 +36,7 @@ function get_python_bin_path
     if [ -z $python_bin ];then
         return 1
     fi
-    whereis $python_bin|sed "s/$/ $/g"|grep -o "/.*/bin/${python_bin} "
+    whereis $python_bin|sed "s/$/ /g"|grep -o "/[a-zA-Z/]+/bin/${python_bin} "
     return 0
 }
 
