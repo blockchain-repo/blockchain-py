@@ -10,7 +10,7 @@ from __future__ import with_statement, unicode_literals
 from os import environ  # a mapping (like a dict)
 import sys
 
-from fabric.api import sudo, env, hosts
+from fabric.api import sudo, env, hosts, cd
 from fabric.api import task, parallel
 from fabric.contrib.files import sed
 from fabric.operations import run, put
