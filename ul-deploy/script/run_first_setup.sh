@@ -31,10 +31,10 @@ echo -e ""
 echo -e "[WARNING]please confirm cluster nodes info: [y/n]"
 read cluster_str
 if [ "`echo "$cluster_str"|tr A-Z  a-z`" == "y" -o "`echo "$cluster_str"|tr A-Z  a-z`" == "yes" ];then
-	 echo -e "[INFO]=========begin first_setup=========="
+     echo -e "[INFO]=========begin first_setup=========="
 else
-	echo -e "[ERROR]input invalid or cluster nodes info invalid"
-	echo -e "[ERROR]=========first_setup aborted==========="
+    echo -e "[ERROR]input invalid or cluster nodes info invalid"
+    echo -e "[ERROR]=========first_setup aborted==========="
     exit 1
 fi
 

@@ -9,45 +9,45 @@
 function get_all_python
 {
     for p_python in `whereis python|sed "s/$/ $/g"|grep -oE "/.*/bin/python[.0-9]+[ ]+"|sort -u`
-	do
+    do
         bin_python=`echo -e "$p_python"|awk -F"/" '{print $NF}'`
-		#v_cmd_python="${bin_python} --version"
-		echo -e "$bin_python|$p_python"
+        #v_cmd_python="${bin_python} --version"
+        echo -e "$bin_python|$p_python"
     done
     return 0
 }
 
 function check_python_3
 {
-	for t_line in `get_all_python`
-	do
+    for t_line in `get_all_python`
+    do
         bin_python=`echo $t_line|awk -F"|" '{print $1}'`
-		if [ ! -z `echo $bin_python|grep "python3"` ];then
-			echo $bin_python
+        if [ ! -z `echo $bin_python|grep "python3"` ];then
+            echo $bin_python
             return 0
-		fi
-	done
-	return 1
+        fi
+    done
+    return 1
 }
 
 function get_python_bin_path
 {
     local python_bin=$1
-	if [ -z $python_bin ];then
+    if [ -z $python_bin ];then
         return 1
-	fi
-	whereis $python_bin|sed "s/$/ $/g"|grep -o "/.*/bin/${python_bin} "
+    fi
+    whereis $python_bin|sed "s/$/ $/g"|grep -o "/.*/bin/${python_bin} "
     return 0
 }
 
 function check_fabric_3
 {
     local fab_version=`fab --version|grep -i "fabric3"`
-	if [ ! -z "$fab_version" ];then
-		echo $fab_version
+    if [ ! -z "$fab_version" ];then
+        echo $fab_version
         return 0
-	fi
-	return 1
+    fi
+    return 1
 }
 
 #check_python_3

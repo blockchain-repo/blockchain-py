@@ -27,10 +27,10 @@ Options:
                              reconfigure rethinkdb|bigchaindb|unichain
                              restart cluster nodes server
     server_check after setup, check servers in cluster nodes are running
-	start_all    start all cluster nodes
-	stop_all     stop  sll cluster nodes
-	start_node   start signal cluster node 
-	stop_node    stop  signal cluster node
+    start_all    start all cluster nodes
+    stop_all     stop  sll cluster nodes
+    start_node   start signal cluster node 
+    stop_node    stop  signal cluster node
     "
     return 0
 }
@@ -53,21 +53,21 @@ case $1 in
     ;;
     start_all)
         ./clustercontrol.sh start | tee ../log/clusterconrol_start.log
-	;;
+    ;;
     stop_all)
         ./clustercontrol.sh stop | tee ../log/clustercontrol_stop.log
-	;;
+    ;;
     start_node)
-		str_param=`echo $@|awk '{for(i=2;i<=NF;i++){if(i!=NF)print $i" ";else print $i}}'`
+        str_param=`echo $@|awk '{for(i=2;i<=NF;i++){if(i!=NF)print $i" ";else print $i}}'`
         ./startnode.sh $str_param | tee ../log/startnode.log
-	;;
+    ;;
     stop_node)
-		str_param=`echo $@|awk '{for(i=2;i<=NF;i++){if(i!=NF)print $i" ";else print $i}}'`
+        str_param=`echo $@|awk '{for(i=2;i<=NF;i++){if(i!=NF)print $i" ";else print $i}}'`
         ./stopnode.sh $str_param | tee ../log/stopnode.log
-	;;
+    ;;
     *)
-		usage
-	;;
+        usage
+    ;;
 esac
 
 exit 0

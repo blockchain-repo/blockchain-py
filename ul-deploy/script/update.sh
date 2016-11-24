@@ -30,10 +30,10 @@ echo -e ""
 echo -e "[WARNING]please confirm cluster nodes info: [y/n]"
 read cluster_str
 if [ "`echo "$cluster_str"|tr A-Z  a-z`" == "y" -o "`echo "$cluster_str"|tr A-Z  a-z`" == "yes" ];then
-	 echo -e "[INFO]=========begin update=========="
+     echo -e "[INFO]=========begin update=========="
 else
-	echo -e "[ERROR]input invalid or cluster nodes info invalid"
-	echo -e "[ERROR]=========update aborted==========="
+    echo -e "[ERROR]input invalid or cluster nodes info invalid"
+    echo -e "[ERROR]=========update aborted==========="
     exit 1
 fi
 
