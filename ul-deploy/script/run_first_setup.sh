@@ -71,6 +71,9 @@ echo -e "[INFO]==========configure  rethinkdb=========="
 #localdb install
 echo -e "[INFO]==========install localdb=========="
 #fab install localdb
+fab install_localdb
+#init localdb ,init the data store dirs /data/localdb/{bigchain,votes,backlog}
+fab init_localdb
 
 #unichain install&configure&init&shards
 echo -e "[INFO]==========install unichain=========="
