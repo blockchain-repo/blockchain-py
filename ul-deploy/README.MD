@@ -3,13 +3,13 @@
 
 
 ##部署统一入口
-bash build.sh $1
+###bash build.sh $1
+    
 Options:
     h|-h|help|-help usage help
     env_check       before setup, check tools already in env
     first_setup     first setup:install base tools|depends libs|rethinkdb|bigchaindb|unichain
     server_check    after setup|update, check servers in cluster nodes are running
-    
     update          updte setup:update unichain
     configure       rethinkdb|bigchaindb|unichain, start cluster nodes server
     reconfigure     rethinkdb|bigchaindb|unichain, restart cluster nodes server
