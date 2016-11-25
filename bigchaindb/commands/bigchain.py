@@ -33,7 +33,8 @@ monitor = Monitor()
 logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__name__)
 
-
+import time
+import random
 # We need this because `input` always prints on stdout, while it should print
 # to stderr. It's a very old bug, check it out here:
 # - https://bugs.python.org/issue1927
@@ -202,7 +203,7 @@ def _run_load(tx_left, stats):
         tx = tx.sign([b.me_private])
         with monitor.timer('write_transaction', rate=0.01):
             b.write_transaction(tx)
-
+            time.sleep(0.01*random.randint(1,100))
         stats['transactions'] += 1
 
         if tx_left is not None:

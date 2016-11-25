@@ -5,6 +5,7 @@ import bigchaindb
 from bigchaindb.pipelines import vote, block, election, stale
 from bigchaindb.web import server
 
+from extend.localdb.pipelines import local_block, local_vote
 
 logger = logging.getLogger(__name__)
 
@@ -24,6 +25,13 @@ BANNER = """
 
 def start():
     logger.info('Initializing BigchainDB...')
+
+    #must start the localdb pipeline first
+    # logger.info('Starting localblock')
+    # local_block.start()
+    #
+    # logger.info('Starting localvoter')
+    # local_vote.start()
 
     # start the processes
     logger.info('Starting block')
