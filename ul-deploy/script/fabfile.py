@@ -16,8 +16,8 @@ from fabric.contrib.files import sed
 from fabric.operations import run, put
 from fabric.context_managers import settings
 
-from hostlist import public_dns_names as public_hosts,public_pwds,public_host_pwds
 import json
+from hostlist import public_dns_names,public_hosts,public_pwds,public_host_pwds
 
 ################################ Fabric Initial Config Data  ######################################
 
@@ -225,6 +225,7 @@ def install_unichain_from_git_archive():
         sudo('python3 setup.py install')
     sudo('rm -f ../unichain-archive.tar.gz')
     run('echo install_unichain_from_git_archive done!')
+
 
 # install localdb
 @task
