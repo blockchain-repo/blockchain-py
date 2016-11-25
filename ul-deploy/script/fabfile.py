@@ -17,7 +17,7 @@ from fabric.operations import run, put
 from fabric.context_managers import settings
 
 from hostlist import public_dns_names as public_hosts,public_pwds,public_host_pwds
-
+import json
 
 ################################ Fabric Initial Config Data  ######################################
 
@@ -29,8 +29,31 @@ env['hosts']=env['passwords'].keys()
 @task
 def check_rethinkdb():
     with settings(warn_only=True):
-        #TODO:
-        pass
+        print("[INFO]==========check rethinkdb==========")
+        process_num=run('ps -aux|grep -E "/usr/bin/rethinkdb"|grep -v grep|wc -l')
+        if process_num == 0:
+            print("[INFO]=====process[rethinkdb] num detect result: is 0")
+        else:
+            print("[ERROR]=====process[rethinkdb] num detect result: is %s" % (str(process_num)))
+        #TODO:read from conf
+        driver_port = 28015
+        cluster_port = 29015
+        http_port = 8080
+        check_driver_port=sudo('netstat -nlap|grep "LISTEN"|grep rethinkdb|awk -v v_port=":%s" \'{if(v_port==$4) print $0}\'' % (driver_port))
+        if not check_driver_port:
+            print("[INFO]=====driver_port[%s] detect result: is not used!" % (driver_port))
+        else:
+            print("[ERROR]=====driver_port[%s] detect result: is used!" % (driver_port))
+        check_cluster_port=sudo('netstat -nlap|grep "LISTEN"|grep rethinkdb|awk -v v_port=":%s" \'{if(v_port==$4) print $0}\'' % (cluster_port))
+        if not cluster_port:
+            print("[INFO]=====cluster_port[%s] detect result: is not used!" % (cluster_port))
+        else:
+            print("[ERROR]=====cluster_port[%s] detect result:  is used!" % (cluster_port))
+        check_http_port=sudo('netstat -nlap|grep "LISTEN"|grep rethinkdb|awk -v v_port=":%s" \'{if(v_port==$4) print $0}\'' % (http_port))
+        if not check_http_port:
+            print("[INFO]=====http_port[%s] detect result: is not used!" % (http_port))
+        else:
+            print("[ERROR]=====http_port[%s] detect result: is used!" % (http_port))
 
 #step:check port&process&data,conf path
 @task
@@ -43,8 +66,19 @@ def check_localdb():
 @task
 def check_unichain_pro():
     with settings(warn_only=True):
-        #TODO:
-        pass
+        print("[INFO]==========check unichain pro==========")
+        process_num=run('ps -aux|grep -E "/usr/local/bin/unichain -y start|SCREEN -d -m unichain -y start"|grep -v grep|wc -l')
+        if process_num == 0:
+            print("[INFO]=====process[unichain] num check result: is 0")
+        else:
+            print("[ERROR]=====process[unichain] num check result: is %s" % (str(process_num)))
+        ##TODO:confirm port in conf
+        api_port=9984
+        check_api_port=sudo('netstat -nlap|grep "LISTEN"|awk -v v_port=":%s" \'{if(v_port==$4) print $0}\'' % (api_port))
+        if not check_api_port:
+            print("[INFO]=====api_port[%s] detect result: is not used!" % (api_port))
+        else:
+            print("[ERROR]=====api_port[%s] detect result: is used!" % (api_port))
 
 ################################ First Install  ######################################
 # DON'T PUT @parallel
@@ -174,7 +208,7 @@ def send_confile(confile):
 @task
 @parallel
 def install_unichain_from_git_archive():
-    put('../unichain-archive.tar.gz')
+    put('unichain-archive.tar.gz')
     user_group = env.user
     with settings(warn_only=True):
         if run("test -d ./unichain").failed:
@@ -184,11 +218,11 @@ def install_unichain_from_git_archive():
         else:
             run("echo 'remove old unichain directory' ")
             sudo("rm -rf ./unichain/*")
-    with cd('~/unichain'):
-        run('tar xvfz ../unichain-archive.tar.gz >/dev/null 2>&1')
-        sudo('pip3 install -i http://pypi.douban.com/simple --upgrade setuptools')
+    run('tar xvfz unichain-archive.tar.gz -C ./unichain >/dev/null 2>&1')
+    sudo('pip3 install -i http://pypi.douban.com/simple --upgrade setuptools')
+    with cd('./unichain'):
         sudo('python3 setup.py install')
-    sudo('rm unichain-archive.tar.gz')
+    sudo('rm -f ../unichain-archive.tar.gz')
     run('echo install_unichain_from_git_archive done!')
 
 # install localdb
@@ -238,10 +272,12 @@ def init_localdb():
 @parallel
 def uninstall_unichain():
     with settings(warn_only=True):
-        sudo("echo 'uninstall unichain app in usr/local/bin' ")
-        sudo('rm /usr/local/bin/unichain')
-        sudo('rm -rf /usr/local/lib/python3.4/dist-packages/BigchainDB-*')
-        sudo('rm -rf ~/unichain')
+        run('echo "[INFO]==========uninstall unichain-pro=========="')
+        sudo('killall -9 unichain 2>/dev/null')
+        sudo('killall -9 pip,pip3 2>/dev/null')
+        sudo('rm /usr/local/bin/unichain 2>/dev/null')
+        sudo('rm -rf /usr/local/lib/python3.4/dist-packages/BigchainDB-* 2>/dev/null')
+        sudo('rm -rf ~/unichain 2>/dev/null')
 
 
 # Initialize BigchainDB
@@ -282,7 +318,7 @@ def set_shards(num_shards=len(public_hosts)):
 # Set the number of replicas (tables[bigchain,votes,backlog])
 @task
 @hosts(public_hosts[0])
-def set_replicas(num_replicas):
+def set_replicas(num_replicas=(len(public_hosts)/2)+1):
     run('unichain set-replicas {}'.format(num_replicas))
 
 
@@ -299,14 +335,14 @@ def start_unichain():
 def stop_unichain():
     with settings(warn_only=True):
         # sudo("kill `ps -ef|grep unichain | grep -v grep|awk '{print $2}'` ")
-        sudo("killall -9 unichain")
+        sudo("killall -9 unichain 2>/dev/null")
 
 
 @task
 @parallel
 def restart_unichain():
     with settings(warn_only=True):
-        sudo("killall -9 unichain")
+        sudo("killall -9 unichain 2>/dev/null")
         sudo('screen -d -m unichain -y start &', pty=False, user=env.user)
 
 
@@ -322,8 +358,8 @@ def start_unichain_load():
 @parallel
 def clear_rethinkdb_data():
     with settings(warn_only=True):
-        sudo("echo clean rethinkdb data")
-        sudo('rm -rf /data/rethinkdb/*')
+        run("echo clean rethinkdb data")
+        sudo('rm -rf /data/rethinkdb/* 2>/dev/null')
 
 
 @task
@@ -346,6 +382,10 @@ def rebuild_rethinkdb():
     sudo("service rethinkdb index-rebuild -n 2")
 
 
+# python3,pip,pip3
+@task 
+def stop_python():
+    sudo("killall -9 python,python3,pip,pip3 2>/dev/null")
 ########################### Node control ####################################
 #set on node
 @task
@@ -424,19 +464,23 @@ def count_process_by_name(name):
 @parallel
 def init_all_nodes():
     with settings(warn_only=True):
-        sudo('killall -9 unichain')
-        sudo('killall -9 rethinkdb')
-        # sudo('pip3 uninstall unichain')
-        sudo('rm -rf /data/rethinkdb/*')
-        sudo('rm -rf /data/localdb/*')
+        sudo('killall -9 unichain 2>/dev/null')
+        sudo('killall -9 rethinkdb 2>/dev/null')
+        sudo('killall -9 pip3,pip 2>/dev/null')
+        sudo('rm /usr/local/bin/unichain 2>/dev/null')
+        sudo('rm -rf /usr/local/lib/python3.4/dist-packages/BigchainDB-* 2>/dev/null')
+        sudo('rm -rf ~/unichain 2>/dev/null')
+        sudo('rm -rf /data/rethinkdb/* 2>/dev/null')
+        sudo('rm -rf /data/localdb/* 2>/dev/null')
 
 
 @task
 @parallel
 def kill_all_nodes():
     with settings(warn_only=True):
-        sudo('killall -9 rethinkdb')
-        sudo('killall -9 unichain')
+        sudo('killall -9 unichain 2>/dev/null')
+        sudo('killall -9 rethinkdb 2>/dev/null')
+        sudo('killall -9 pip3,pip 2>/dev/null')
 
 
 @task
@@ -444,7 +488,7 @@ def kill_all_nodes():
 def kill_process_with_name(name):
     with settings(warn_only=True):
         if name is not None:
-            sudo("echo kill process use the name %s" %(name))
+            run("echo kill process use the name %s" %(name))
             sudo("killall -9 {}".format(name))
 
 
@@ -452,7 +496,7 @@ def kill_process_with_name(name):
 @parallel
 def kill_process_with_port(port):
     with settings(warn_only=True):
-        sudo("echo kill process use the port %s" %(port))
+        run("echo kill process use the port %s" %(port))
         sudo("killall -9 `netstat -nlp | grep :{} | awk '{print $7}' | awk -F'/' '{ print $1 }'`".format(port))
 
 @task
@@ -550,30 +594,61 @@ def test_nodes_rethinkdb(file=1,num=1,blank=False):
 @parallel
 def destroy_all_nodes():
     with settings(warn_only=True):
-        sudo('killall -9 bigchaindb')
-        sudo('killall -9 simplechaindb')
-        sudo('killall -9 unichain')
-        sudo('killall -9 rethinkdb')
+        sudo('killall -9 bigchaindb 2>/dev/null')
+        sudo('killall -9 simplechaindb 2>/dev/null') 
+        sudo('killall -9 unichain 2>/dev/null')
+        sudo('killall -9 rethinkdb 2>/dev/null')
+        sudo('killall -9 pip,pip3 2>/dev/null')
 
-        sudo('rm -rf /data/rethinkdb/*')
-        sudo('rm -rf /data/localdb/*')
+        sudo('rm -rf /data/rethinkdb/* 2>/dev/null')
+        sudo('rm -rf /data/localdb/* 2>/dev/null')
 
-        sudo('rm -rf /usr/local/lib/python3.4/dist-packages/BigchainDB-*')
-        sudo('rm /usr/local/bin/bigchaindb')
-        sudo('rm -rf ~/bigchaindb')
-        sudo('rm /usr/local/bin/simplechaindb')
-        sudo('rm -rf ~/simplechaindb')
-        sudo('rm /usr/local/bin/unichain')
-        sudo('rm -rf ~/unichain')
+        sudo('rm -rf /usr/local/lib/python3.4/dist-packages/BigchainDB-* 2>/dev/null')
+        sudo('rm /usr/local/bin/bigchaindb 2>/dev/null')
+        sudo('rm -rf ~/bigchaindb 2>/dev/null')
+        sudo('rm /usr/local/bin/simplechaindb 2>/dev/null')
+        sudo('rm -rf ~/simplechaindb 2>/dev/null')
+        sudo('rm /usr/local/bin/unichain 2>/dev/null')
+        sudo('rm -rf ~/unichain 2>/dev/null')
         # sudo('apt-get purge rabbitmq-server')
 
 ################################ Detect server ######################################
-#step: get port & detect port & detect process
+#step: get port & detect port
 @task
 def detect_rethinkdb():
     with settings(warn_only=True):
-        #TODO:
-        pass
+        print("[INFO]==========detect rethinkdb==========")
+        rethinkdb_conf = "/etc/rethinkdb/instances.d/default.conf"
+        driver_port = sudo('cat %s|grep -v "^#"|grep "driver-port="|awk -F"=" \'{print $2}\'' % (rethinkdb_conf))
+        cluster_port = sudo('cat %s|grep -v "^#"|grep "cluster-port="|awk -F"=" \'{print $2}\'' % (rethinkdb_conf))
+        http_port = sudo('cat %s|grep -v "^#"|grep "http-port="|awk -F"=" \'{print $2}\'' % (rethinkdb_conf))
+        if not driver_port :
+            driver_port = 28015 
+        if not cluster_port:
+            cluster_port = 29015 
+        if not http_port:
+            http_port = 8080
+        check_driver_port=sudo('netstat -nlap|grep "LISTEN"|grep rethinkdb|awk -v v_port=":%s" \'{if(v_port==$4) print $0}\'' % (driver_port))
+        if not check_driver_port:
+            print("[ERROR]=====driver_port[%s] detect result: NOT exist!" % (driver_port))
+        else:
+            print("[INFO]=====driver_port[%s] detect result: is OK!" % (driver_port))
+        check_cluster_port=sudo('netstat -nlap|grep "LISTEN"|grep rethinkdb|awk -v v_port=":%s" \'{if(v_port==$4) print $0}\'' % (cluster_port))
+        if not cluster_port:
+            print("[ERROR]=====cluster_port[%s] detect result: not alive" % (cluster_port))
+        else:
+            print("[INFO]=====cluster_port[%s] detect result:  is OK!" % (cluster_port))
+        check_http_port=sudo('netstat -nlap|grep "LISTEN"|grep rethinkdb|awk -v v_port=":%s" \'{if(v_port==$4) print $0}\'' % (http_port))
+        if not check_http_port:
+            print("[ERROR]=====http_port[%s] detect result: not alive" % (http_port))
+        else:
+            print("[INFO]=====http_port[%s] detect result: is OK!" % (http_port))
+        process_num=run('ps -aux|grep -E "/usr/bin/rethinkdb"|grep -v grep|wc -l')
+        if process_num == 0:
+            print("[ERROR]=====process[rethinkdb] num detect result: is 0")
+        else:
+            print("[INFO]=====process[rethinkdb] num detect result: is %s" % (str(process_num)))
+
 
 #step: get port & detect port & detect process
 @task
@@ -586,12 +661,32 @@ def detect_localdb():
 @task
 def detect_unichain_pro():
     with settings(warn_only=True):
-        #TODO:
-        pass
+        print("[INFO]==========detect unichain pro==========")
+        process_num=run('ps -aux|grep -E "/usr/local/bin/unichain -y start|SCREEN -d -m unichain -y start"|grep -v grep|wc -l')
+        if process_num == 0:
+            print("[ERROR]=====process[unichain] num detect result: is 0")
+        else:
+            print("[INFO]=====process[unichain] num detect result: is %s" % (str(process_num)))
 
 #step: get port & detect port & detect process
 @task
 def detect_unichain_api():
     with settings(warn_only=True):
-        #TODO:
-        pass
+        print("[INFO]==========detect unichain api==========")
+        unichain_conf = "/home/%s/.unichain" % (env.user)
+        unichain_conf_str=run('cat ~/.unichain')
+        #with open(unichain_conf, "a") as r:
+        #    unichain_conf_str=r.readline()
+        unichain_conf_str.replace("null", "")
+        unichain_dict = json.loads(unichain_conf_str)
+        server_url = str(unichain_dict["server"]["bind"])
+        api_endpoint = str(unichain_dict["api_endpoint"])
+        if server_url.startswith("0.0.0.0"):
+            api_url = api_endpoint.replace("/api/v1", "")
+            api_detect_res = run('curl -i %s 2>/dev/null|head -1|grep "200 OK"' % (api_url))
+            if not api_detect_res:
+                print("[ERROR]=====api[%s] detect result: is not requested!!!" % (api_url))
+            else:
+                print("[INFO]=====api[%s] detect result: is OK!" % (api_url))
+        else:
+            print("[ERROR]=====api[%s] detect result:  is not requested!" % (api_endpoint))
