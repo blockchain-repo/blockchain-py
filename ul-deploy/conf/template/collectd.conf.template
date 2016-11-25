@@ -941,8 +941,8 @@ LoadPlugin network
 #	XFF 0.1
 #</Plugin>
 
-<Plugin rrdtool>
-	DataDir "/var/lib/collectd/rrd"
+#<Plugin rrdtool>
+#	DataDir "/var/lib/collectd/rrd"
 #	CacheTimeout 120
 #	CacheFlush 900
 #	WritesPerSecond 30
@@ -956,7 +956,7 @@ LoadPlugin network
 #	RRARows 1200
 #	RRATimespan 158112000
 #	XFF 0.1
-</Plugin>
+#</Plugin>
 
 #<Plugin sensors>
 #	SensorConfigFile "/etc/sensors3.conf"

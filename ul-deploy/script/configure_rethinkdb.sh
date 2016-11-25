@@ -5,6 +5,11 @@
 set -e
 
 # (Re)create the RethinkDB configuration file conf/rethinkdb.conf
+echo -e "[INFO]==========init rethinkdb conf=========="
 python3 create_rethinkdb_conf.py
+
 # Rollout storage backend (RethinkDB) and start it
+echo -e "[INFO]=========configure rethinkdb========="
 fab configure_rethinkdb
+
+exit 0

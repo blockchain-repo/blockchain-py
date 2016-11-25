@@ -8,7 +8,7 @@ cd ..
 rm -f unichain-archive.tar.gz
 
 cd ..
-git archive master --format=tar --output=unichain-archive.tar
+git archive dev --format=tar --output=unichain-archive.tar
 gzip unichain-archive.tar
 
 mv unichain-archive.tar.gz ul-deploy/

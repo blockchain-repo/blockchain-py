@@ -5,6 +5,6 @@ BigchainDB servers with a predictable set of keys.
 
 from __future__ import unicode_literals
 
-keypairs_list = [('98qJyvTDRmtHYSK7jiNeiePEkZG3HpsnGiv8MLczpX7H',
-     'EsR2UgoTqh97Vr4d7vUyooooReuDyjRd9kzi1bGhwEyi'),
+keypairs_list = [('3edzzbWkNUwqKYugjymmSkcBWa3bgSJaVWXv1GHHU2Kf',
+     '8jbEWa2huzoupT6VaZDKF2rwv1hEMAptjijwDydqhXJd'),
     ]
