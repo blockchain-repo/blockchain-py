@@ -186,6 +186,8 @@ def run_start(args):
         sys.exit("Can't start BigchainDB, no keypair found. "
                  'Did you run `unichain configure`?')
 
+    db.init_databaseData()
+
     logger.info('Starting BigchainDB main process with public key %s',
                 bigchaindb.config['keypair']['public'])
     processes.start()

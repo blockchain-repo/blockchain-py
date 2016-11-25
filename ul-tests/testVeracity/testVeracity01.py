@@ -22,6 +22,7 @@ def startRun():
         print('will create %d transactions and then sleep %ds' % (random_transactions, sleep_random))
         # starttimefor = datetime.datetime.now().microsecond
         for i in range(random_transactions):
+            time.sleep(0.4)
             try:
                 postcount = postcount+1
                 requests.post(url, params={'postpid':postpid,'postcount':postcount}, headers=headers)
