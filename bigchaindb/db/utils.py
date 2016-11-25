@@ -8,7 +8,6 @@ import rethinkdb as r
 
 import bigchaindb
 
-
 logger = logging.getLogger(__name__)
 
 
@@ -64,7 +63,7 @@ class Connection:
                 if i + 1 == self.max_tries:
                     raise
                 else:
-                    time.sleep(2**i)
+                    time.sleep(2 ** i)
 
 
 def get_backend(host=None, port=None, db=None):
@@ -108,24 +107,24 @@ def create_table(conn, dbname, table_name):
 def create_bigchain_secondary_index(conn, dbname):
     logger.info('Create `bigchain` secondary index.')
     # to order blocks by timestamp
-    r.db(dbname).table('bigchain')\
-        .index_create('block_timestamp', r.row['block']['timestamp'])\
+    r.db(dbname).table('bigchain') \
+        .index_create('block_timestamp', r.row['block']['timestamp']) \
         .run(conn)
     # to query the bigchain for a transaction id
-    r.db(dbname).table('bigchain')\
+    r.db(dbname).table('bigchain') \
         .index_create('transaction_id',
-                      r.row['block']['transactions']['id'], multi=True)\
+                      r.row['block']['transactions']['id'], multi=True) \
         .run(conn)
     # secondary index for payload data by UUID
-    r.db(dbname).table('bigchain')\
+    r.db(dbname).table('bigchain') \
         .index_create('metadata_id',
-                      r.row['block']['transactions']['transaction']['metadata']['id'], multi=True)\
+                      r.row['block']['transactions']['transaction']['metadata']['id'], multi=True) \
         .run(conn)
     # secondary index for asset uuid
-    r.db(dbname).table('bigchain')\
-                .index_create('asset_id',
-                              r.row['block']['transactions']['transaction']['asset']['id'], multi=True)\
-                .run(conn)
+    r.db(dbname).table('bigchain') \
+        .index_create('asset_id',
+                      r.row['block']['transactions']['transaction']['asset']['id'], multi=True) \
+        .run(conn)
 
     # wait for rethinkdb to finish creating secondary indexes
     r.db(dbname).table('bigchain').index_wait().run(conn)
@@ -134,14 +133,14 @@ def create_bigchain_secondary_index(conn, dbname):
 def create_backlog_secondary_index(conn, dbname):
     logger.info('Create `backlog` secondary index.')
     # to order transactions by timestamp
-    r.db(dbname).table('backlog')\
+    r.db(dbname).table('backlog') \
         .index_create('transaction_timestamp',
-                      r.row['transaction']['timestamp'])\
+                      r.row['transaction']['timestamp']) \
         .run(conn)
     # compound index to read transactions from the backlog per assignee
-    r.db(dbname).table('backlog')\
+    r.db(dbname).table('backlog') \
         .index_create('assignee__transaction_timestamp',
-                      [r.row['assignee'], r.row['transaction']['timestamp']])\
+                      [r.row['assignee'], r.row['transaction']['timestamp']]) \
         .run(conn)
 
     # wait for rethinkdb to finish creating secondary indexes
@@ -151,10 +150,10 @@ def create_backlog_secondary_index(conn, dbname):
 def create_votes_secondary_index(conn, dbname):
     logger.info('Create `votes` secondary index.')
     # compound index to order votes by block id and node
-    r.db(dbname).table('votes')\
+    r.db(dbname).table('votes') \
         .index_create('block_and_voter',
                       [r.row['vote']['voting_for_block'],
-                       r.row['node_pubkey']])\
+                       r.row['node_pubkey']]) \
         .run(conn)
 
     # wait for rethinkdb to finish creating secondary indexes
@@ -166,13 +165,23 @@ def init_database():
     dbname = get_database_name()
     create_database(conn, dbname)
 
-    table_names = ['bigchain', 'backlog', 'votes']
+    table_names = ['bigchain', 'backlog', 'votes', 'nodelist', 'heartbeat', 'reassignnode']
     for table_name in table_names:
         create_table(conn, dbname, table_name)
 
     create_bigchain_secondary_index(conn, dbname)
     create_backlog_secondary_index(conn, dbname)
     create_votes_secondary_index(conn, dbname)
+
+
+def init_databaseData():
+    b = bigchaindb.Bigchain()
+
+    b.init_nodelist_data()
+
+    b.init_heartbeat_data()
+
+    b.init_reassignnode_data()
 
 
 def init():

@@ -390,3 +390,38 @@ class RethinkDBBackend:
         #        database level. Solving issue #444 can help untangling the situation
         unvoted_blocks = filter(lambda block: not util.is_genesis_block(block), unvoted)
         return unvoted_blocks
+
+    # TODO 需要写一些通用方法，提高代码重用
+
+    def isnodelistExistData(self):
+        return self.connection.run(r.table('nodelist').count())
+
+    def init_nodelist_data(self,data):
+        return self.connection.run(r.table('nodelist').insert(data))
+
+    def init_heartbeat(self,data):
+        return self.connection.run(r.table('heartbeat').insert(data))
+
+    def getFirstNode(self):
+        return self.connection.run(r.table('nodelist').filter({'id': 0}))
+
+    def init_reassignnode_data(self,data):
+        return self.connection.run(r.table('reassignnode').insert(data))
+
+    def updateHeartbeat(self,node_pubkey,time):
+        return self.connection.run(r.table('heartbeat').filter({'node_publickey': node_pubkey}).update({'time':time}))
+
+    def getAssigneekey(self):
+        return self.connection.run(r.table('reassignnode'))
+
+    def is_node_alive(self,txpublickey):
+        return self.connection.run(r.table('heartbeat').filter({'node_publickey': txpublickey}))
+
+    def get_node_id(self,assigneekey):
+        return self.connection.run(r.table('nodelist').filter({'node_publickey': assigneekey}))
+
+    def get_node_key(self,id):
+        return self.connection.run(r.table('nodelist').filter({'id': id}))
+
+    def update_assign_node(self,updateid,next_assign_node):
+        return self.connection.run(r.table('reassignnode').update({"id":updateid},{'node_publickey':next_assign_node}))

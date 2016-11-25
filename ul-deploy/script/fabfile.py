@@ -10,7 +10,7 @@ from __future__ import with_statement, unicode_literals
 from os import environ  # a mapping (like a dict)
 import sys
 
-from fabric.api import sudo, env, hosts, cd
+from fabric.api import sudo,cd, env, hosts
 from fabric.api import task, parallel
 from fabric.contrib.files import sed
 from fabric.operations import run, put
@@ -92,10 +92,10 @@ def set_host(host_index):
         host_index (int): 0, 1, 2, 3, etc.
     Example:
         fab set_host:4 fab_task_A fab_task_B
-        will set env.hosts = [public_hosts[4]]
+        will set env.hosts = [public_dns_names[4]]
         but only for doing fab_task_A and fab_task_B
     """
-    env.hosts = [public_hosts[int(host_index)]]
+    env.hosts = [public_dns_names[int(host_index)]]
     env.password = [public_pwds[int(host_index)]]
 
 # Install base software
@@ -111,6 +111,7 @@ def install_base_software():
         sudo('pip3 install --upgrade pip')
         sudo('pip3 install --upgrade setuptools')
         sudo('pip3 --version')
+
 
 # Install Collectd
 @task
@@ -151,13 +152,13 @@ def start_collectd():
         sudo('service collectd restart', pty=False)
 
 
-# @task
-# @parallel
-# def stop_collectd():
-#     """Installation of Collectd"""
-#     with settings(warn_only=True):
-#         sudo("echo 'collectd stop' ")
-#         sudo('service collectd stop', pty=False)
+@task
+@parallel
+def stop_collectd():
+    """Installation of Collectd"""
+    with settings(warn_only=True):
+        sudo("echo 'collectd stop' ")
+        sudo('service collectd stop', pty=False)
 
 
 # Install RethinkDB
@@ -233,9 +234,6 @@ def install_localdb():
     with settings(warn_only=True):
         user_group = env.user
         sudo("echo 'leveldb & plyvel install' ")
-        sudo('rm -rf /data/localdb/*')
-        sudo("mkdir -p /data/localdb/{bigchain,votes,header}")
-        sudo("chown -R " + user_group + ':' + user_group + ' /data/localdb')
         sudo('pip3 install leveldb==0.194')
         sudo('apt-get install libleveldb1 libleveldb-dev libsnappy1 libsnappy-dev')
         sudo('apt-get -y -f install')
@@ -286,11 +284,12 @@ def uninstall_unichain():
 # (The @hosts decorator is used to make this
 # task run on only one node. See http://tinyurl.com/h9qqf3t )
 @task
-@hosts(public_hosts[0])
+@hosts(public_dns_names[0])
 def init_unichain():
     with settings(warn_only=True):
         run('unichain -y drop',pty=False)
         run('unichain init', pty=False)
+        set_shards()
 
 
 # Configure BigchainDB
@@ -301,7 +300,7 @@ def configure_unichain():
 
 
 @task
-@hosts(public_hosts[0])
+@hosts(public_dns_names[0])
 def drop_unichain():
     with settings(warn_only=True):
         run('unichain -y drop', pty=False)
@@ -309,16 +308,16 @@ def drop_unichain():
 
 # Set the number of shards (tables[bigchain,votes,backlog])
 @task
-@hosts(public_hosts[0])
-def set_shards(num_shards=len(public_hosts)):
+@hosts(public_dns_names[0])
+def set_shards(num_shards=len(public_dns_names)):
     # num_shards = len(public_hosts)
     run('unichain set-shards {}'.format(num_shards))
 
 
 # Set the number of replicas (tables[bigchain,votes,backlog])
 @task
-@hosts(public_hosts[0])
-def set_replicas(num_replicas=(len(public_hosts)/2)+1):
+@hosts(public_dns_names[0])
+def set_replicas(num_replicas):
     run('unichain set-replicas {}'.format(num_replicas))
 
 
@@ -386,6 +385,7 @@ def rebuild_rethinkdb():
 @task 
 def stop_python():
     sudo("killall -9 python,python3,pip,pip3 2>/dev/null")
+
 ########################### Node control ####################################
 #set on node
 @task
@@ -402,13 +402,14 @@ def set_node(host,password):
 
 @task
 def harden_sshd():
-    """Security harden sshd.
-    """
-    # Disable password authentication
+    """Security harden sshd."""
+
+    # Enable password authentication
     sed('/etc/ssh/sshd_config',
         '#PasswordAuthentication yes',
-        'PasswordAuthentication no',
+        'PasswordAuthentication yes',
         use_sudo=True)
+
     # Deny root login
     sed('/etc/ssh/sshd_config',
         'PermitRootLogin yes',
@@ -511,13 +512,13 @@ def reboot_all_hosts():
 
 @task
 @parallel
-def write_rethinkdb_join(port=29015):
+def append_rethinkdb_join(port=29015):
     with settings(warn_only=True):
         if port is None:
             port = 29015
         join_infos =""
         rethinkdb_conf_path = "/etc/rethinkdb/instances.d/default.conf"
-        for host in env['hosts']:
+        for host in public_hosts:
             join_info = "join={}:{}".format(host,port)
             join_infos += join_info + "\\n"
             sudo("echo {} {}".format(host,join_info))
@@ -529,16 +530,35 @@ def write_rethinkdb_join(port=29015):
 
 @task
 @parallel
+def rewrite_rethinkdb_join(port=29015):
+    with settings(warn_only=True):
+        if port is None:
+            port = 29015
+        join_infos =""
+        rethinkdb_conf_path = "/etc/rethinkdb/instances.d/default.conf"
+        for host in public_hosts:
+            join_info = "join={}:{}".format(host,port)
+            join_infos += join_info + "\\n"
+            sudo("echo {} {}".format(host,join_info))
+        join_infos =join_infos[:-2]
+        sudo("echo 'The joins will write to {}:\n{}'".format(rethinkdb_conf_path,join_infos))
+        if join_infos != '':
+           sudo("sed -i '/^\s*join=/d' /etc/rethinkdb/instances.d/default.conf")
+           sudo("sed -i '$a {}' /etc/rethinkdb/instances.d/default.conf".format(join_infos))
+
+
+@task
+@parallel
 def remove_rethinkdb_join():
     with settings(warn_only=True):
-         sudo("sed -i /join=19/d /etc/rethinkdb/instances.d/default.conf")
+         sudo("sed -i '/^\s*join=/d' /etc/rethinkdb/instances.d/default.conf")
 
 
 @task
 @parallel
 def seek_rethinkdb_join():
     with settings(warn_only=True):
-         sudo("sed -n /join=19/p /etc/rethinkdb/instances.d/default.conf")
+         sudo("sed -n '/^\s*join=/p' /etc/rethinkdb/instances.d/default.conf")
 
 
 @task
@@ -690,3 +710,18 @@ def detect_unichain_api():
                 print("[INFO]=====api[%s] detect result: is OK!" % (api_url))
         else:
             print("[ERROR]=====api[%s] detect result:  is not requested!" % (api_endpoint))
+
+@task
+@parallel
+def clear_unichain_data(flag='rethinkdb'):
+    with settings(warn_only=True):
+        if flag == 'all':
+            sudo('rm -rf /data/rethinkdb/*')
+            sudo('rm -rf /data/localdb/*')
+        elif flag == 'localdb':
+            sudo('rm -rf /data/localdb/{bigchain,votes,header}/*')
+        elif flag == 'rethinkdb':
+            sudo('rm -rf /data/rethinkdb/*')
+        if flag in ('all','localdb','rethinkdb'):
+            info = "{} has clear the data in {}".format(env.user,flag if flag != 'all' else 'rethinkdb and localdb')
+            sudo("echo {}".format(info))

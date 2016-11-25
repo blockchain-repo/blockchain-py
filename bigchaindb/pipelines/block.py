@@ -6,7 +6,7 @@ function.
 """
 
 import logging
-
+import time
 import rethinkdb as r
 from multipipes import Pipeline, Node
 
@@ -14,7 +14,6 @@ from bigchaindb.monitor import Monitor
 from bigchaindb.models import Transaction
 from bigchaindb.pipelines.utils import ChangeFeed
 from bigchaindb import Bigchain, config
-
 
 logger = logging.getLogger(__name__)
 monitor = Monitor()
@@ -31,6 +30,7 @@ class BlockPipeline:
         """Initialize the BlockPipeline creator"""
         self.bigchain = Bigchain()
         self.txs = []
+        self.starttime = 0
 
     def filter_tx(self, tx):
         """Filter a transaction.
@@ -67,7 +67,7 @@ class BlockPipeline:
             tx, status = self.bigchain.get_transaction(tx.id,
                                                        include_status=True)
             if status == self.bigchain.TX_VALID \
-               or status == self.bigchain.TX_UNDECIDED:
+                    or status == self.bigchain.TX_UNDECIDED:
                 # if the tx is already in a valid or undecided block,
                 # then it no longer should be in the backlog, or added
                 # to a new block. We can delete and drop it.
@@ -79,7 +79,7 @@ class BlockPipeline:
                 tx_validated = self.bigchain.is_valid_transaction(tx)
         else:
             tx_validated = self.bigchain.is_valid_transaction(tx)
-        #tx_validated = self.bigchain.is_valid_transaction(tx)
+        # tx_validated = self.bigchain.is_valid_transaction(tx)
         if tx_validated:
             return tx
         else:
@@ -108,7 +108,11 @@ class BlockPipeline:
         """
         if tx:
             self.txs.append(tx)
-        if len(self.txs) == 1000 or (timeout and self.txs):
+        if len(self.txs) == 1:
+            # 心跳机制，写Node，时间戳。
+            self.bigchain.updateHeartbeat(time.time())
+            self.starttime = time.time()
+        if len(self.txs) == 1000 or (timeout and self.txs) or (((time.time()-self.starttime) > 7) and self.txs):
             block = self.bigchain.create_block(self.txs)
             self.txs = []
             return block
@@ -124,15 +128,15 @@ class BlockPipeline:
             :class:`~bigchaindb.models.Block`: The Block.
         """
         logger.info('Write new block %s with %s transactions', block.id, len(block.transactions))
-        #logger.info('Write new block %s with %s transactions', block.id, block.transactions)
+        # logger.info('Write new block %s with %s transactions', block.id, block.transactions)
         # zy@secn
         if monitor is not None:
-            #with monitor.timer('write_block', rate=config['statsd']['rate']):
+            # with monitor.timer('write_block', rate=config['statsd']['rate']):
             with monitor.timer('write_block'):
                 self.bigchain.write_block(block)
         else:
             self.bigchain.write_block(block)
-        #self.bigchain.write_block(block)
+        # self.bigchain.write_block(block)
         return block
 
     def delete_tx(self, block):
@@ -156,10 +160,10 @@ def initial():
 
     return bigchain.connection.run(
         r.table('backlog')
-        .between([bigchain.me, r.minval],
-                 [bigchain.me, r.maxval],
-                 index='assignee__transaction_timestamp')
-        .order_by(index=r.asc('assignee__transaction_timestamp')))
+            .between([bigchain.me, r.minval],
+                     [bigchain.me, r.maxval],
+                     index='assignee__transaction_timestamp')
+            .order_by(index=r.asc('assignee__transaction_timestamp')))
 
 
 def get_changefeed():
