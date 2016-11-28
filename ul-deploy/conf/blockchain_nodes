@@ -1,0 +1,7 @@
+#example	content					result
+#example1: username@host:port passwd             username@host:port passwd
+#example2: username@host:port passwd           username@host:port passwd
+#example3: username@host:port passwd #comment    username@host:port passwd
+#example4: #username@host:port passwd
+
+#all nodes as follow:
