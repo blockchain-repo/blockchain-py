@@ -177,8 +177,6 @@ def init_database():
 def init_databaseData():
     b = bigchaindb.Bigchain()
 
-    b.init_nodelist_data()
-
     b.init_heartbeat_data()
 
     b.init_reassignnode_data()

@@ -68,11 +68,13 @@ class Bigchain(object):
         self.consensus = BaseConsensusRules
         # change RethinkDB read mode to majority.  This ensures consistency in query results
         self.read_mode = 'majority'
-
         if not self.me or not self.me_private:
             raise exceptions.KeypairNotFoundException()
 
         self.connection = Connection(host=self.host, port=self.port, db=self.dbname)
+        self.nodelist = self.nodes_except_me.copy()
+        self.nodelist.append(self.me)
+        self.nodelist.sort()
 
     def write_transaction(self, signed_transaction, durability='soft'):
         """Write the transaction to bigchain.
@@ -671,28 +673,16 @@ class Bigchain(object):
         return self.backend.count_backlog_txs()
 
     # @author lz
-    # TODO 增加节点时怎么处理
-    def init_nodelist_data(self):
-        # TODO if update 如果当前节点在里面，不处理？不在里面才insert self？但是整体启动时会有问题。
-        if self.backend.isnodelistExistData():
-            return
-        else:
-            id = 0
-            data = {'id':id,'node_publickey': self.me}
-            self.backend.init_nodelist_data(data)
-            for key in self.nodes_except_me:
-                id +=1
-                data = {'id':id,'node_publickey': key}
-                self.backend.init_nodelist_data(data)
 
     def init_heartbeat_data(self):
+        self.backend.delete_heartbeat(self.me)
         data = {'node_publickey': self.me,'timestamp':time()}
         return self.backend.init_heartbeat(data)
 
-    # TODO 应该delete再insert,保证只有一条
     def init_reassignnode_data(self):
-        data = {"id":0,'node_publickey': self.backend.getFirstNode().next()['node_publickey'], 'timestamp': time()}
-        self.backend.init_reassignnode_data(data)
+        self.backend.delete_reassignnode()
+        data = {"id":0,'node_publickey': self.nodelist[0], 'timestamp': time()}
+        self.backend.init_reassignnode(data)
 
     def updateHeartbeat(self,time):
         return self.backend.updateHeartbeat(self.me,time)
@@ -702,16 +692,18 @@ class Bigchain(object):
         assigneekey = self.backend.getAssigneekey().next()['node_publickey']
         return nodeid,assigneekey
 
-    def is_node_alive(self,txpublickey,basistime):
-        if (time() - self.backend.is_node_alive(txpublickey).next()['timestamp']) > basistime:
+    def updateAssigneebeat(self,assigneekey,time):
+        return self.backend.updateAssigneebeat(assigneekey,time)
+
+    def is_assignee_alive(self,assigneekey,timeout):
+        if (time() - self.backend.is_assignee_alive(assigneekey).next()['timestamp']) > timeout:
             return False
         return True
 
-    def get_node_id(self,assigneekey):
-        return self.backend.get_node_id(assigneekey).next()['id']
-
-    def get_node_key(self,id):
-        return self.backend.get_node_key(id).next()['node_publickey']
+    def is_node_alive(self,txpublickey,timeout):
+        if (time() - self.backend.is_node_alive(txpublickey).next()['timestamp']) > timeout:
+            return False
+        return True
 
     def update_assign_node(self,updateid,next_assign_node):
         return self.backend.update_assign_node(updateid,next_assign_node)

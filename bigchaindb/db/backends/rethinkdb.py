@@ -393,26 +393,35 @@ class RethinkDBBackend:
 
     # TODO 需要写一些通用方法，提高代码重用
 
-    def isnodelistExistData(self):
-        return self.connection.run(r.table('nodelist').count())
+    # def isnodelistExistData(self):
+    #     return self.connection.run(r.table('nodelist').count())
+    #
+    # def init_nodelist_data(self,data):
+    #     return self.connection.run(r.table('nodelist').insert(data))
 
-    def init_nodelist_data(self,data):
-        return self.connection.run(r.table('nodelist').insert(data))
+    def delete_heartbeat(self,node_pubkey):
+        return self.connection.run(r.table('heartbeat').filter({'node_publickey': node_pubkey}).delete())
 
     def init_heartbeat(self,data):
         return self.connection.run(r.table('heartbeat').insert(data))
 
-    def getFirstNode(self):
-        return self.connection.run(r.table('nodelist').filter({'id': 0}))
+    def delete_reassignnode(self):
+        return self.connection.run(r.table('reassignnode').delete())
 
-    def init_reassignnode_data(self,data):
+    def init_reassignnode(self,data):
         return self.connection.run(r.table('reassignnode').insert(data))
 
     def updateHeartbeat(self,node_pubkey,time):
-        return self.connection.run(r.table('heartbeat').filter({'node_publickey': node_pubkey}).update({'time':time}))
+        return self.connection.run(r.table('heartbeat').filter({'node_publickey': node_pubkey}).update({'timestamp':time}))
 
     def getAssigneekey(self):
         return self.connection.run(r.table('reassignnode'))
+
+    def updateAssigneebeat(self,node_pubkey,time):
+        return self.connection.run(r.table('reassignnode').filter({'node_publickey': node_pubkey}).update({'timestamp':time}))
+
+    def is_assignee_alive(self,assigneekey):
+        return self.connection.run(r.table('reassignnode').filter({'node_publickey': assigneekey}))
 
     def is_node_alive(self,txpublickey):
         return self.connection.run(r.table('heartbeat').filter({'node_publickey': txpublickey}))

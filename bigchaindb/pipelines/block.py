@@ -112,7 +112,8 @@ class BlockPipeline:
             # 心跳机制，写Node，时间戳。
             self.bigchain.updateHeartbeat(time.time())
             self.starttime = time.time()
-        if len(self.txs) == 1000 or (timeout and self.txs) or (((time.time()-self.starttime) > 7) and self.txs):
+        # if len(self.txs) == 1000 or (timeout and self.txs) or (((time.time()-self.starttime) > 7) and self.txs):
+        if len(self.txs) == 1000 or (timeout and self.txs):
             block = self.bigchain.create_block(self.txs)
             self.txs = []
             return block
