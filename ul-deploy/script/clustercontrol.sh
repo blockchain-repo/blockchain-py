@@ -15,6 +15,8 @@ then
    fab start_unichain
 elif [ $1 == "stop" ]
 then
+   echo -e "[INFO]=========stop cluster python...=========="
+   fab stop_python
    echo -e "[INFO]=========stop cluster unichain...=========="
    fab stop_unichain
    echo -e "[INFO]==========stop cluster rethinkdb...=========="

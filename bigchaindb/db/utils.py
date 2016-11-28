@@ -149,6 +149,12 @@ def create_backlog_secondary_index(conn, dbname):
 
 def create_votes_secondary_index(conn, dbname):
     logger.info('Create `votes` secondary index.')
+
+    # to order votes by timestamp
+    r.db(dbname).table('votes') \
+        .index_create('vote_timestamp', r.row['vote']['timestamp']) \
+        .run(conn)
+
     # compound index to order votes by block id and node
     r.db(dbname).table('votes') \
         .index_create('block_and_voter',

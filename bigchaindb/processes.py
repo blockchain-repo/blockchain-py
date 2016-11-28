@@ -5,6 +5,7 @@ import bigchaindb
 from bigchaindb.pipelines import vote, block, election, stale
 from bigchaindb.web import server
 
+from extend.localdb.pipelines import local_block, local_vote
 
 logger = logging.getLogger(__name__)
 
@@ -37,6 +38,15 @@ def start():
 
     logger.info('Starting election')
     election.start()
+
+
+    # must start the localdb pipeline after origin pipeline
+    logger.info('Starting localblock')
+    local_block.start()
+    #
+    logger.info('Starting localvoter')
+    local_vote.start()
+
 
     # start the web api
     app_server = server.create_server(bigchaindb.config['server'])

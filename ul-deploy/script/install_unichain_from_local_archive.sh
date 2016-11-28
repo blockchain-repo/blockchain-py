@@ -4,16 +4,15 @@
 # if any command has a non-zero exit status
 set -e
 
-cd ..
-rm -f unichain-archive.tar.gz
+CUR_INSTALL_PATH=$(cd "$(dirname "$0")"; pwd)
+rm -f ${CUR_INSTALL_PATH}/unichain-archive.tar.gz
 
-cd ..
+cd ../../
 tar -cf unichain-archive.tar *
 gzip unichain-archive.tar
+mv unichain-archive.tar.gz ul-deploy/script
+cd -
 
-mv unichain-archive.tar.gz ul-deploy/
-
-cd ul-deploy/script
 fab install_unichain_from_git_archive
-cd ..
-rm unichain-archive.tar.gz
+
+rm -f ${CUR_INSTALL_PATH}/unichain-archive.tar.gz

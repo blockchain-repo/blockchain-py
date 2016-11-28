@@ -45,12 +45,12 @@ CLUSTER_BIGCHAIN_COUNT=`get_cluster_nodes_num`
 }
 
 #init env:python3 fabric3
-echo -e "[INFO]=========init env========="
+echo -e "[INFO]=========init control machine env========="
 ./run_init_env.sh
 
 #must remove old
-echo -e "[INFO]==========uninstall unichain=========="
-fab uninstall_unichain
+echo -e "[INFO]==========init all nodes env=========="
+fab init_all_nodes
 
 #base sofeware install: necessary for the first install
 echo -e "[INFO]==========install base sofeware========="
@@ -71,6 +71,9 @@ echo -e "[INFO]==========configure  rethinkdb=========="
 #localdb install
 echo -e "[INFO]==========install localdb=========="
 #fab install localdb
+fab install_localdb
+#init localdb ,init the data store dirs /data/localdb/{bigchain,votes,backlog}
+fab init_localdb
 
 #unichain install&configure&init&shards
 echo -e "[INFO]==========install unichain=========="
