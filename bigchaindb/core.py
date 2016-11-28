@@ -68,6 +68,7 @@ class Bigchain(object):
         self.consensus = BaseConsensusRules
         # change RethinkDB read mode to majority.  This ensures consistency in query results
         self.read_mode = 'majority'
+
         if not self.me or not self.me_private:
             raise exceptions.KeypairNotFoundException()
 
