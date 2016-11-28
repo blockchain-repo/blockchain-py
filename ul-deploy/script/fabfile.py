@@ -29,7 +29,7 @@ env['hosts']=env['passwords'].keys()
 @task
 def check_rethinkdb():
     with settings(warn_only=True):
-        print("[INFO]==========check rethinkdb==========")
+        print("[INFO]==========check rethinkdb begin==========")
         process_num=run('ps -aux|grep -E "/usr/bin/rethinkdb"|grep -v grep|wc -l')
         if process_num == 0:
             print("[INFO]=====process[rethinkdb] num detect result: is 0")
@@ -66,7 +66,7 @@ def check_localdb():
 @task
 def check_unichain_pro():
     with settings(warn_only=True):
-        print("[INFO]==========check unichain pro==========")
+        print("[INFO]==========check unichain pro begin==========")
         process_num=run('ps -aux|grep -E "/usr/local/bin/unichain -y start|SCREEN -d -m unichain -y start"|grep -v grep|wc -l')
         if process_num == 0:
             print("[INFO]=====process[unichain] num check result: is 0")
@@ -638,7 +638,7 @@ def destroy_all_nodes():
 @task
 def detect_rethinkdb():
     with settings(warn_only=True):
-        print("[INFO]==========detect rethinkdb==========")
+        print("[INFO]==========detect rethinkdb begin==========")
         rethinkdb_conf = "/etc/rethinkdb/instances.d/default.conf"
         driver_port = sudo('cat %s|grep -v "^#"|grep "driver-port="|awk -F"=" \'{print $2}\'' % (rethinkdb_conf))
         cluster_port = sudo('cat %s|grep -v "^#"|grep "cluster-port="|awk -F"=" \'{print $2}\'' % (rethinkdb_conf))
@@ -682,9 +682,9 @@ def detect_localdb():
 @task
 def detect_unichain_pro():
     with settings(warn_only=True):
-        print("[INFO]==========detect unichain pro==========")
+        print("[INFO]==========detect unichain pro begin==========")
         process_num=run('ps -aux|grep -E "/usr/local/bin/unichain -y start|SCREEN -d -m unichain -y start"|grep -v grep|wc -l')
-        if process_num == 0:
+        if int(process_num) == 0:
             print("[ERROR]=====process[unichain] num detect result: is 0")
         else:
             print("[INFO]=====process[unichain] num detect result: is %s" % (str(process_num)))
@@ -693,7 +693,7 @@ def detect_unichain_pro():
 @task
 def detect_unichain_api():
     with settings(warn_only=True):
-        print("[INFO]==========detect unichain api==========")
+        print("[INFO]==========detect unichain api begin==========")
         unichain_conf = "/home/%s/.unichain" % (env.user)
         unichain_conf_str=run('cat ~/.unichain')
         #with open(unichain_conf, "a") as r:
