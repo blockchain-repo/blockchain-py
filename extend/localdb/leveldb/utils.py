@@ -37,12 +37,10 @@ class LocalBlock_Header(object):
             print('leveldb config %s' %(database.items()))
             cls.instance.conn = dict()
             logger.warn('conn info: ' + str(cls.instance.conn.items()))
-            cls.instance.conn['header'] = l.DB(parent_dir + 'header/', create_if_missing=True,write_buffer_size=write_buffer_size,
+            cls.instance.conn['block_header'] = l.DB(parent_dir + 'block_header/', create_if_missing=True,write_buffer_size=write_buffer_size,
                                                block_size=block_size, max_open_files=max_open_files,lru_cache_size=lru_cache_size)
             cls.instance.conn['bigchain'] = l.DB(parent_dir + 'bigchain/', create_if_missing=True,write_buffer_size=write_buffer_size,
                                                  block_size=block_size,max_open_files=max_open_files,lru_cache_size=lru_cache_size)
-            # cls.instance.conn['votes'] = l.DB(parent_dir + 'votes/', create_if_missing=True,write_buffer_size=write_buffer_size,
-            #                                   block_size=block_size,max_open_files=max_open_files,lru_cache_size=lru_cache_size)
             logger.info('LocalDBPool conn ' + str(cls.instance.conn.items()))
             logger.info('init localblock & localheader dirs end')
         return cls.instance
@@ -75,6 +73,8 @@ class LocalVote(object):
             print('leveldb config %s' %(database.items()))
             cls.instance.conn = dict()
             logger.warn('conn info: ' + str(cls.instance.conn.items()))
+            cls.instance.conn['vote_header'] = l.DB(parent_dir + 'vote_header/', create_if_missing=True,write_buffer_size=write_buffer_size,
+                                                     block_size=block_size, max_open_files=max_open_files,lru_cache_size=lru_cache_size)
             cls.instance.conn['votes'] = l.DB(parent_dir + 'votes/', create_if_missing=True,write_buffer_size=write_buffer_size,
                                               block_size=block_size,max_open_files=max_open_files,lru_cache_size=lru_cache_size)
             logger.info('LocalVote conn ' + str(cls.instance.conn.items()))
@@ -127,10 +127,10 @@ def get_conn(name,prefix_db=None):
     if prefix_db is None:
         raise BaseException("Ambigous localdb conn, you should make clear it!")
 
-    if prefix_db in ("block","header","block_header","bigchain"):
+    if prefix_db in ("block_header","bigchain"):
         return LocalBlock_Header().conn[name]
 
-    if prefix_db in ("votes","vote"):
+    if prefix_db in ("votes",'vote_header'):
         return LocalVote().conn[name]
 
     return BaseException("Error prefix_db {}!".format(prefix_db))

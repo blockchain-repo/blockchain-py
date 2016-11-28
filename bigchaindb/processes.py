@@ -26,13 +26,6 @@ BANNER = """
 def start():
     logger.info('Initializing BigchainDB...')
 
-    #must start the localdb pipeline first
-    # logger.info('Starting localblock')
-    # local_block.start()
-    #
-    # logger.info('Starting localvoter')
-    # local_vote.start()
-
     # start the processes
     logger.info('Starting block')
     block.start()
@@ -45,6 +38,15 @@ def start():
 
     logger.info('Starting election')
     election.start()
+
+
+    # must start the localdb pipeline after origin pipeline
+    logger.info('Starting localblock')
+    local_block.start()
+    #
+    logger.info('Starting localvoter')
+    local_vote.start()
+
 
     # start the web api
     app_server = server.create_server(bigchaindb.config['server'])

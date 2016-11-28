@@ -30,10 +30,10 @@ class LocalBlock(Node):
     DELETE = 2
     UPDATE = 4
 
-    def __init__(self,current_block_num,conn_header=None,conn_bigchain=None):
+    def __init__(self,current_block_num=None,conn_header=None,conn_bigchain=None):
         """Initialize the LocalBlockPipeline creator."""
 
-        self.conn_header = conn_header or leveldb.LocalBlock_Header().conn['header']
+        self.conn_header = conn_header or leveldb.LocalBlock_Header().conn['block_header']
         self.conn_bigchain = conn_bigchain or leveldb.LocalBlock_Header().conn['bigchain']
         self.block_num = current_block_num or int(leveldb.get_withdefault(self.conn_header, 'block_num','0'))\
             if leveldb.get(self.conn_header, 'block_num') is not None else 1
@@ -54,6 +54,7 @@ class LocalBlock(Node):
         """
 
         block_id = block['id']
+        current_block_timestamp = block['block']['timestamp']
         block_size = len(block['block']['transactions'])
         block_json_str = rapidjson.dumps(block)
 
@@ -61,6 +62,7 @@ class LocalBlock(Node):
 
         leveldb.insert(self.conn_bigchain, block_id, block_json_str, sync=False)
         leveldb.update(self.conn_header, 'current_block_id', block_id, sync=False)
+        leveldb.update(self.conn_header, 'current_block_timestamp', current_block_timestamp, sync=False)
         leveldb.update(self.conn_header, 'block_num', self.block_num, sync=False)
 
         info = "current block info \n[id={},block_num={},block_size={}]\n".format(block_id, self.block_num, block_size)
@@ -77,9 +79,11 @@ class LocalBlock(Node):
     def get_localblock_info(self):
         """Only show the pre op result!"""
 
+        current_block_timestamp = leveldb.get(self.conn_header, 'current_block_timestamp')
         current_block_id = leveldb.get(self.conn_header, 'current_block_id')
         current_block_num = leveldb.get(self.conn_header, 'block_num')
-        current_block_inifo = "localdb info \n[block_num={}\n,current__block_id={}]\n".format(current_block_num, current_block_id)
+        current_block_inifo = "localdb info \n[current_block_timestamp={},block_num={},current__block_id={}]\n"\
+            .format(current_block_timestamp,current_block_num, current_block_id)
         logger.info(current_block_inifo)
 
 
@@ -120,6 +124,7 @@ def init_localdb(current_block_num,conn_header,conn_bigchain):
         leveldb.insert(conn_header, 'genesis_block_id', genesis_block_id)
         leveldb.insert(conn_header, 'block_num', 1)
         leveldb.insert(conn_header, 'current_block_id', genesis_block_id)
+        leveldb.insert(conn_header, 'current_block_timestamp', genesis_block['block']['timestamp'])
         logger.info("create the genesis block [id={}]".format(genesis_block_id))
         current_block_num = 1
 
@@ -140,21 +145,23 @@ def initial():
     return None
 
 
-def get_changefeed():
+def get_changefeed(current_block_timestamp):
     """Create and return the changefeed for the table bigchain."""
 
-    return ChangeFeed('bigchain',ChangeFeed.INSERT | ChangeFeed.UPDATE,prefeed=initial())
+    return ChangeFeed('bigchain','block',ChangeFeed.INSERT | ChangeFeed.UPDATE,current_block_timestamp,secondary_index='block_timestamp',prefeed=initial())
 
 
 def create_pipeline():
     """Create and return the pipeline of operations to be distributed
     on different processes."""
 
-    conn_header = leveldb.LocalBlock_Header().conn['header']
+    conn_header = leveldb.LocalBlock_Header().conn['block_header']
     conn_bigchain = leveldb.LocalBlock_Header().conn['bigchain']
 
     current_block_num = int(leveldb.get_withdefault(conn_header, 'block_num', 0))
     current_block_num = init_localdb(current_block_num,conn_header,conn_bigchain)
+
+    current_block_timestamp = leveldb.get_withdefault(conn_header, 'current_block_timestamp','0')
 
     localblock_pipeline = LocalBlock(current_block_num=current_block_num,
                                      conn_header=conn_header,conn_bigchain=conn_bigchain)
@@ -165,13 +172,16 @@ def create_pipeline():
         # Node(localblock_pipeline.write_block_header,number_of_processes=1)
     ])
 
-    return pipeline
+    return pipeline,current_block_timestamp
 
 
 def start():
     """Create, start, and return the localblock pipeline."""
 
-    pipeline = create_pipeline()
-    pipeline.setup(indata=get_changefeed())
+    pipeline,current_block_timestamp = create_pipeline()
+    logger.error('lcoal_block start1')
+    pipeline.setup(indata=get_changefeed(current_block_timestamp))
+    logger.error('lcoal_block start2')
     pipeline.start()
+    logger.error('lcoal_block start3')
     return pipeline

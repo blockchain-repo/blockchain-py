@@ -248,7 +248,7 @@ def init_localdb():
         user_group = env.user
         sudo('rm -rf /data/localdb/*')
         sudo("echo init localdb")
-        sudo("mkdir -p /data/localdb/{bigchain,votes,header}")
+        sudo("mkdir -p /data/localdb/{bigchain,votes,block_header,vote_header}")
         sudo("chown -R " + user_group + ':' + user_group + ' /data/localdb')
 
 
@@ -720,7 +720,7 @@ def clear_unichain_data(flag='rethinkdb'):
             sudo('rm -rf /data/rethinkdb/*')
             sudo('rm -rf /data/localdb/*')
         elif flag == 'localdb':
-            sudo('rm -rf /data/localdb/{bigchain,votes,header}/*')
+            sudo('rm -rf /data/localdb/{bigchain,votes,block_header,vote_header}/*')
         elif flag == 'rethinkdb':
             sudo('rm -rf /data/rethinkdb/*')
         if flag in ('all','localdb','rethinkdb'):

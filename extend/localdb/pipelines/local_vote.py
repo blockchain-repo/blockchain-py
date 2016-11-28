@@ -26,10 +26,12 @@ class LocalVote(Node):
     DELETE = 2
     UPDATE = 4
 
-    def __init__(self,conn_votes=None):
+    def __init__(self,current_vote_num=None,conn_votes=None,conn_header=None):
         """Initialize the LocalVotePipeline creator"""
-
+        self.conn_header = conn_header or leveldb.LocalVote().conn['vote_header']
         self.conn_votes = conn_votes or leveldb.LocalVote().conn['votes']
+        self.vote_num = current_vote_num or int(leveldb.get_withdefault(self.conn_header, 'vote_num', '0')) \
+            if leveldb.get(self.conn_header, 'vote_num') is not None else 0
         self.vote_count = 0 # after process start ,the node has write vote to local
         # self.votes = []
 
@@ -44,15 +46,22 @@ class LocalVote(Node):
 
         """
 
+        vote_id = vote['id']
+        current_vote_timestamp = vote['vote']['timestamp']
         previous_block = vote['vote']['previous_block']
         node_pubkey = vote['node_pubkey']
         vote_key = previous_block + '-' + node_pubkey
         vote_json_str = rapidjson.dumps(vote)
 
-        leveldb.insert(self.conn_votes, vote_key, vote_json_str, sync=False)
+        self.vote_num = self.vote_num + 1
 
-        info = "current vote info \n[vote_key={}\n,previous_block={}\n,node_pubkey={}\n,voting_for_block={}]"\
-            .format(vote_key,previous_block, node_pubkey, vote['vote']['voting_for_block'])
+        leveldb.insert(self.conn_votes, vote_key, vote_json_str, sync=False)
+        leveldb.update(self.conn_header, 'current_vote_id', vote_id, sync=False)
+        leveldb.update(self.conn_header, 'current_vote_timestamp', current_vote_timestamp, sync=False)
+        leveldb.update(self.conn_header, 'vote_num', self.vote_num, sync=False)
+
+        info = "current vote info \n[vote_id={},vote_key={}\n,previous_block={}\n,node_pubkey={}\n,voting_for_block={}]"\
+            .format(vote_id,vote_key,previous_block, node_pubkey, vote['vote']['voting_for_block'])
         logger.info(info)
 
         self.vote_count =self.vote_count + 1
@@ -70,6 +79,13 @@ class LocalVote(Node):
         previous_block_votes_info = "previous_block votes info \n[id={},\nvotes={}]\n".format(block_id,votes)
         logger.info(previous_block_votes_info)
 
+        current_vote_timestamp = leveldb.get(self.conn_header, 'current_vote_timestamp')
+        current_vote_id = leveldb.get(self.conn_header, 'current_vote_id')
+        current_vote_num = leveldb.get(self.conn_header, 'vote_num')
+        current_vote_inifo = "localdb info \n[vote_timestamp={},vote_num={},current_vote_id={}]\n"\
+            .format(current_vote_timestamp,current_vote_num, current_vote_id)
+        logger.info(current_vote_inifo)
+
 
 def initial():
     # TODO maybe add the deal for pre localdb data check and recovery
@@ -83,19 +99,23 @@ def initial():
     return None
 
 
-def get_changefeed():
+def get_changefeed(current_vote_timestamp):
     """Create and return the changefeed for the votes."""
-
-    return ChangeFeed('votes',ChangeFeed.INSERT | ChangeFeed.UPDATE,prefeed=initial())
+    logger.error('local_vote get_changefeed')
+    return ChangeFeed('votes','vote',ChangeFeed.INSERT | ChangeFeed.UPDATE,current_vote_timestamp,secondary_index='vote_timestamp',prefeed=initial())
 
 
 def create_pipeline():
     """Create and return the pipeline of operations to be distributed
     on different processes."""
 
+    conn_header = leveldb.LocalVote().conn['vote_header']
     conn_votes = leveldb.LocalVote().conn['votes']
 
-    localvote_pipeline = LocalVote(conn_votes)
+    current_vote_num = int(leveldb.get_withdefault(conn_header, 'vote_num', 0))
+    current_vote_timestamp = leveldb.get_withdefault(conn_header, 'current_vote_timestamp','0')
+
+    localvote_pipeline = LocalVote(current_vote_num=current_vote_num,conn_votes=conn_votes,conn_header=conn_header)
 
     pipeline = Pipeline([
         Node(localvote_pipeline.write_vote)
@@ -103,13 +123,16 @@ def create_pipeline():
         # Node(localvote_pipeline.write_vote,number_of_processes=1)
     ])
 
-    return pipeline
+    return pipeline,current_vote_timestamp
 
 
 def start():
     """Create, start, and return the localvote pipeline."""
 
-    pipeline = create_pipeline()
-    pipeline.setup(indata=get_changefeed())
+    pipeline,current_vote_timestamp = create_pipeline()
+    logger.error('lcoal_vote start1')
+    pipeline.setup(indata=get_changefeed(current_vote_timestamp))
+    logger.error('lcoal_vote start2')
     pipeline.start()
+    logger.error('lcoal_vote start3')
     return pipeline
