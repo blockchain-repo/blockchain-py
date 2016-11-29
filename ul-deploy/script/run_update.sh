@@ -14,7 +14,13 @@ function printErr()
 #    printErr "<number_of_files>"
 #    exit 1
 #fi
+if [ $# -eq 1 && $1 == "nostart" ];then
+    AUTO_START_FLAG=0
+else
+    AUTO_START_FLAG=1
+fi
 source ./blockchain_nodes_conf_util.sh
+source ./common_lib.sh
 
 ##check blocknodes_conf format
 echo -e "[INFO]==========check cluster nodes conf=========="
@@ -61,8 +67,10 @@ echo -e "[INFO]==========configure unchain=========="
 #Todo 增加节点的话 需要特别处理？？？？
 #fab set_shards:$1
 
-#clusternodes start
-echo -e "[INFO]==========start clusternodes=========="
-./clustercontrol.sh start
+if [ -z $AUTO_START_FLAG || $AUTO_START_FLAG -eq 1 ];then
+    #start unichain nodes
+    echo -e "[INFO]==========start unichain nodes=========="
+    ./clustercontrol.sh start
+fi
 
 exit 0

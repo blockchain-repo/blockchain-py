@@ -20,10 +20,12 @@ Usage:
 Options:
     h|-h|help|-help usage help
     env_check    before setup, check tools already in env
-    first_setup  first setup:install base tools|depends libs|rethinkdb|bigchaindb|unichain
+    first_setup  \$1: nostart, if set \$1,it cann't start nodes after setup
+                 first setup:install base tools|depends libs|rethinkdb|bigchaindb|unichain
                              configure rethinkdb|bigchaindb|unichain
                              start cluster nodes server
-    update       upste setup:update unichain
+    update       \$1: nostart, if set \$1,it cann't start nodes after update
+                 upste setup:update unichain
                              reconfigure rethinkdb|bigchaindb|unichain
                              restart cluster nodes server
     server_check after setup, check servers in cluster nodes are running
@@ -46,10 +48,12 @@ case $1 in
         ./run_env_check.sh | tee ../log/run_env_check.sh
     ;;
     first_setup)
-        ./run_first_setup.sh | tee ../log/run_first_setup.log
+        str_param=`echo $@|awk '{for(i=2;i<=NF;i++){if(i!=NF)print $i" ";else print $i}}'`
+        ./run_first_setup.sh $str_param | tee ../log/run_first_setup.log
     ;;
     update)
-        ./run_update.sh | tee ../log/run_update.log
+        str_param=`echo $@|awk '{for(i=2;i<=NF;i++){if(i!=NF)print $i" ";else print $i}}'`
+        ./run_update.sh $str_param | tee ../log/run_update.log
     ;;
     server_check)
         ./run_server_check.sh $2| tee ../log/run_server_check.log
