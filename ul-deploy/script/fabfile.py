@@ -474,7 +474,7 @@ def init_all_nodes():
         sudo('rm -rf /usr/local/lib/python3.4/dist-packages/BigchainDB-* 2>/dev/null')
         sudo('rm -rf ~/unichain 2>/dev/null')
         sudo('rm -rf /data/rethinkdb/* 2>/dev/null')
-        sudo('rm -rf /data/localdb/* 2>/dev/null')
+        sudo('rm -rf /data/localdb/{bigchain,votes,block_header,vote_header}/* 2>/dev/null')
 
 
 @task
@@ -623,7 +623,7 @@ def destroy_all_nodes():
         sudo('killall -9 pip,pip3 2>/dev/null')
 
         sudo('rm -rf /data/rethinkdb/* 2>/dev/null')
-        sudo('rm -rf /data/localdb/* 2>/dev/null')
+        sudo('rm -rf /data/localdb/{bigchain,votes,block_header,vote_header}/* 2>/dev/null')
 
         sudo('rm -rf /usr/local/lib/python3.4/dist-packages/BigchainDB-* 2>/dev/null')
         sudo('rm /usr/local/bin/bigchaindb 2>/dev/null')
