@@ -148,7 +148,8 @@ def initial():
 def get_changefeed(current_block_timestamp):
     """Create and return the changefeed for the table bigchain."""
 
-    return ChangeFeed('bigchain','block',ChangeFeed.INSERT | ChangeFeed.UPDATE,current_block_timestamp,secondary_index='block_timestamp',prefeed=initial())
+    return ChangeFeed('bigchain','block',ChangeFeed.INSERT | ChangeFeed.UPDATE,current_block_timestamp,
+                      repeat_recover_round = 3,secondary_index='block_timestamp',prefeed=initial())
 
 
 def create_pipeline():
@@ -179,9 +180,6 @@ def start():
     """Create, start, and return the localblock pipeline."""
 
     pipeline,current_block_timestamp = create_pipeline()
-    logger.error('lcoal_block start1')
     pipeline.setup(indata=get_changefeed(current_block_timestamp))
-    logger.error('lcoal_block start2')
     pipeline.start()
-    logger.error('lcoal_block start3')
     return pipeline

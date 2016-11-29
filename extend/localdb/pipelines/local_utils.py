@@ -16,7 +16,7 @@ class ChangeFeed(Node):
     DELETE = 2
     UPDATE = 4
 
-    def __init__(self, table, table_class,operation,init_timestamp=0,secondary_index=None ,prefeed=None):
+    def __init__(self, table, table_class,operation,init_timestamp=0,repeat_recover_round=None,secondary_index=None ,prefeed=None):
         """Create a new RethinkDB ChangeFeed.
 
         Args:
@@ -36,15 +36,23 @@ class ChangeFeed(Node):
         self.operation = operation
         self.bigchain = Bigchain()
         self.secondary_index = secondary_index
-        self.init_timestamp = init_timestamp
-        self.current_timestamp = None
         self.first_changes = True
-        self.missing_count = 0
+
+        # this round recovery timestamp start
+        self.init_timestamp = init_timestamp
+        # this round recovery timestamp end, according to the changefeed set it,it will be the next round start
+        # if should go on the next round deal!
+        self.current_timestamp = None
+        # this round the change data counts, if this round is zero, it will end up going on the round_recovery and
+        # to the normal run_changefeed process
+        self.round_recover_count = 0
+        # if go on recovery the lost data
+        self.round_recovery = True
+        # make sure the data can be recover mostly or even fully, should run round recovery more than one times
+        self.repeat_recover_round = repeat_recover_round or 5
 
 
     def run_forever(self):
-        # time.sleep(20)
-        # logger.error('{} start'.format(self.table))
 
         for element in self.prefeed:
             self.outqueue.put(element)
@@ -58,42 +66,53 @@ class ChangeFeed(Node):
                 time.sleep(1)
 
 
-
     def run_changefeed(self):
         for change in self.bigchain.connection.run(r.table(self.table).changes()):
             is_insert = change['old_val'] is None
             is_delete = change['new_val'] is None
             is_update = not is_insert and not is_delete
 
-            if self.first_changes:
+            if self.round_recovery:
+                self.round_recover_count = 0 # each round set it to zero
                 self.current_timestamp = change['new_val'][self.table_class]['timestamp']
-                self.first_changes = False
-                bigchain = Bigchain()
-                # print('run_forever4')
-                # print(change['new_val'])
-                # print("type of2 is {}".format(type(change['new_val'])))
-                missing_data = bigchain.connection.run(
+                missing_data = self.bigchain.connection.run(
                     r.table(self.table)
                         .between(self.init_timestamp,
-                                 # self.current_timestamp, left_bound='open',
-                                 self.current_timestamp,left_bound='open', right_bound='open',
+                                 self.current_timestamp, left_bound='open', right_bound='closed',
                                  index=self.secondary_index)
                         .order_by(index=r.asc(self.secondary_index)))
                 # print('miss data {}'.format(missing_data))
                 # print('miss data size={}'.format(len(missing_data)))
-                for data in missing_data:
-                    self.missing_count = self.missing_count + 1
-                    logger.warning(
-                        "\nmissing data for {},number={},timestamp={}".format(
-                            self.table_class, self.missing_count, data[self.table_class]['timestamp']))
-                    # print("type of is {}".format(type(data)))
-                    self.outqueue.put(data)
-                self.init_timestamp = None
-                self.first_changes = False
 
-            if is_insert and (self.operation & ChangeFeed.INSERT):
-                self.outqueue.put(change['new_val'])
-            elif is_delete and (self.operation & ChangeFeed.DELETE):
-                self.outqueue.put(change['old_val'])
-            elif is_update and (self.operation & ChangeFeed.UPDATE):
-                self.outqueue.put(change['new_val'])
+                for data in missing_data:
+                    self.round_recover_count = self.round_recover_count + 1
+                    self.outqueue.put(data)
+                    logger.warning(
+                        "\nRecover data for {}, number={}, timestamp={}".format(
+                            self.table_class, self.round_recover_count, data[self.table_class]['timestamp']))
+
+                if self.round_recover_count == 1 or self.round_recover_count == 0:
+                    self.repeat_recover_round = self.repeat_recover_round - 1
+                    logger.warning("\nThis round recover data for {}, count is {} (in [0,1]), will exit the round_recovery dealing after {} rounds!\n"\
+                                   .format(self.table_class,self.round_recover_count,self.repeat_recover_round ))
+                else:
+                    self.repeat_recover_round = self.repeat_recover_round + 1
+                    logger.warning(
+                        "\nThis round recover data for {}, count is {} (> 1), will increase the round_recovery dealing rounds to {}!\n" \
+                        .format(self.table_class,self.round_recover_count, self.repeat_recover_round))
+
+                self.init_timestamp = self.current_timestamp
+
+                if self.repeat_recover_round <= 0:
+                    self.round_recovery = False
+                    logger.warning(
+                        "\n{}`s all round recovery are so OK and it will exit the recovery process and go into normal changefeed dealinig!\n" \
+                        .format(self.table_class,self.repeat_recover_round, self.repeat_recover_round))
+
+            else:
+                if is_insert and (self.operation & ChangeFeed.INSERT):
+                    self.outqueue.put(change['new_val'])
+                elif is_delete and (self.operation & ChangeFeed.DELETE):
+                    self.outqueue.put(change['old_val'])
+                elif is_update and (self.operation & ChangeFeed.UPDATE):
+                    self.outqueue.put(change['new_val'])

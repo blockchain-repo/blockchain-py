@@ -102,7 +102,8 @@ def initial():
 def get_changefeed(current_vote_timestamp):
     """Create and return the changefeed for the votes."""
     logger.error('local_vote get_changefeed')
-    return ChangeFeed('votes','vote',ChangeFeed.INSERT | ChangeFeed.UPDATE,current_vote_timestamp,secondary_index='vote_timestamp',prefeed=initial())
+    return ChangeFeed('votes','vote',ChangeFeed.INSERT | ChangeFeed.UPDATE,current_vote_timestamp,
+                      repeat_recover_round=3,secondary_index='vote_timestamp',prefeed=initial())
 
 
 def create_pipeline():
@@ -130,9 +131,6 @@ def start():
     """Create, start, and return the localvote pipeline."""
 
     pipeline,current_vote_timestamp = create_pipeline()
-    logger.error('lcoal_vote start1')
     pipeline.setup(indata=get_changefeed(current_vote_timestamp))
-    logger.error('lcoal_vote start2')
     pipeline.start()
-    logger.error('lcoal_vote start3')
     return pipeline
