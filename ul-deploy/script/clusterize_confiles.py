@@ -71,6 +71,15 @@ if use_keypairs:
                          format(num_files, conf_dir, num_keypairs))
 
 # Make a list containing all the public keys
+keypairs_list_real = []
+for keypairs in keypairs_list:
+    for key, value in keypairs.items():
+        keypairs_list_real.append(value)
+print("keypairs_list_real {}".format(keypairs_list_real))
+
+# overwrite the deafult keypairs_list ,use real value
+keypairs_list = keypairs_list_real
+
 if use_keypairs:
     print('Using keypairs from keypairs.py')
     pubkeys = [keypair[1] for keypair in keypairs_list[:num_files]]
@@ -111,7 +120,7 @@ for i, filename in enumerate(conf_files):
         conf_dict['statsd']['host'] = gMonitorServer
 
     # Delete the config file
-    os.remove(file_path)
+    # os.remove(file_path)
 
     # Write new config file with the same filename
     print('Rewriting {}'.format(file_path))

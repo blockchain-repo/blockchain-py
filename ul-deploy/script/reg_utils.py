@@ -6,8 +6,8 @@ def reg_nodes(nodes=None):
     if nodes:
         pattern = re.compile(r"""^([^@]*) # hostname
                              @([^\s]*)    # ip
-                             :(\d+)       # port
-                             \s*([^\s]*)  # pwd
+                             :(\d+)\s+       # port
+                             ([^\s]+)  # pwd
                              \s*\#*.*$    # comment
                              """, re.X)
         match = pattern.match(nodes)
