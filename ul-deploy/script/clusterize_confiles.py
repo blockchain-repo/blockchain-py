@@ -75,7 +75,6 @@ keypairs_list_real = []
 for keypairs in keypairs_list:
     for key, value in keypairs.items():
         keypairs_list_real.append(value)
-print("keypairs_list_real {}".format(keypairs_list_real))
 
 # overwrite the deafult keypairs_list ,use real value
 keypairs_list = keypairs_list_real

@@ -214,8 +214,8 @@ def install_unichain_from_git_archive():
     with settings(warn_only=True):
         if run("test -d ./unichain").failed:
             run("echo 'create unichain directory' ")
-            run("mkdir -p ./unichain")
-            sudo("chown -R " + user_group + ':' + user_group + ' ./unichain')
+            sudo("mkdir -p ./unichain",user=env.user,group=env.user)
+            #sudo("chown -R " + user_group + ':' + user_group + ' ~/')
         else:
             run("echo 'remove old unichain directory' ")
             sudo("rm -rf ./unichain/*")
@@ -223,6 +223,7 @@ def install_unichain_from_git_archive():
     sudo('pip3 install -i http://pypi.douban.com/simple --upgrade setuptools')
     with cd('./unichain'):
         sudo('python3 setup.py install')
+        # sudo('pip3 install .')
     sudo('rm -f ../unichain-archive.tar.gz')
     run('echo install_unichain_from_git_archive done!')
 
