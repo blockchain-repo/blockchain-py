@@ -15,7 +15,13 @@ function printErr()
 #    exit 1
 #fi
 
+if [ $# -eq 1 && $1 == "nostart" ];then
+    AUTO_START_FLAG=0
+else
+    AUTO_START_FLAG=1
+fi
 source ./blockchain_nodes_conf_util.sh
+source ./common_lib.sh
 
 ##check blocknodes_conf format
 echo -e "[INFO]==========check cluster nodes conf=========="
@@ -75,18 +81,23 @@ fab install_localdb
 #init localdb ,init the data store dirs /data/localdb/{bigchain,votes,backlog}
 fab init_localdb
 
-#unichain install&configure&init&shards
+#unichain install&configure&init&shards&replicas
 echo -e "[INFO]==========install unichain=========="
 ./install_unichain_from_git_archive.sh
 echo -e "[INFO]=========configure unichain========="
 ./configure_unichain.sh ${CLUSTER_BIGCHAIN_COUNT}
 echo -e "[INFO]=========init unichain========="
 fab init_unichain
-echo -e "[INFO]==========set shards unichain========="
+echo -e "[INFO]==========set shards unichaini=========="
 fab set_shards:${CLUSTER_BIGCHAIN_COUNT}
+echo -e "[INFO]==========set replicas unichain=========="
+REPLICAS_NUM=`get_replicas_num ${CLUSTER_BICHAIN_COUNT}`
+fab set_replicas:${REPLICAS_NUM}
 
-#start unichain nodes
-echo -e "[INFO]==========start unichain nodes========="
-./clustercontrol.sh start
+if [ -z $AUTO_START_FLAG || $AUTO_START_FLAG -eq 1 ];then
+    #start unichain nodes
+    echo -e "[INFO]==========start unichain nodes=========="
+    ./clustercontrol.sh start
+fi
 
 exit 0
