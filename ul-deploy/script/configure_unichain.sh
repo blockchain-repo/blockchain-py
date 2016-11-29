@@ -10,10 +10,10 @@ function printErr()
     echo "No argument $1 supplied"
 }
 
-#if [ -z "$1" ]; then
-#    printErr "<number_of_files>"
-#    exit 1
-#fi
+if [ -z "$1" ]; then
+    printErr "<number_of_files>"
+    exit 1
+fi
 
 CONFDIR=../conf/unichain_confiles
 NUMFILES=$1
@@ -42,11 +42,11 @@ python3 write_keypairs_file.py $num_pairs
 python3 clusterize_confiles.py -k $CONFDIR $NUM_NODES
 
 # Send one of the config files to each instance
-#for (( HOST=0 ; HOST<$NUM_NODES ; HOST++ )); do
-#    CONFILE="bcdb_conf"$HOST
-#    echo "Sending "$CONFILE
-#    fab set_host:$HOST send_confile:$CONFILE
-#done
+for (( HOST=0 ; HOST<$NUM_NODES ; HOST++ )); do
+    CONFILE="bcdb_conf"$HOST
+    echo "Sending "$CONFILE
+    fab set_host:$HOST send_confile:$CONFILE
+done
 
 
 exit 0
