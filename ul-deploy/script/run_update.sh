@@ -67,7 +67,7 @@ echo -e "[INFO]==========configure unchain=========="
 #Todo 增加节点的话 需要特别处理？？？？
 #fab set_shards:$1
 
-if [ -z $AUTO_START_FLAG || $AUTO_START_FLAG -eq 1 ];then
+if [[ -z $AUTO_START_FLAG || $AUTO_START_FLAG -eq 1 ]];then
     #start unichain nodes
     echo -e "[INFO]==========start unichain nodes=========="
     ./clustercontrol.sh start

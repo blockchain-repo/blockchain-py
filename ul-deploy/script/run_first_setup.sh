@@ -94,7 +94,7 @@ echo -e "[INFO]==========set replicas unichain=========="
 REPLICAS_NUM=`get_replicas_num ${CLUSTER_BICHAIN_COUNT}`
 fab set_replicas:${REPLICAS_NUM}
 
-if [ -z $AUTO_START_FLAG || $AUTO_START_FLAG -eq 1 ];then
+if [[ -z $AUTO_START_FLAG || $AUTO_START_FLAG -eq 1 ]];then
     #start unichain nodes
     echo -e "[INFO]==========start unichain nodes=========="
     ./clustercontrol.sh start
