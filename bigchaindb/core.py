@@ -680,7 +680,7 @@ class Bigchain(object):
         return self.backend.init_heartbeat(data)
 
     def init_reassignnode_data(self):
-        if not self.backend.isReassignnodeExist:
+        if not self.backend.isReassignnodeExist():
             data = {"nodeid": 0, 'node_publickey': self.nodelist[0], 'timestamp': time()}
             self.backend.init_reassignnode(data)
 

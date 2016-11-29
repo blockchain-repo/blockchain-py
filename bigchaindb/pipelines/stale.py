@@ -48,7 +48,7 @@ class StaleTransactionMonitor:
         # 有reassignee权限的node key
         nodeid, assigneekey = self.bigchain.getAssigneekey()
         if mykey == assigneekey:
-            print("i am the reassignee node. select need reassign tx")
+            # print("i am the reassignee node. select need reassign tx")
             # 记录assignee心跳，并取出要处理的tx
             self.bigchain.updateAssigneebeat(assigneekey,time())
             # zy@secn
@@ -59,14 +59,14 @@ class StaleTransactionMonitor:
             # 如果当前节点没有reassignee权限，则需要判断有reassignee权限的节点是否down掉
             isalive = self.bigchain.is_assignee_alive(assigneekey, 10)
             if not isalive:
-                print("i am not the reassignee node. the assign node is dead! %d" % (time()))
+                # print("i am not the reassignee node. the assign node is dead! %d" % (time()))
                 # 更新reassign的节点。
                 updateid = int((nodeid + 1) % (len(self.bigchain.nodelist)))
-                next_assign_node = self.bigchain.nodelist[updateid+1]
+                next_assign_node = self.bigchain.nodelist[updateid]
                 self.bigchain.update_assign_node(updateid, next_assign_node)
                 return
             # 如果alive，不操作，等待reassignee node去处理
-            print("i am not the reassignee node. the assign node is alive!")
+            # print("i am not the reassignee node. the assign node is alive!")
             return
 
 
@@ -81,12 +81,12 @@ class StaleTransactionMonitor:
         txpublickey = tx["assignee"]
         isalive = self.bigchain.is_node_alive(txpublickey,10)
         if not isalive:
-            print("i am the reassignee node. the tx node is dead. need to be reassignee!")
+            # print("i am the reassignee node. the tx node is dead. need to be reassignee!")
             # node down ，需要reassign tx
             self.bigchain.reassign_transaction(tx)
             return tx
         # 如果alive，就是阻塞，不需要reassignee
-        print("i am the reassignee node. the tx node is alive. just wait!")
+        # print("i am the reassignee node. the tx node is alive. just wait!")
         return
 
 
