@@ -15,7 +15,7 @@ function printErr()
 #    exit 1
 #fi
 
-if [ $# -eq 1 && $1 == "nostart" ];then
+if [[ $# -eq 1 && $1 == "nostart" ]];then
     AUTO_START_FLAG=0
 else
     AUTO_START_FLAG=1
