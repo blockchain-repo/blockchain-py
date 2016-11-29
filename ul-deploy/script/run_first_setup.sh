@@ -88,7 +88,7 @@ echo -e "[INFO]=========configure unichain========="
 ./configure_unichain.sh ${CLUSTER_BIGCHAIN_COUNT}
 echo -e "[INFO]=========init unichain========="
 fab init_unichain
-echo -e "[INFO]==========set shards unichaini=========="
+echo -e "[INFO]==========set shards unichain=========="
 fab set_shards:${CLUSTER_BIGCHAIN_COUNT}
 echo -e "[INFO]==========set replicas unichain=========="
 REPLICAS_NUM=`get_replicas_num ${CLUSTER_BICHAIN_COUNT}`
