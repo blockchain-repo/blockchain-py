@@ -674,22 +674,21 @@ class Bigchain(object):
         return self.backend.count_backlog_txs()
 
     # @author lz
-
     def init_heartbeat_data(self):
         self.backend.delete_heartbeat(self.me)
         data = {'node_publickey': self.me,'timestamp':time()}
         return self.backend.init_heartbeat(data)
 
     def init_reassignnode_data(self):
-        self.backend.delete_reassignnode()
-        data = {"id":0,'node_publickey': self.nodelist[0], 'timestamp': time()}
-        self.backend.init_reassignnode(data)
+        if not self.backend.isReassignnodeExist:
+            data = {"nodeid": 0, 'node_publickey': self.nodelist[0], 'timestamp': time()}
+            self.backend.init_reassignnode(data)
 
     def updateHeartbeat(self,time):
         return self.backend.updateHeartbeat(self.me,time)
 
     def getAssigneekey(self):
-        nodeid = self.backend.getAssigneekey().next()['id']
+        nodeid = self.backend.getAssigneekey().next()['nodeid']
         assigneekey = self.backend.getAssigneekey().next()['node_publickey']
         return nodeid,assigneekey
 

@@ -44,11 +44,9 @@ class StaleTransactionMonitor:
 
         # 当前节点
         mykey = self.bigchain.me
-        # print("mykey"+mykey)
 
         # 有reassignee权限的node key
         nodeid, assigneekey = self.bigchain.getAssigneekey()
-        print("nodeid.." + str(nodeid) + ",assigneekey.." + assigneekey+",mykey.."+mykey)
         if mykey == assigneekey:
             print("i am the reassignee node. select need reassign tx")
             # 记录assignee心跳，并取出要处理的tx
@@ -61,9 +59,9 @@ class StaleTransactionMonitor:
             # 如果当前节点没有reassignee权限，则需要判断有reassignee权限的节点是否down掉
             isalive = self.bigchain.is_assignee_alive(assigneekey, 10)
             if not isalive:
-                print("i am not the reassignee node. the assign node is dead!")
+                print("i am not the reassignee node. the assign node is dead! %d" % (time()))
                 # 更新reassign的节点。
-                updateid = int((nodeid + 1) / (len(self.bigchain.nodelist)))
+                updateid = int((nodeid + 1) % (len(self.bigchain.nodelist)))
                 next_assign_node = self.bigchain.nodelist[updateid+1]
                 self.bigchain.update_assign_node(updateid, next_assign_node)
                 return

@@ -393,20 +393,14 @@ class RethinkDBBackend:
 
     # TODO 需要写一些通用方法，提高代码重用
 
-    # def isnodelistExistData(self):
-    #     return self.connection.run(r.table('nodelist').count())
-    #
-    # def init_nodelist_data(self,data):
-    #     return self.connection.run(r.table('nodelist').insert(data))
-
     def delete_heartbeat(self,node_pubkey):
         return self.connection.run(r.table('heartbeat').filter({'node_publickey': node_pubkey}).delete())
 
     def init_heartbeat(self,data):
         return self.connection.run(r.table('heartbeat').insert(data))
 
-    def delete_reassignnode(self):
-        return self.connection.run(r.table('reassignnode').delete())
+    def isReassignnodeExist(self):
+        return self.connection.run(r.table('reassignnode').count())
 
     def init_reassignnode(self,data):
         return self.connection.run(r.table('reassignnode').insert(data))
@@ -426,11 +420,5 @@ class RethinkDBBackend:
     def is_node_alive(self,txpublickey):
         return self.connection.run(r.table('heartbeat').filter({'node_publickey': txpublickey}))
 
-    def get_node_id(self,assigneekey):
-        return self.connection.run(r.table('nodelist').filter({'node_publickey': assigneekey}))
-
-    def get_node_key(self,id):
-        return self.connection.run(r.table('nodelist').filter({'id': id}))
-
     def update_assign_node(self,updateid,next_assign_node):
-        return self.connection.run(r.table('reassignnode').update({"id":updateid},{'node_publickey':next_assign_node}))
+        return self.connection.run(r.table('reassignnode').update({"nodeid":updateid,'node_publickey':next_assign_node,'timestamp':time()}))

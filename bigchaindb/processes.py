@@ -40,12 +40,12 @@ def start():
     election.start()
 
 
-    # must start the localdb pipeline after origin pipeline
-    logger.info('Starting localblock')
-    local_block.start()
-    #
-    logger.info('Starting localvoter')
-    local_vote.start()
+    # # must start the localdb pipeline after origin pipeline
+    # logger.info('Starting localblock')
+    # local_block.start()
+    # #
+    # logger.info('Starting localvoter')
+    # local_vote.start()
 
 
     # start the web api
