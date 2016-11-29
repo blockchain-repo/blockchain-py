@@ -35,8 +35,7 @@ class LocalBlock(Node):
 
         self.conn_header = conn_header or leveldb.LocalBlock_Header().conn['block_header']
         self.conn_bigchain = conn_bigchain or leveldb.LocalBlock_Header().conn['bigchain']
-        self.block_num = current_block_num or int(leveldb.get_withdefault(self.conn_header, 'block_num','0'))\
-            if leveldb.get(self.conn_header, 'block_num') is not None else 1
+        self.block_num = current_block_num or int(leveldb.get_withdefault(self.conn_header, 'block_num','0'))
         self.block_count = 0 # after process start ,the node has write block to local
         # self.blocks = []
 
@@ -149,7 +148,7 @@ def get_changefeed(current_block_timestamp):
     """Create and return the changefeed for the table bigchain."""
 
     return ChangeFeed('bigchain','block',ChangeFeed.INSERT | ChangeFeed.UPDATE,current_block_timestamp,
-                      repeat_recover_round = 3,secondary_index='block_timestamp',prefeed=initial())
+                      repeat_recover_round = 5,round_recover_limit=10,secondary_index='block_timestamp',prefeed=initial())
 
 
 def create_pipeline():

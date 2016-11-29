@@ -16,7 +16,8 @@ class ChangeFeed(Node):
     DELETE = 2
     UPDATE = 4
 
-    def __init__(self, table, table_class,operation,init_timestamp=0,repeat_recover_round=None,secondary_index=None ,prefeed=None):
+    def __init__(self, table, table_class,operation,init_timestamp=0,repeat_recover_round=None,
+                 round_recover_limit=None,secondary_index=None ,prefeed=None):
         """Create a new RethinkDB ChangeFeed.
 
         Args:
@@ -38,18 +39,22 @@ class ChangeFeed(Node):
         self.secondary_index = secondary_index
         self.first_changes = True
 
-        # this round recovery timestamp start
+        # this round recovery timestamp start.
         self.init_timestamp = init_timestamp
         # this round recovery timestamp end, according to the changefeed set it,it will be the next round start
         # if should go on the next round deal!
         self.current_timestamp = None
         # this round the change data counts, if this round is zero, it will end up going on the round_recovery and
-        # to the normal run_changefeed process
+        # to the normal run_changefeed process.
         self.round_recover_count = 0
         # if go on recovery the lost data
         self.round_recovery = True
-        # make sure the data can be recover mostly or even fully, should run round recovery more than one times
-        self.repeat_recover_round = repeat_recover_round or 5
+        # make sure the data can be recover mostly or even fully, should run round recovery process more than one times
+        # it will be dynamic change by the round_recovery process
+        self.repeat_recover_round = repeat_recover_round or 10
+        # this round will deal the max missing data, it will be dynamic change by the round_recovery process
+        self.round_recover_limit = round_recover_limit or 100
+        self.diff_time = 0 # adjacent changes time
 
 
     def run_forever(self):
@@ -73,41 +78,95 @@ class ChangeFeed(Node):
             is_update = not is_insert and not is_delete
 
             if self.round_recovery:
+                self.diff_time = time.time()
                 self.round_recover_count = 0 # each round set it to zero
                 self.current_timestamp = change['new_val'][self.table_class]['timestamp']
-                missing_data = self.bigchain.connection.run(
+
+                missing_data_count = self.bigchain.connection.run(
                     r.table(self.table)
                         .between(self.init_timestamp,
                                  self.current_timestamp, left_bound='open', right_bound='closed',
                                  index=self.secondary_index)
-                        .order_by(index=r.asc(self.secondary_index)))
+                        .order_by(index=r.asc(self.secondary_index)).count())
+
+                logger.warning(
+                    "\nThe total data to be recovered for {}, total numbers={}, this round will recover max number is {}\n".format(
+                        self.table_class,missing_data_count, self.round_recover_limit))
+
+                # the data ,this round will recover
+                round_recover_data = None
+                if missing_data_count == 1:
+                    # must be wrap to the list
+                    round_recover_data = [change['new_val']]
+
+                elif missing_data_count >= 2:
+                    if missing_data_count <= self.round_recover_limit:
+                        self.round_recover_limit = missing_data_count
+
+                    round_recover_data = self.bigchain.connection.run(
+                        r.table(self.table)
+                            .between(self.init_timestamp,
+                                     self.current_timestamp, left_bound='open', right_bound='closed',
+                                     index=self.secondary_index)
+                            .order_by(index=r.asc(self.secondary_index)).limit(self.round_recover_limit))
+
                 # print('miss data {}'.format(missing_data))
                 # print('miss data size={}'.format(len(missing_data)))
-
-                for data in missing_data:
+                for data in round_recover_data:
                     self.round_recover_count = self.round_recover_count + 1
                     self.outqueue.put(data)
                     logger.warning(
-                        "\nRecover data for {}, number={}, timestamp={}".format(
+                        "\nRecover data for {}, number={}, timestamp={}\n".format(
                             self.table_class, self.round_recover_count, data[self.table_class]['timestamp']))
+
+                # round init_timestamp must be set to the last missing_data timestamp for this round
+                if data:
+                    self.init_timestamp = data[self.table_class]['timestamp']
+                    print("last data for {}, init_timestamp is {}\n".format(self.table_class,self.init_timestamp))
+                else:
+                    self.init_timestamp = self.current_timestamp
+                    print("no data for {}, current_timestamp is {}\n".format(self.table_class, self.init_timestamp))
 
                 if self.round_recover_count == 1 or self.round_recover_count == 0:
                     self.repeat_recover_round = self.repeat_recover_round - 1
-                    logger.warning("\nThis round recover data for {}, count is {} (in [0,1]), will exit the round_recovery dealing after {} rounds!\n"\
+                    logger.warning("\nThis round recover data for {}, count is {} (in [0,1]), will exit the round_recovery dealing after {} rounds!\n" \
                                    .format(self.table_class,self.round_recover_count,self.repeat_recover_round ))
                 else:
                     self.repeat_recover_round = self.repeat_recover_round + 1
                     logger.warning(
                         "\nThis round recover data for {}, count is {} (> 1), will increase the round_recovery dealing rounds to {}!\n" \
-                        .format(self.table_class,self.round_recover_count, self.repeat_recover_round))
-
-                self.init_timestamp = self.current_timestamp
+                            .format(self.table_class,self.round_recover_count, self.repeat_recover_round))
 
                 if self.repeat_recover_round <= 0:
                     self.round_recovery = False
                     logger.warning(
                         "\n{}`s all round recovery are so OK and it will exit the recovery process and go into normal changefeed dealinig!\n" \
-                        .format(self.table_class,self.repeat_recover_round, self.repeat_recover_round))
+                            .format(self.table_class,self.repeat_recover_round, self.repeat_recover_round))
+
+                self.diff_time = time.time() - self.diff_time
+                print("cost time {}".format(self.diff_time))
+
+                # TODO: can be better
+                if self.diff_time > 90:
+                    self.round_recover_limit = int(self.round_recover_limit*0.1) + 1
+                elif self.diff_time > 60:
+                    self.round_recover_limit = int(self.round_recover_limit * 0.3) + 1
+                elif self.diff_time > 30:
+                    self.round_recover_limit = int(self.round_recover_limit * 0.4) + 1
+                elif self.diff_time > 10:
+                    self.round_recover_limit = int(self.round_recover_limit * 0.5) + 1
+                elif self.diff_time > 5:
+                    self.round_recover_limit = int(self.round_recover_limit * 0.6) + 1
+                elif self.diff_time > 2:
+                    self.round_recover_limit = int(self.round_recover_limit * 0.8) + 1
+                elif self.diff_time > 1:
+                    self.round_recover_limit = int(self.round_recover_limit * 2) + 1
+                elif self.diff_time > 0.1:
+                    self.round_recover_limit = int(self.round_recover_limit * 5.0) + 1
+                elif self.diff_time > 0.01:
+                    self.round_recover_limit = int(self.round_recover_limit * 10.0) + 1
+                else:
+                    self.round_recover_limit = int(self.round_recover_limit * 20.0) + 1
 
             else:
                 if is_insert and (self.operation & ChangeFeed.INSERT):

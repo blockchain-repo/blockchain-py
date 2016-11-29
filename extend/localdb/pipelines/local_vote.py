@@ -30,8 +30,7 @@ class LocalVote(Node):
         """Initialize the LocalVotePipeline creator"""
         self.conn_header = conn_header or leveldb.LocalVote().conn['vote_header']
         self.conn_votes = conn_votes or leveldb.LocalVote().conn['votes']
-        self.vote_num = current_vote_num or int(leveldb.get_withdefault(self.conn_header, 'vote_num', '0')) \
-            if leveldb.get(self.conn_header, 'vote_num') is not None else 0
+        self.vote_num = current_vote_num or int(leveldb.get_withdefault(self.conn_header, 'vote_num', '0'))
         self.vote_count = 0 # after process start ,the node has write vote to local
         # self.votes = []
 
@@ -103,7 +102,7 @@ def get_changefeed(current_vote_timestamp):
     """Create and return the changefeed for the votes."""
     logger.error('local_vote get_changefeed')
     return ChangeFeed('votes','vote',ChangeFeed.INSERT | ChangeFeed.UPDATE,current_vote_timestamp,
-                      repeat_recover_round=3,secondary_index='vote_timestamp',prefeed=initial())
+                      repeat_recover_round=5,round_recover_limit=20,secondary_index='vote_timestamp',prefeed=initial())
 
 
 def create_pipeline():
