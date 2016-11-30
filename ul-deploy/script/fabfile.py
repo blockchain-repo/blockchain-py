@@ -656,7 +656,7 @@ def detect_rethinkdb():
         else:
             print("[INFO]=====driver_port[%s] detect result: is OK!" % (driver_port))
         check_cluster_port=sudo('netstat -nlap|grep "LISTEN"|grep rethinkdb|awk -v v_port=":%s" \'{if(v_port==$4) print $0}\'' % (cluster_port))
-        if not cluster_port:
+        if not check_cluster_port:
             print("[ERROR]=====cluster_port[%s] detect result: not alive" % (cluster_port))
         else:
             print("[INFO]=====cluster_port[%s] detect result:  is OK!" % (cluster_port))
