@@ -39,17 +39,17 @@ def check_rethinkdb():
         driver_port = 28015
         cluster_port = 29015
         http_port = 8080
-        check_driver_port=sudo('netstat -nlap|grep "LISTEN"|grep rethinkdb|awk -v v_port=":%s" \'{if(v_port==$4) print $0}\'' % (driver_port))
+        check_driver_port=sudo('netstat -nlap|grep "LISTEN"|grep rethinkdb|grep ":%s"' % (driver_port))
         if not check_driver_port:
             print("[INFO]=====driver_port[%s] detect result: is not used!" % (driver_port))
         else:
             print("[ERROR]=====driver_port[%s] detect result: is used!" % (driver_port))
-        check_cluster_port=sudo('netstat -nlap|grep "LISTEN"|grep rethinkdb|awk -v v_port=":%s" \'{if(v_port==$4) print $0}\'' % (cluster_port))
-        if not cluster_port:
+        check_cluster_port=sudo('netstat -nlap|grep "LISTEN"|grep rethinkdb|grep ":%s"' % (cluster_port))
+        if not check_cluster_port:
             print("[INFO]=====cluster_port[%s] detect result: is not used!" % (cluster_port))
         else:
             print("[ERROR]=====cluster_port[%s] detect result:  is used!" % (cluster_port))
-        check_http_port=sudo('netstat -nlap|grep "LISTEN"|grep rethinkdb|awk -v v_port=":%s" \'{if(v_port==$4) print $0}\'' % (http_port))
+        check_http_port=sudo('netstat -nlap|grep "LISTEN"|grep rethinkdb|grep ":%s"' % (http_port))
         if not check_http_port:
             print("[INFO]=====http_port[%s] detect result: is not used!" % (http_port))
         else:
@@ -650,17 +650,17 @@ def detect_rethinkdb():
             cluster_port = 29015 
         if not http_port:
             http_port = 8080
-        check_driver_port=sudo('netstat -nlap|grep "LISTEN"|grep rethinkdb|awk -v v_port=":%s" \'{if(v_port==$4) print $0}\'' % (driver_port))
+        check_driver_port=sudo('netstat -nlap|grep "LISTEN"|grep rethinkdb|grep ":%s"' % (driver_port))
         if not check_driver_port:
             print("[ERROR]=====driver_port[%s] detect result: NOT exist!" % (driver_port))
         else:
             print("[INFO]=====driver_port[%s] detect result: is OK!" % (driver_port))
-        check_cluster_port=sudo('netstat -nlap|grep "LISTEN"|grep rethinkdb|awk -v v_port=":%s" \'{if(v_port==$4) print $0}\'' % (cluster_port))
+        check_cluster_port=sudo('netstat -nlap|grep "LISTEN"|grep rethinkdb|grep ":%s"' % (cluster_port))
         if not check_cluster_port:
             print("[ERROR]=====cluster_port[%s] detect result: not alive" % (cluster_port))
         else:
             print("[INFO]=====cluster_port[%s] detect result:  is OK!" % (cluster_port))
-        check_http_port=sudo('netstat -nlap|grep "LISTEN"|grep rethinkdb|awk -v v_port=":%s" \'{if(v_port==$4) print $0}\'' % (http_port))
+        check_http_port=sudo('netstat -nlap|grep "LISTEN"|grep rethinkdb|grep ":%s"' % (http_port))
         if not check_http_port:
             print("[ERROR]=====http_port[%s] detect result: not alive" % (http_port))
         else:
