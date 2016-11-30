@@ -50,6 +50,14 @@ class LocalVote(Node):
         previous_block = vote['vote']['previous_block']
         node_pubkey = vote['node_pubkey']
         vote_key = previous_block + '-' + node_pubkey
+
+        # if exists
+        exist_vote = leveldb.get(self.conn_votes,vote_key) is not None
+        if exist_vote:
+            logger.warning("\nThe vote[id={},vote_key={}] is already exist.\n".format(vote_id,vote_key))
+            return None
+
+
         vote_json_str = rapidjson.dumps(vote)
 
         self.vote_num = self.vote_num + 1
@@ -59,14 +67,14 @@ class LocalVote(Node):
         leveldb.update(self.conn_header, 'current_vote_timestamp', current_vote_timestamp, sync=False)
         leveldb.update(self.conn_header, 'vote_num', self.vote_num, sync=False)
 
-        info = "current vote info \n[vote_id={},vote_key={}\n,previous_block={}\n,node_pubkey={}\n,voting_for_block={}]"\
+        info = "current vote info \n[vote_id={},vote_key={}\n,previous_block={}\n,node_pubkey={}\n,voting_for_block={}]\n"\
             .format(vote_id,vote_key,previous_block, node_pubkey, vote['vote']['voting_for_block'])
         logger.info(info)
 
         self.vote_count =self.vote_count + 1
-        logger.warning('The count of this node(after start) has write to local vote is: {}'.format(self.vote_count))
+        logger.warning('The count of this node(after start) has write to local vote is: {}, vote_num is: {}'.format(self.vote_count,self.vote_num))
 
-        self.get_local_votes_for_block(previous_block)
+        # self.get_local_votes_for_block(previous_block)
 
         return None
 
@@ -75,8 +83,8 @@ class LocalVote(Node):
         """Only show the pre op result!"""
 
         votes = leveldb.get_prefix(self.conn_votes, block_id + '-')
-        previous_block_votes_info = "previous_block votes info \n[id={},\nvotes={}]\n".format(block_id,votes)
-        logger.info(previous_block_votes_info)
+        # previous_block_votes_info = "\nprevious_block votes info \n[id={},\nvotes={}]\n".format(block_id,votes)
+        # logger.info(previous_block_votes_info)
 
         current_vote_timestamp = leveldb.get(self.conn_header, 'current_vote_timestamp')
         current_vote_id = leveldb.get(self.conn_header, 'current_vote_id')

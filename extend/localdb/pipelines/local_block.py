@@ -53,6 +53,13 @@ class LocalBlock(Node):
         """
 
         block_id = block['id']
+
+        # if exists
+        exist_block = leveldb.get(self.conn_bigchain, block_id) is not None
+        if exist_block:
+            logger.warning("\nThe block[id={}] is already exist.\n".format(block_id))
+            return None
+
         current_block_timestamp = block['block']['timestamp']
         block_size = len(block['block']['transactions'])
         block_json_str = rapidjson.dumps(block)
@@ -68,9 +75,9 @@ class LocalBlock(Node):
         logger.info(info)
 
         self.block_count =self.block_count + 1
-        logger.warning('The count of this node(after start) has write to local block is: {}'.format(self.block_count))
+        logger.warning('The count of this node(after start) has write to local block is: {}, block_num is: {}'.format(self.block_count,self.block_num))
 
-        self.get_localblock_info()
+        # self.get_localblock_info()
 
         return None
 
