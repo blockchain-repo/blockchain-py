@@ -22,6 +22,12 @@ function check_cluster_nodes_conf
         echo -e "\tFORMAT:username@host:port password"
         return 1
     }
+    #check ip duplication
+    local duplicat_host=`cat $CLUSTER_CHAINNODES_CONF|grep -vE "^#|^$"|grep -o "@.*:"|sed "s/@\|://g"|sort|uniq -c|sed "s/^[ ]*//g"|grep -v "^1 "|awk '{print $2}'`
+    [ ! -z $duplicat_host  ] && {
+        echo -e "[ERROR] blockchain_nodes continues multi same host[$duplicat_host]!!!"
+        return 1
+    }
     return 0
 }
 
