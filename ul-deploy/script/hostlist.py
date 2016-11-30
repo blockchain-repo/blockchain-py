@@ -45,11 +45,14 @@ with open(blockchain_nodes_path) as f:
                 continue
             port = groups[2]
             pwd = groups[3]
-
             hosts = "{}@{}:{}".format(username, host, port)
             public_dns_names.append(hosts)
             public_hosts.append(host)
             public_pwds.append(pwd)
             public_host_pwds[hosts] = pwd
+
+    set_public_hosts = set(public_hosts)
+    if len(public_hosts) != len(set_public_hosts):
+        raise Exception("Exist the repeat host,please check the blockchain_node file!")
 
     os.chdir(old_cwd)

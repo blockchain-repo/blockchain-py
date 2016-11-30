@@ -175,7 +175,6 @@ def create_pipeline():
 
 def start():
     """Create, start, and return the block pipeline."""
-    print("vote start")
     pipeline = create_pipeline()
     pipeline.setup(indata=get_changefeed())
     pipeline.start()

@@ -33,7 +33,7 @@ print('Writing {} keypairs to keypairs.py...'.format(num_pairs))
 
 exist_keypairs_file = os.path.isfile('keypairs.py')
 
-new_sort_keys = public_dns_names # 节点信息,有序 根据这个顺序生成新的keypairs list
+new_sort_keys = public_hosts # 节点信息,有序 根据这个顺序生成新的keypairs list
 old_sort_keys = [] # 旧的keypairs list对应的key信息
 new_sort_key_pairs = [] # 按照节点信息生成的新的,包含旧的无用节点keypairs信息的完整keypairs list
 
