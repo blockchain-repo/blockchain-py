@@ -6,6 +6,7 @@ import json
 import time
 import threading
 import queue
+import os
 from api_conf import *
 from api_data import *
 """
@@ -15,7 +16,7 @@ import yaml
 logging.config.dictConfig(codecs.open("cfg/logger.yml",'r','utf-8').read())
 logger = logging.getLogger("infologgerfile")
 """
-
+os.system("mkdir -p ./log")
 logging.basicConfig(level=logging.DEBUG,
                     format='%(asctime)s%(filename)s[line:%(lineno)d] %(levelname)s %(message)s',
                     datefmt='%a, %d %b %Y %H:%M:%S ',

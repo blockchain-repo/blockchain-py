@@ -6,6 +6,7 @@ import urllib
 import logging
 import json
 import random
+import os
 import sys
 import time
 import threading
@@ -13,6 +14,7 @@ import uuid
 from api_conf import *
 from api_data import *
 
+os.system("mkdir -p ./log")
 global log_file_path,log_file_name
 logging.basicConfig(level=logging.DEBUG,
                     format='%(asctime)s%(filename)s[line:%(lineno)d] %(levelname)s %(message)s',

@@ -73,7 +73,7 @@ if [ -z "`curl -s -i $BASE_PATH|grep -o "^HTTP/.* 200 OK"`" ];then
     echo "[ERROR]api server not OK!!!"
     exit 1
 else
-   API_BASE_PATH=`curl -s -i $BASE_PATH|grep "\"api_endpoint\":.*"|cut -d":" -f2-|sed "s/\"\|,//g"|sed "s#http:\/\/.*:[0-9]*#${BASE_PATH}#g" ` 
+   API_BASE_PATH=`curl -s -i $BASE_PATH|grep "\"api_endpoint\":.*"|cut -d":" -f2-|sed "s/\"\|,\| //g"|sed "s#http:\/\/.*:[0-9]*#${BASE_PATH}#g" ` 
 fi
 
 API_CMD="curl -s -i"

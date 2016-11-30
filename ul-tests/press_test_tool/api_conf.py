@@ -2,13 +2,13 @@
 #coding=utf-8
 
 ###api url configure
-test_flag = True
-api_host = "192.168.1.110"
-api_port = "9984"
-#api_method = "POST"
-api_method = "GET"
+test_flag = False
+api_host = "36.110.115.195"
+api_port = "39"
+api_method = "POST"
+#api_method = "GET"
 if not test_flag:
-    api_url = "/api/v1/transactions"
+    api_url = "/api/v1/transactions/test"
 else:
     api_url = ""
 api_full_url = "http://%s:%s%s" % (api_host, api_port, api_url)

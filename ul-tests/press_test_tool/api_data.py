@@ -1,6 +1,6 @@
 #!/usr/bin/env python
 #coding=utf-8
-
+"""
 test_data_json_body =  \
 {
     "id": "16cd78bc53fc64c2bcbe8e991da1b88f57ba852c62734bcd9ea9e65b55cf75a9",
@@ -43,5 +43,6 @@ test_data_json_body =  \
   },
   "version": 1
 }
-
+"""
+test_data_json_body = {}
 test_data_json_headers = {'content-type': 'application/json'}
