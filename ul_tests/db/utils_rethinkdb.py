@@ -18,6 +18,9 @@ class RethinkdbUtils():
 
     def get_counts(self,table):
 
+        if table is None or table not in self.tables:
+            return 0
+
         return self.bigchain.connection.run(
             r.table(table).count())
 
@@ -88,7 +91,7 @@ class RethinkdbUtils():
         """
 
         if table is None or table not in self.tables:
-            return 0
+            return None
 
         if start is None:
             start = r.minval
@@ -139,7 +142,7 @@ class RethinkdbUtils():
 
        """
 
-        if table is None:
+        if table is None or table not in self.tables:
             return None
 
         if key is None:

@@ -26,7 +26,7 @@ class LocalBlock_Header(object):
 
     def __new__(cls):
         if not hasattr(cls, 'instance'):
-            logger.info('init localblock & localheader dirs start')
+            logger.info('init bigchain & block_header dirs start')
             cls.instance = super(LocalBlock_Header, cls).__new__(cls)
             database = config['database']
             parent_dir = database['path']
@@ -34,15 +34,16 @@ class LocalBlock_Header(object):
             write_buffer_size = database['write_buffer_size']
             max_open_files = database['max_open_files']
             lru_cache_size = database['lru_cache_size']
-            print('leveldb config %s' %(database.items()))
+            logger.info('leveldb config {}'.format(database.items()))
             cls.instance.conn = dict()
-            logger.warn('conn info: ' + str(cls.instance.conn.items()))
+            logger.info('conn info: ' + str(cls.instance.conn.items()))
             cls.instance.conn['block_header'] = l.DB(parent_dir + 'block_header/', create_if_missing=True,write_buffer_size=write_buffer_size,
                                                block_size=block_size, max_open_files=max_open_files,lru_cache_size=lru_cache_size)
             cls.instance.conn['bigchain'] = l.DB(parent_dir + 'bigchain/', create_if_missing=True,write_buffer_size=write_buffer_size,
                                                  block_size=block_size,max_open_files=max_open_files,lru_cache_size=lru_cache_size)
-            logger.info('LocalDBPool conn ' + str(cls.instance.conn.items()))
-            logger.info('init localblock & localheader dirs end')
+            logger.info('LocalBlock_Header conn {}'.format(cls.instance.conn.items()))
+            logger.info('init bigchain & block_header dirs end')
+
         return cls.instance
 
 
@@ -62,7 +63,7 @@ class LocalVote(object):
 
     def __new__(cls):
         if not hasattr(cls, 'instance'):
-            logger.info('init localvote dir start')
+            logger.info('init votes & vote_header dirs start')
             cls.instance = super(LocalVote, cls).__new__(cls)
             database = config['database']
             parent_dir = database['path']
@@ -70,15 +71,16 @@ class LocalVote(object):
             write_buffer_size = database['write_buffer_size']
             max_open_files = database['max_open_files']
             lru_cache_size = database['lru_cache_size']
-            print('leveldb config %s' %(database.items()))
+            print('leveldb config {}'.format(database.items()))
             cls.instance.conn = dict()
-            logger.warn('conn info: ' + str(cls.instance.conn.items()))
+            logger.info('conn info: ' + str(cls.instance.conn.items()))
             cls.instance.conn['vote_header'] = l.DB(parent_dir + 'vote_header/', create_if_missing=True,write_buffer_size=write_buffer_size,
                                                      block_size=block_size, max_open_files=max_open_files,lru_cache_size=lru_cache_size)
             cls.instance.conn['votes'] = l.DB(parent_dir + 'votes/', create_if_missing=True,write_buffer_size=write_buffer_size,
                                               block_size=block_size,max_open_files=max_open_files,lru_cache_size=lru_cache_size)
-            logger.info('LocalVote conn ' + str(cls.instance.conn.items()))
-            logger.info('init localvote dir end')
+            logger.info('LocalVote conn {}'.format(cls.instance.conn.items()))
+            logger.info('init votes & vote_header dirs end')
+
         return cls.instance
 
 
@@ -93,15 +95,15 @@ def close(conn):
 
     if conn:
         conn.close()
-        logger.info('leveldb close conn ... ' + str(conn))
+        logger.info('leveldb close conn ... {}'.format(conn))
 
 
 def close_all():
     """Close all databases dir."""
 
     tables = config['database']['tables']
-    logger.info('leveldb close all databases '+str(tables))
-    result=[]
+    logger.info('leveldb close all databases {}'.format(tables))
+    result = []
     for table in tables:
         if table is not None:
             try:
@@ -111,7 +113,7 @@ def close_all():
             except:
                 # print(table + ' is not exist')
                 continue
-    logger.info('leveldb close all...' + str(result))
+    logger.info('leveldb close all...{}'.format(result))
 
 
 def get_conn(name,prefix_db=None):
@@ -123,8 +125,7 @@ def get_conn(name,prefix_db=None):
     Returns:
         the leveldb dir pointer.
     """
-
-    if prefix_db is None:
+    if prefix_db is None or prefix_db not in config['database']['tables']:
         raise BaseException("Ambigous localdb conn, you should make clear it!")
 
     if prefix_db in ("block_header","bigchain"):

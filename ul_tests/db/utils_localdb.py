@@ -104,13 +104,13 @@ class LocaldbUtils():
         """
 
         if not conn:
-            return None
+            return 0
 
         raw_iterator = conn.raw_iterator()  # invalid,must move to the first
         if raw_iterator:
             raw_iterator.seek_to_first()
         else:
-            return None
+            return 0
 
         count = 0
 
