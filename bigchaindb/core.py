@@ -565,6 +565,7 @@ class Bigchain(object):
             'voting_for_block': block_id,
             'previous_block': previous_block_id,
             'is_block_valid': decision,
+            # 'is_block_valid': False,
             'invalid_reason': invalid_reason,
             'timestamp': gen_timestamp()
         }
@@ -673,7 +674,7 @@ class Bigchain(object):
     def get_backlog_tx_number(self):
         return self.backend.count_backlog_txs()
 
-    # @author lz
+    # @author lz  for reassignee
     def init_heartbeat_data(self):
         self.backend.delete_heartbeat(self.me)
         data = {'node_publickey': self.me,'timestamp':time()}
@@ -707,3 +708,10 @@ class Bigchain(object):
 
     def update_assign_node(self,updateid,next_assign_node):
         return self.backend.update_assign_node(updateid,next_assign_node)
+
+    # @author lz for rewrite
+    def insertRewrite(self,data):
+        return self.backend.insertRewrite(data)
+
+    def selectFromWrite(self,id):
+        return self.backend.isBlockRewrited(id)
