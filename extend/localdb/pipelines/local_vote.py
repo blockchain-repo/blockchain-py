@@ -122,7 +122,7 @@ def get_changefeed(current_vote_timestamp):
     """Create and return the changefeed for the votes."""
     logger.error('local_vote get_changefeed')
     return ChangeFeed('votes','vote',ChangeFeed.INSERT | ChangeFeed.UPDATE,current_vote_timestamp,
-                      repeat_recover_round=5,round_recover_limit=500,secondary_index='vote_timestamp',prefeed=initial())
+                      round_recover_limit=1000,round_recover_limit_max=1000,secondary_index='vote_timestamp',prefeed=initial())
 
 
 def create_pipeline():

@@ -245,7 +245,7 @@ def get(conn,key):
         return None
 
 
-def get_prefix(conn,prefix):
+def get_with_prefix(conn,prefix):
     """Get the records with the special prefix.
 
     block-v1=v1
@@ -264,9 +264,8 @@ def get_prefix(conn,prefix):
 
     if conn:
         # logger.warn(str(conn) + ' , ' + str(prefix))
-        bytes_dict_items = conn.prefixed_db(bytes(str(prefix),config['encoding']))
         result = {}
-        for key,value in bytes_dict_items:
+        for key, value in conn.iterator(prefix=bytes(str(prefix), config['encoding'])):
             key = bytes(key).decode(config['encoding'])
             value = bytes(value).decode(config['encoding'])
             result[key] = value

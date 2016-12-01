@@ -164,7 +164,7 @@ def get_changefeed(current_block_timestamp):
     """Create and return the changefeed for the table bigchain."""
 
     return ChangeFeed('bigchain','block',ChangeFeed.INSERT | ChangeFeed.UPDATE,current_block_timestamp,
-                      repeat_recover_round = 5,round_recover_limit=100,secondary_index='block_timestamp',prefeed=initial())
+                      round_recover_limit=100,round_recover_limit_max=100,secondary_index='block_timestamp',prefeed=initial())
 
 
 def create_pipeline():

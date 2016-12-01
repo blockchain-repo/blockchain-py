@@ -16,8 +16,8 @@ class ChangeFeed(Node):
     DELETE = 2
     UPDATE = 4
 
-    def __init__(self, table, table_class,operation,init_timestamp=0,repeat_recover_round=None,
-                 round_recover_limit=None,secondary_index=None ,prefeed=None):
+    def __init__(self, table, table_class,operation,init_timestamp=0,round_recover_limit=None,
+                 round_recover_limit_max=None,secondary_index=None ,prefeed=None):
         """Create a new RethinkDB ChangeFeed.
 
         Args:
@@ -47,17 +47,12 @@ class ChangeFeed(Node):
         # to the normal run_changefeed process.
         self.last_round_recovr_count = 0
         self.round_recover_count = 0
-        # if go on recovery the lost data
-        self.round_recovery = True
-        # make sure the data can be recover mostly or even fully, should run round recovery process more than one times
-        # it will be dynamic change by the round_recovery process
-        self.repeat_recover_round = repeat_recover_round or 10
         self.nodes_count = len(bigchaindb.config['keyring']) + 1 # nodes count
         # this round will deal the max missing data, it will be dynamic change by the round_recovery process
         self.round_recover_limit = round_recover_limit if round_recover_limit and round_recover_limit \
                                     > self.nodes_count else self.nodes_count
         self.diff_time = 0 # adjacent data change cost time
-        self.round_recover_limit_max = 1000
+        self.round_recover_limit_max = (round_recover_limit_max * self.nodes_count) if round_recover_limit_max else 1000
 
     def run_forever(self):
 
@@ -72,101 +67,112 @@ class ChangeFeed(Node):
                 logger.exception(exc)
                 time.sleep(1)
 
-
     def run_changefeed(self):
         for change in self.bigchain.connection.run(r.table(self.table).changes()):
             is_insert = change['old_val'] is None
             is_delete = change['new_val'] is None
             is_update = not is_insert and not is_delete
 
-            if self.round_recovery:
-                self.diff_time = time.time()
-                self.round_recover_count = 0 # each round set it to zero
-                self.current_timestamp = change['new_val'][self.table_class]['timestamp']
+            if is_insert and (self.operation & ChangeFeed.INSERT):
+                self.round_write_localdb(change)
+            elif is_delete and (self.operation & ChangeFeed.DELETE):
+                # self.outqueue.put(change['old_val'])
+                pass
+            elif is_update and (self.operation & ChangeFeed.UPDATE):
+                # self.outqueue.put(change['new_val'])
+                pass
 
-                # blur statics
-                missing_data_count = self.bigchain.connection.run(
-                    r.table(self.table)
-                        .between(self.init_timestamp,
-                                 self.current_timestamp, left_bound='closed', right_bound='closed',
-                                 index=self.secondary_index)
-                        .order_by(index=r.asc(self.secondary_index)).count())
 
-                round_recover_data = []
+    def round_write_localdb(self,change_data):
+        """send the change data to localdb pipelines
 
-                if missing_data_count == 1:
-                    round_recover_data = [change['new_val']]
-                elif missing_data_count >= 2:
-                    if missing_data_count <= self.nodes_count:
-                        self.round_recover_limit = self.nodes_count*2
+        Args:
+            param change_data: changefeed data
 
-                    round_recover_data = self.bigchain.connection.run(
-                        r.table(self.table)
-                            .between(self.init_timestamp,
-                                     self.current_timestamp, left_bound='closed', right_bound='closed',
-                                     index=self.secondary_index)
-                            .order_by(index=r.asc(self.secondary_index)).limit(self.round_recover_limit))
+        """
 
-                logger.warning(
-                    "\nThis round the data to be put into {} [pipeline outqueue], interval number(fuzzy)={}, at most, {} records will be dealed in this round.\n".format(
-                        self.table_class, missing_data_count, self.round_recover_limit))
+        self.diff_time = time.time()
+        self.round_recover_count = 0  # each round set it to zero
+        self.current_timestamp = change_data['new_val'][self.table_class]['timestamp']
 
-                for data in round_recover_data:
-                    self.round_recover_count = self.round_recover_count + 1
-                    self.outqueue.put(data)
-                    logger.warning(
-                        "\nASync recover data for {} has been put[pipeline outqueue], sequence number(fuzzy)={}, timestamp={}\n".format(
-                            self.table_class, self.round_recover_count, data[self.table_class]['timestamp']))
+        # blur statics
+        missing_data_count = self.bigchain.connection.run(
+            r.table(self.table)
+                .between(self.init_timestamp,
+                         self.current_timestamp, left_bound='closed', right_bound='closed',
+                         index=self.secondary_index)
+                .order_by(index=r.asc(self.secondary_index)).count())
 
-                # round init_timestamp must be set to the last missing_data timestamp for this round
-                if data:
-                    self.init_timestamp = data[self.table_class]['timestamp']
-                    print("Interval`s last data for {}, next round`s init_timestamp is {}\n".format(self.table_class,self.init_timestamp))
+        round_recover_data = []
 
-                else:
-                    self.init_timestamp = self.current_timestamp
-                    print("Interval has no data for {}, next round`s init_timestamp is {}\n".format(self.table_class, self.init_timestamp))
+        if missing_data_count == 1:
+            round_recover_data = [change_data['new_val']]
+        elif missing_data_count >= 2:
+            if missing_data_count <= self.nodes_count:
+                self.round_recover_limit = self.nodes_count * 2
 
-                self.diff_time = time.time() - self.diff_time
-                logger.info("This round for {}[cost={}s,round_recover_count={},last_round_recovr_count={}]\n".format(self.table_class,self.diff_time,self.round_recover_count,self.last_round_recovr_count))
+            round_recover_data = self.bigchain.connection.run(
+                r.table(self.table)
+                    .between(self.init_timestamp,
+                             self.current_timestamp, left_bound='closed', right_bound='closed',
+                             index=self.secondary_index)
+                    .order_by(index=r.asc(self.secondary_index)).limit(self.round_recover_limit))
 
-                # TODO: can be better
-                # [closed,closed] 1+1=2 >=3
-                if self.round_recover_count >= 3:
-                    if self.diff_time >= 90:
-                        self.round_recover_limit = int(self.round_recover_limit*0.1) + 2
-                    elif self.diff_time >= 60:
-                        self.round_recover_limit = int(self.round_recover_limit * 0.3) + 2
-                    elif self.diff_time >= 30:
-                        self.round_recover_limit = int(self.round_recover_limit * 0.4) + 2
-                    elif self.diff_time >= 10:
-                        self.round_recover_limit = int(self.round_recover_limit * 0.5) + 2
-                    elif self.diff_time >= 5:
-                        self.round_recover_limit = int(self.round_recover_limit * 0.6) + 2
-                    elif self.diff_time >= 2:
-                        self.round_recover_limit = int(self.round_recover_limit * 0.8) + 2
-                    elif self.diff_time >= 1:
-                        self.round_recover_limit = int(self.round_recover_limit * 1.5) + 2
-                    elif self.diff_time >= 0.1:
-                        self.round_recover_limit = int(self.round_recover_limit * 2.0) + 2
-                    elif self.diff_time >= 0.01:
-                        self.round_recover_limit = int(self.round_recover_limit * 2.5) + 2
-                    else:
-                        self.round_recover_limit = int(self.round_recover_limit * 4) + 2
+        logger.warning(
+            "\nThis round the data to be put into {} [pipeline outqueue], interval number(fuzzy)={}, at most, {} records will be dealed in this round.\n".format(
+                self.table_class, missing_data_count, self.round_recover_limit))
 
-                if self.round_recover_limit >= self.round_recover_limit_max:
-                    self.round_recover_limit = self.round_recover_limit_max
+        for data in round_recover_data:
+            self.round_recover_count = self.round_recover_count + 1
+            self.outqueue.put(data)
+            logger.warning(
+                "\nASync recover data for {} has been put[pipeline outqueue], sequence number(fuzzy)={}, timestamp={}\n".format(
+                    self.table_class, self.round_recover_count, data[self.table_class]['timestamp']))
 
-                logger.warning(
-                    "\nThis round the data have been put into {} [pipeline outqueue], interval number(fuzzy)={},  at most, {} records will be dealed in the next round.\n".format(
-                        self.table_class, missing_data_count, self.round_recover_limit))
-                # record the round recover count
-                self.last_round_recovr_count = self.round_recover_count
+        # round init_timestamp must be set to the last missing_data timestamp for this round
+        if data:
+            self.init_timestamp = data[self.table_class]['timestamp']
+            print("Interval`s last data for {}, next round`s init_timestamp is {}\n".format(self.table_class,
+                                                                                            self.init_timestamp))
 
+        else:
+            self.init_timestamp = self.current_timestamp
+            print("Interval has no data for {}, next round`s init_timestamp is {}\n".format(self.table_class,
+                                                                                            self.init_timestamp))
+
+        self.diff_time = time.time() - self.diff_time
+        logger.info("This round for {}[cost={}s,round_recover_count={},last_round_recovr_count={}]\n".format(
+            self.table_class, self.diff_time, self.round_recover_count, self.last_round_recovr_count))
+
+        # TODO: can be better
+        # [closed,closed] 1+1=2 >=3
+        if self.round_recover_count >= 3:
+            if self.diff_time >= 90:
+                self.round_recover_limit = int(self.round_recover_limit * 0.1) + 2
+            elif self.diff_time >= 60:
+                self.round_recover_limit = int(self.round_recover_limit * 0.3) + 2
+            elif self.diff_time >= 30:
+                self.round_recover_limit = int(self.round_recover_limit * 0.4) + 2
+            elif self.diff_time >= 10:
+                self.round_recover_limit = int(self.round_recover_limit * 0.5) + 2
+            elif self.diff_time >= 5:
+                self.round_recover_limit = int(self.round_recover_limit * 0.6) + 2
+            elif self.diff_time >= 2:
+                self.round_recover_limit = int(self.round_recover_limit * 0.8) + 2
+            elif self.diff_time >= 1:
+                self.round_recover_limit = int(self.round_recover_limit * 1.5) + 2
+            elif self.diff_time >= 0.1:
+                self.round_recover_limit = int(self.round_recover_limit * 2.0) + 2
+            elif self.diff_time >= 0.01:
+                self.round_recover_limit = int(self.round_recover_limit * 2.5) + 2
             else:
-                if is_insert and (self.operation & ChangeFeed.INSERT):
-                    self.outqueue.put(change['new_val'])
-                elif is_delete and (self.operation & ChangeFeed.DELETE):
-                    self.outqueue.put(change['old_val'])
-                elif is_update and (self.operation & ChangeFeed.UPDATE):
-                    self.outqueue.put(change['new_val'])
+                self.round_recover_limit = int(self.round_recover_limit * 4) + 2
+
+        if self.round_recover_limit >= self.round_recover_limit_max:
+            self.round_recover_limit = self.round_recover_limit_max
+
+        logger.warning(
+            "\nThis round the data have been put into {} [pipeline outqueue], interval number(fuzzy)={},  at most, {} records will be dealed in the next round.\n".format(
+                self.table_class, missing_data_count, self.round_recover_limit))
+        # record the round recover count
+        self.last_round_recovr_count = self.round_recover_count
