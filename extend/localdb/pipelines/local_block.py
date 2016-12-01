@@ -10,6 +10,7 @@ import bigchaindb
 import rethinkdb as r
 from extend.localdb.leveldb import utils as leveldb
 import rapidjson
+import datetime
 
 import logging
 
@@ -37,8 +38,7 @@ class LocalBlock(Node):
         self.conn_bigchain = conn_bigchain or leveldb.LocalBlock_Header().conn['bigchain']
         self.block_num = current_block_num or int(leveldb.get_withdefault(self.conn_header, 'block_num','0'))
         self.block_count = 0 # after process start ,the node has write block to local
-        # self.blocks = []
-
+        self.start_time = datetime.datetime.today()
 
     def write_block_header(self,block):
         """Write the block dict to leveldb.
@@ -67,15 +67,24 @@ class LocalBlock(Node):
         self.block_num = self.block_num + 1
 
         leveldb.insert(self.conn_bigchain, block_id, block_json_str, sync=False)
-        leveldb.update(self.conn_header, 'current_block_id', block_id, sync=False)
-        leveldb.update(self.conn_header, 'current_block_timestamp', current_block_timestamp, sync=False)
-        leveldb.update(self.conn_header, 'block_num', self.block_num, sync=False)
 
-        info = "current block info \n[id={},block_num={},block_size={}]\n".format(block_id, self.block_num, block_size)
+        block_header_data_dict = dict()
+        block_header_data_dict['current_block_id'] = block_id
+        block_header_data_dict['current_block_timestamp'] = current_block_timestamp
+        block_header_data_dict['block_num'] = self.block_num
+        leveldb.batch_insertOrUpdate(self.conn_header,block_header_data_dict,transaction=True)
+        del block_header_data_dict
+
+        # leveldb.update(self.conn_header, 'current_block_id', block_id, sync=False)
+        # leveldb.update(self.conn_header, 'current_block_timestamp', current_block_timestamp, sync=False)
+        # leveldb.update(self.conn_header, 'block_num', self.block_num, sync=False)
+
+        self.block_count = self.block_count + 1
+        logger.warning('The count of this node(since start[{}]) has write to local block is: {}, block_num is: {}'
+                       .format(self.start_time,self.block_count,self.block_num))
+
+        info = "Current block(has write into localdb) info \n[id={},block_num={},block_size={}]\n".format(block_id, self.block_num, block_size)
         logger.info(info)
-
-        self.block_count =self.block_count + 1
-        logger.warning('The count of this node(after start) has write to local block is: {}, block_num is: {}'.format(self.block_count,self.block_num))
 
         # self.get_localblock_info()
 
@@ -155,7 +164,7 @@ def get_changefeed(current_block_timestamp):
     """Create and return the changefeed for the table bigchain."""
 
     return ChangeFeed('bigchain','block',ChangeFeed.INSERT | ChangeFeed.UPDATE,current_block_timestamp,
-                      repeat_recover_round = 5,round_recover_limit=10,secondary_index='block_timestamp',prefeed=initial())
+                      repeat_recover_round = 5,round_recover_limit=100,secondary_index='block_timestamp',prefeed=initial())
 
 
 def create_pipeline():
