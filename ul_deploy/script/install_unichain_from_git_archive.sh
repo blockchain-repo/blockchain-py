@@ -11,7 +11,7 @@ rm -f ${CUR_INSTALL_PATH}/unichain-archive.tar.gz
 cd ../../
 git archive dev --format=tar --output=unichain-archive.tar
 gzip unichain-archive.tar
-mv unichain-archive.tar.gz ul-deploy/script/
+mv unichain-archive.tar.gz ul_deploy/script/
 cd -
 
 fab install_unichain_from_git_archive
