@@ -565,7 +565,6 @@ class Bigchain(object):
             'voting_for_block': block_id,
             'previous_block': previous_block_id,
             'is_block_valid': decision,
-            # 'is_block_valid': False,
             'invalid_reason': invalid_reason,
             'timestamp': gen_timestamp()
         }
