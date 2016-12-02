@@ -727,3 +727,14 @@ def clear_unichain_data(flag='rethinkdb'):
         if flag in ('all','localdb','rethinkdb'):
             info = "{} has clear the data in {}".format(env.user,flag if flag != 'all' else 'rethinkdb and localdb')
             sudo("echo {}".format(info))
+
+
+# mustn`t parallel and the unichain should stop before you run the script
+@task
+def test_localdb_rethinkdb(args="-r",filename="validate_localdb_format.py"):
+    with settings(warn_only=True):
+        user = env.user
+        with cd("../../ul_tests/localdb"):
+            filename_prefix = filename.split(".")[0]
+            sudo("python3 {} {} | tee {}_{}_$(date +%Y%m%d%H%M%S).txt".format(filename,args,user,filename_prefix))
+        sudo("echo 'test_localdb_rethinkdb over'")
