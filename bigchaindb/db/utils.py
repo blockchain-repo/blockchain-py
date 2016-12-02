@@ -171,7 +171,7 @@ def init_database():
     dbname = get_database_name()
     create_database(conn, dbname)
 
-    table_names = ['bigchain', 'backlog', 'votes', 'heartbeat', 'reassignnode']
+    table_names = ['bigchain', 'backlog', 'votes', 'heartbeat', 'reassignnode', 'rewrite']
     for table_name in table_names:
         create_table(conn, dbname, table_name)
 

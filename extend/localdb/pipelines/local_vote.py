@@ -7,6 +7,7 @@ from extend.localdb.pipelines.local_utils import ChangeFeed
 
 from extend.localdb.leveldb import utils as leveldb
 import rapidjson
+import datetime
 
 import logging
 
@@ -32,7 +33,7 @@ class LocalVote(Node):
         self.conn_votes = conn_votes or leveldb.LocalVote().conn['votes']
         self.vote_num = current_vote_num or int(leveldb.get_withdefault(self.conn_header, 'vote_num', '0'))
         self.vote_count = 0 # after process start ,the node has write vote to local
-        # self.votes = []
+        self.start_time = datetime.datetime.today()
 
 
     def write_vote(self,vote):
@@ -50,23 +51,42 @@ class LocalVote(Node):
         previous_block = vote['vote']['previous_block']
         node_pubkey = vote['node_pubkey']
         vote_key = previous_block + '-' + node_pubkey
+
+        # if exists
+        exist_vote = leveldb.get(self.conn_votes,vote_key) is not None
+        if exist_vote:
+            logger.warning("\nThe vote[id={},vote_key={}] is already exist.\n".format(vote_id,vote_key))
+            return None
+
+
         vote_json_str = rapidjson.dumps(vote)
 
         self.vote_num = self.vote_num + 1
 
         leveldb.insert(self.conn_votes, vote_key, vote_json_str, sync=False)
-        leveldb.update(self.conn_header, 'current_vote_id', vote_id, sync=False)
-        leveldb.update(self.conn_header, 'current_vote_timestamp', current_vote_timestamp, sync=False)
-        leveldb.update(self.conn_header, 'vote_num', self.vote_num, sync=False)
 
-        info = "current vote info \n[vote_id={},vote_key={}\n,previous_block={}\n,node_pubkey={}\n,voting_for_block={}]"\
-            .format(vote_id,vote_key,previous_block, node_pubkey, vote['vote']['voting_for_block'])
+        vote_header_data_dict = dict()
+        vote_header_data_dict['current_vote_id'] = vote_id
+        vote_header_data_dict['current_vote_timestamp'] = current_vote_timestamp
+        vote_header_data_dict['vote_num'] = self.vote_num
+        leveldb.batch_insertOrUpdate(self.conn_header, vote_header_data_dict, transaction=True)
+        del vote_header_data_dict
+
+        # leveldb.update(self.conn_header, 'current_vote_id', vote_id, sync=False)
+        # leveldb.update(self.conn_header, 'current_vote_timestamp', current_vote_timestamp, sync=False)
+        # leveldb.update(self.conn_header, 'vote_num', self.vote_num, sync=False)
+
+        self.vote_count = self.vote_count + 1
+        logger.warning('The count of this node(since start[{}]) has write to local vote is: {}, vote_num is: {}'
+            .format(self.start_time,self.vote_count, self.vote_num))
+
+        info = "Current vote(has write into localdb) info \n[id={},vote_num={},vote_key(previous_block-node_pubkey)={}\n,voting_for_block={}]\n"\
+            .format(vote_id,self.vote_num,vote_key, vote['vote']['voting_for_block'])
         logger.info(info)
 
-        self.vote_count =self.vote_count + 1
-        logger.warning('The count of this node(after start) has write to local vote is: {}'.format(self.vote_count))
 
-        self.get_local_votes_for_block(previous_block)
+
+        # self.get_local_votes_for_block(previous_block)
 
         return None
 
@@ -75,8 +95,8 @@ class LocalVote(Node):
         """Only show the pre op result!"""
 
         votes = leveldb.get_prefix(self.conn_votes, block_id + '-')
-        previous_block_votes_info = "previous_block votes info \n[id={},\nvotes={}]\n".format(block_id,votes)
-        logger.info(previous_block_votes_info)
+        # previous_block_votes_info = "\nprevious_block votes info \n[id={},\nvotes={}]\n".format(block_id,votes)
+        # logger.info(previous_block_votes_info)
 
         current_vote_timestamp = leveldb.get(self.conn_header, 'current_vote_timestamp')
         current_vote_id = leveldb.get(self.conn_header, 'current_vote_id')
@@ -102,7 +122,7 @@ def get_changefeed(current_vote_timestamp):
     """Create and return the changefeed for the votes."""
     logger.error('local_vote get_changefeed')
     return ChangeFeed('votes','vote',ChangeFeed.INSERT | ChangeFeed.UPDATE,current_vote_timestamp,
-                      repeat_recover_round=5,round_recover_limit=20,secondary_index='vote_timestamp',prefeed=initial())
+                      round_recover_limit=1000,round_recover_limit_max=1000,secondary_index='vote_timestamp',prefeed=initial())
 
 
 def create_pipeline():

@@ -41,7 +41,6 @@ class StaleTransactionMonitor:
             txs (list): txs to be re assigned
         """
         sleep(self.timeout)
-
         # 当前节点
         mykey = self.bigchain.me
 

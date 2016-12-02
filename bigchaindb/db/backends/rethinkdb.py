@@ -422,3 +422,9 @@ class RethinkDBBackend:
 
     def update_assign_node(self,updateid,next_assign_node):
         return self.connection.run(r.table('reassignnode').update({"nodeid":updateid,'node_publickey':next_assign_node,'timestamp':time()}))
+
+    def insertRewrite(self,data):
+        return self.connection.run(r.table('rewrite').insert(data))
+
+    def isBlockRewrited(self,id):
+        return self.connection.run(r.table('reassignnode').filter({'id': id}).count())
