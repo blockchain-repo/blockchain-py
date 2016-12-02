@@ -67,11 +67,11 @@ def check_localdb():
 def check_unichain_pro():
     with settings(warn_only=True):
         print("[INFO]==========check unichain pro begin==========")
-        process_num=run('ps -aux|grep -E "/usr/local/bin/unichain -y start|SCREEN -d -m unichain -y start"|grep -v grep|wc -l')
+        process_num=run('ps -aux|grep -E "/usr/local/bin/unichain_pro -y start|SCREEN -d -m unichain_pro -y start"|grep -v grep|wc -l')
         if process_num == 0:
-            print("[INFO]=====process[unichain] num check result: is 0")
+            print("[INFO]=====process[unichain_pro] num check result: is 0")
         else:
-            print("[ERROR]=====process[unichain] num check result: is %s" % (str(process_num)))
+            print("[ERROR]=====process[unichain_pro] num check result: is %s" % (str(process_num)))
         ##TODO:confirm port in conf
         api_port=9984
         check_api_port=sudo('netstat -nlap|grep "LISTEN"|awk -v v_port=":%s" \'{if(v_port==$4) print $0}\'' % (api_port))
@@ -80,6 +80,16 @@ def check_unichain_pro():
         else:
             print("[ERROR]=====api_port[%s] detect result: is used!" % (api_port))
 
+#step:check port&process&data,conf path
+@task
+def check_unichain_api():
+    with settings(warn_only=True):
+        print("[INFO]==========check unichain api begin==========")
+        process_num=run('ps -aux|grep -E "/usr/local/bin/unichain_api start|SCREEN -d -m unichain_api start"|grep -v grep|wc -l')
+        if process_num == 0:
+            print("[INFO]=====process[unichain_api] num check result: is 0")
+        else:
+            print("[ERROR]=====process[unichain_api] num check result: is %s" % (str(process_num)))
 ################################ First Install  ######################################
 # DON'T PUT @parallel
 @task
@@ -139,8 +149,9 @@ def configure_collectd():
             '/etc/collectd/collectd.conf',
             mode=0x0600,
             use_sudo=True)
+        #update by  mayx, op at start_all
         # finally restart instance
-        sudo('service collectd restart', pty=False)
+        #sudo('service collectd restart', pty=False)
 
 
 @task
@@ -187,8 +198,9 @@ def configure_rethinkdb():
             '/etc/rethinkdb/instances.d/default.conf',
             mode=0x0600,
             use_sudo=True)
-        # finally restart instance
-        sudo('/etc/init.d/rethinkdb restart')
+        #update by  mayx, op at start_all
+        # finally restart instance  
+        #sudo('/etc/init.d/rethinkdb restart')
 
 
 # Send the specified configuration file to
@@ -273,7 +285,8 @@ def init_localdb():
 def uninstall_unichain():
     with settings(warn_only=True):
         run('echo "[INFO]==========uninstall unichain-pro=========="')
-        sudo('killall -9 unichain 2>/dev/null')
+        sudo('killall -9 unichain_pro 2>/dev/null')
+        sudo('killall -9 unichain_api 2>/dev/null')
         sudo('killall -9 pip,pip3 2>/dev/null')
         sudo('rm /usr/local/bin/unichain 2>/dev/null')
         sudo('rm -rf /usr/local/lib/python3.4/dist-packages/BigchainDB-* 2>/dev/null')
@@ -328,7 +341,8 @@ def set_replicas(num_replicas):
 @parallel
 def start_unichain():
     with settings(warn_only=True):
-        sudo('screen -d -m unichain -y start &', pty=False, user=env.user)
+        sudo('screen -d -m unichain_pro -y start &', pty=False, user=env.user)
+        sudo('screen -d -m unichain_api start &', pty=False, user=env.user)
 
 
 @task
@@ -336,21 +350,24 @@ def start_unichain():
 def stop_unichain():
     with settings(warn_only=True):
         # sudo("kill `ps -ef|grep unichain | grep -v grep|awk '{print $2}'` ")
-        sudo("killall -9 unichain 2>/dev/null")
+        sudo("killall -9 unichain_pro 2>/dev/null")
+        sudo("killall -9 unichain_api 2>/dev/null")
 
 
 @task
 @parallel
 def restart_unichain():
     with settings(warn_only=True):
-        sudo("killall -9 unichain 2>/dev/null")
-        sudo('screen -d -m unichain -y start &', pty=False, user=env.user)
+        sudo("killall -9 unichain_pro 2>/dev/null")
+        sudo("killall -9 unichain_api 2>/dev/null")
+        sudo('screen -d -m unichain_pro -y start &', pty=False, user=env.user)
+        sudo('screen -d -m unichain_api start &', pty=False, user=env.user)
 
 
 @task
 @parallel
 def start_unichain_load():
-    sudo('screen -d -m unichain load &', pty=False)
+    sudo('screen -d -m unichain_pro load &', pty=False)
 
 
 # rethinkdb
@@ -467,7 +484,8 @@ def count_process_by_name(name):
 @parallel
 def init_all_nodes():
     with settings(warn_only=True):
-        sudo('killall -9 unichain 2>/dev/null')
+        sudo('killall -9 unichain_pro 2>/dev/null')
+        sudo('killall -9 unichain_api 2>/dev/null')
         sudo('killall -9 rethinkdb 2>/dev/null')
         sudo('killall -9 pip3,pip 2>/dev/null')
         sudo('rm /usr/local/bin/unichain 2>/dev/null')
@@ -481,7 +499,8 @@ def init_all_nodes():
 @parallel
 def kill_all_nodes():
     with settings(warn_only=True):
-        sudo('killall -9 unichain 2>/dev/null')
+        sudo('killall -9 unichain_pro 2>/dev/null')
+        sudo('killall -9 unichain_api 2>/dev/null')
         sudo('killall -9 rethinkdb 2>/dev/null')
         sudo('killall -9 pip3,pip 2>/dev/null')
 
@@ -618,7 +637,8 @@ def destroy_all_nodes():
     with settings(warn_only=True):
         sudo('killall -9 bigchaindb 2>/dev/null')
         sudo('killall -9 simplechaindb 2>/dev/null') 
-        sudo('killall -9 unichain 2>/dev/null')
+        sudo('killall -9 unichain_pro 2>/dev/null')
+        sudo('killall -9 unichain_api 2>/dev/null')
         sudo('killall -9 rethinkdb 2>/dev/null')
         sudo('killall -9 pip,pip3 2>/dev/null')
 
@@ -684,7 +704,7 @@ def detect_localdb():
 def detect_unichain_pro():
     with settings(warn_only=True):
         print("[INFO]==========detect unichain pro begin==========")
-        process_num=run('ps -aux|grep -E "/usr/local/bin/unichain -y start|SCREEN -d -m unichain -y start"|grep -v grep|wc -l')
+        process_num=run('ps -aux|grep -E "/usr/local/bin/unichain_pro -y start|SCREEN -d -m unichain_pro -y start"|grep -v grep|wc -l')
         if int(process_num) == 0:
             print("[ERROR]=====process[unichain] num detect result: is 0")
         else:
@@ -695,6 +715,12 @@ def detect_unichain_pro():
 def detect_unichain_api():
     with settings(warn_only=True):
         print("[INFO]==========detect unichain api begin==========")
+        process_num=run('ps -aux|grep -E "/usr/local/bin/unichain_api start|SCREEN -d -m unichain_api start"|grep -v grep|wc -l')
+        if int(process_num) == 0:
+            print("[ERROR]=====process[unichain_api] num detect result: is 0")
+        else:
+            print("[INFO]=====process[unichain_api] num detect result: is %s" % (str(process_num)))
+
         unichain_conf = "/home/%s/.unichain" % (env.user)
         unichain_conf_str=run('cat ~/.unichain')
         #with open(unichain_conf, "a") as r:
@@ -727,3 +753,21 @@ def clear_unichain_data(flag='rethinkdb'):
         if flag in ('all','localdb','rethinkdb'):
             info = "{} has clear the data in {}".format(env.user,flag if flag != 'all' else 'rethinkdb and localdb')
             sudo("echo {}".format(info))
+
+#########################bak conf task#########################
+@task
+@parallel
+def bak_rethinkdb_conf(base):
+    sudo('cp -rf /etc/rethinkdb/instances.d/default.conf %s/rethinkdb/default.conf_%s_%s' % (base, env.user, env.host))
+
+
+@task
+@parallel
+def bak_collected_conf(base):
+    sudo('cp -rf /etc/collectd/collectd.conf  %s/collected/collected.conf_%s_%s' % (base, env.user, env.host))
+
+@task
+@parallel
+def bak_unichain_conf(base):
+    sudo('cp -rf ~/.unichain %s/unichain/unichain_%s_%s' % (base, env.user, env.host))
+

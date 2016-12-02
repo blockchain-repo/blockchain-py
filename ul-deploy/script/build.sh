@@ -21,13 +21,19 @@ Options:
     h|-h|help|-help usage help
     env_check    before setup, check tools already in env
     first_setup  \$1: nostart, if set \$1,it cann't start nodes after setup
-                 first setup:install base tools|depends libs|rethinkdb|bigchaindb|unichain
-                             configure rethinkdb|bigchaindb|unichain
-                             start cluster nodes server
+                 first setup:
+                    sence: first setup use
+                    op: a.install base tools|depends libs|rethinkdb|bigchaindb|unichain
+                        b.configure rethinkdb|bigchaindb|unichain
+                        c.start cluster nodes server
     update       \$1: nostart, if set \$1,it cann't start nodes after update
-                 upste setup:update unichain
-                             reconfigure rethinkdb|bigchaindb|unichain
-                             restart cluster nodes server
+                 update setup:
+                    sence: a. when unichain pro  is updated
+                           b. when unichain conf is updated
+                           c. when update fail, need rollback
+                    op: a.update unichain
+                        b.reconfigure rethinkdb|bigchaindb|unichain
+                        c.restart cluster nodes server
     server_check after setup, check servers in cluster nodes are running
     start_all    start all cluster nodes
     stop_all     stop  sll cluster nodes
@@ -56,7 +62,7 @@ case $1 in
         ./run_update.sh $str_param | tee ../log/run_update.log
     ;;
     server_check)
-        ./run_server_check.sh $2| tee ../log/run_server_check.log
+        ./run_server_check.sh | tee ../log/run_server_check.log
     ;;
     start_all)
         ./clustercontrol.sh start | tee ../log/clusterconrol_start.log

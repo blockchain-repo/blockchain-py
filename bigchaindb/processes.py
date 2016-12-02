@@ -49,7 +49,10 @@ def start():
     logger.info('Starting localvoter')
     local_vote.start()
 
+    # start message
+    logger.info(BANNER.format(bigchaindb.config['server']['bind']))
 
+def start_api():
     # start the web api
     app_server = server.create_server(bigchaindb.config['server'])
     p_webapi = mp.Process(name='webapi', target=app_server.run)

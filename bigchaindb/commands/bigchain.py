@@ -193,7 +193,6 @@ def run_start(args):
                 bigchaindb.config['keypair']['public'])
     processes.start()
 
-
 def _run_load(tx_left, stats):
     logstats.thread.start(stats)
     b = bigchaindb.Bigchain()

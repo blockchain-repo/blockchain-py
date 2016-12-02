@@ -94,10 +94,15 @@ echo -e "[INFO]==========set replicas unichain=========="
 REPLICAS_NUM=`get_replicas_num ${CLUSTER_BICHAIN_COUNT}`
 fab set_replicas:${REPLICAS_NUM}
 
+#bak conf
+echo -e "[INFO]==========bak current conf=========="
+./bak_conf.sh "new"
+
 if [[ -z $AUTO_START_FLAG || $AUTO_START_FLAG -eq 1 ]];then
     #start unichain nodes
     echo -e "[INFO]==========start unichain nodes=========="
     ./clustercontrol.sh start
+    ./run_server_check.sh
 fi
 
 exit 0

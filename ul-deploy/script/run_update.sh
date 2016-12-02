@@ -49,6 +49,14 @@ CLUSTER_BIGCHAIN_COUNT=`get_cluster_nodes_num`
     exit 1
 }
 
+#check if cluster conf diff
+echo -e "[INFO]==========check cluster conf diff=========="
+check_blocknodes_diff
+
+#bak old conf
+echo -e "[INFO]==========bak old conf=========="
+./bak_conf.sh "old"
+
 #clusternodes stop
 echo -e "[INFO]==========stop clusternodes=========="
 ./clustercontrol.sh stop
@@ -67,10 +75,15 @@ echo -e "[INFO]==========configure unchain=========="
 #Todo 增加节点的话 需要特别处理？？？？
 #fab set_shards:$1
 
+#bak current conf
+echo -e "[INFO]==========bak new conf=========="
+./bak_conf.sh "new"
+
 if [[ -z $AUTO_START_FLAG || $AUTO_START_FLAG -eq 1 ]];then
     #start unichain nodes
     echo -e "[INFO]==========start unichain nodes=========="
     ./clustercontrol.sh start
+    ./run_server_check.sh
 fi
 
 exit 0
