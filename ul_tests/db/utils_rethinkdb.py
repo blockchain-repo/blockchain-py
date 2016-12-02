@@ -7,6 +7,8 @@ class RethinkdbUtils():
 
     def __init__(self):
         # you can switch the db by init the Bigchain(dbname=you_choose_dbname)
+        self.read_mode = 'majority'
+        self.durability = 'soft'
         self.bigchain = Bigchain()
         self.db = 'bigchain'
         self.tables = ['bigchain','votes','backlog']
@@ -155,7 +157,7 @@ class RethinkdbUtils():
         """get all the transactions count in block
 
         Args:
-            id:
+            id:block_id
             order_by:
         Return:
             block_count: the count of the blocks
@@ -191,3 +193,92 @@ class RethinkdbUtils():
                 del block_txs_count_dict
         return block_count,txs_count,block_txs_count_list
 
+
+    def get_votes_by_block_id(self, block_id):
+        """Get all the votes casted for a specific block.
+
+        Args:
+            block_id (str): the block id to use.
+
+        Returns:
+            A cursor for the matching votes.
+        """
+        return self.bigchain.connection.run(
+            r.table('votes', read_mode=self.read_mode)
+                .between([block_id, r.minval], [block_id, r.maxval], index='block_and_voter'))
+
+
+    def get_votes_by_block_id_and_voter(self, block_id, node_pubkey):
+        """Get all the votes casted for a specific block by a specific voter.
+
+        Args:
+            block_id (str): the block id to use.
+            node_pubkey (str): base58 encoded public key
+
+        Returns:
+            A cursor for the matching votes.
+        """
+        return self.bigchain.connection.run(
+            r.table('votes', read_mode=self.read_mode)
+                .get_all([block_id, node_pubkey], index='block_and_voter'))
+
+
+    def get_block_votes(self,id,order_by=False):
+        """get all the votes for the special block or all blocks
+
+        Args:
+            id:block_id
+            order_by:
+        Return:
+            A cursor for the matching votes.
+        """
+        if order_by:
+            return self.bigchain.connection.run(r.table('votes', read_mode=self.read_mode).filter(
+                r.row['vote']['voting_for_block'] == id).order_by(index=r.asc("vote_timestamp")))
+        else:
+            return self.bigchain.connection.run(r.table('votes',read_mode=self.read_mode).filter(
+                r.row['vote']['voting_for_block'] == id))
+
+
+    def get_blocks_votes_count(self,id=None,order_by=False):
+        """get all the votes for the special block or all blocks
+
+        Args:
+            id:block_id
+            order_by:
+        Return:
+            A cursor for the matching votes.
+        """
+        if order_by:
+            if id:
+                blocks = self.bigchain.connection.run(r.table('bigchain').ge(id))
+            else:
+                blocks = self.bigchain.connection.run(r.table('bigchain').order_by(index=r.asc("block_timestamp")))
+        else:
+            if id:
+                blocks = self.bigchain.connection.run(r.table('bigchain').get(id))
+            else:
+                blocks = self.bigchain.connection.run(r.table('bigchain'))
+
+        blocks_votes_count = 0
+        block_votes_count_list = []
+        block_count = 0
+        for block in blocks:
+
+            block_id = block['id']
+            block_count += 1
+
+            # block_votes_count = self.bigchain.connection.run(r.table('votes', read_mode=self.read_mode).filter(
+            #     r.row['vote']['voting_for_block'] == block_id).count())
+
+            block_votes_count = self.bigchain.connection.run(
+                r.table('votes', read_mode=self.read_mode)
+                    .between([block_id, r.minval], [block_id, r.maxval], index='block_and_voter').count())
+
+            block_votes_count_dict = dict()
+            block_votes_count_dict[block_id] = block_votes_count
+            block_votes_count_list.append(block_votes_count_dict)
+            blocks_votes_count += block_votes_count
+            del block_votes_count_dict
+
+        return block_count,blocks_votes_count,block_votes_count_list
