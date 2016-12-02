@@ -729,12 +729,14 @@ def clear_unichain_data(flag='rethinkdb'):
             sudo("echo {}".format(info))
 
 
-# mustn`t parallel and the unichain should stop before you run the script
 @task
-def test_localdb_rethinkdb(args="-r",filename="validate_localdb_format.py"):
+@parallel
+def test_localdb_rethinkdb(args="-irbvt",filename="validate_localdb_format.py",datetimeformat="%Y%m%d%H"):
     with settings(warn_only=True):
         user = env.user
-        with cd("../../ul_tests/localdb"):
+        with cd("~/unichain/ul_tests/localdb"):
             filename_prefix = filename.split(".")[0]
-            sudo("python3 {} {} | tee {}_{}_$(date +%Y%m%d%H%M%S).txt".format(filename,args,user,filename_prefix))
+            if run("test -d test_result").failed:
+                sudo("mkdir test_result", user=env.user, group=env.user)
+            sudo("python3 {} {} | tee test_result/{}_{}_$(date +{}).txt".format(filename,args,user,filename_prefix,datetimeformat))
         sudo("echo 'test_localdb_rethinkdb over'")
