@@ -8,7 +8,7 @@ import logging
 
 import rethinkdb as r
 from multipipes import Pipeline, Node
-
+from bigchaindb.db.backends import rethinkdb
 from bigchaindb.pipelines.utils import ChangeFeed
 from bigchaindb.models import Block
 from bigchaindb import Bigchain
@@ -48,10 +48,9 @@ class Election:
         Liquidates transactions from invalid blocks so they can be processed again
         """
         print(self.bigchain.me +"---" + invalid_block.node_pubkey)
-        if self.bigchain.me == invalid_block.node_pubkey:
-            logger.info('Rewriting %s transactions from invalid block %s',
-                        len(invalid_block.transactions),
-                        invalid_block.id)
+        isHandled = self.bigchain.selectFromWrite(invalid_block.id)
+        if self.bigchain.me == invalid_block.node_pubkey and isHandled ==False:
+            logger.info('Rewriting %s transactions from invalid block %s', len(invalid_block.transactions), invalid_block.id)
             data = {'id':invalid_block.id,'node_publickey': invalid_block.node_pubkey}
             self.bigchain.insertRewrite(data)
             for tx in invalid_block.transactions:
@@ -62,20 +61,19 @@ class Election:
 
     def check_local_mem(self,invalid_block):
         print("check_local_mem")
-        sleep(2)
         isHandled = self.bigchain.selectFromWrite(invalid_block.id)
         if not isHandled:
             nodeIndex = self.bigchain.nodelist.index(invalid_block.node_pubkey)
             myIndex = self.bigchain.nodelist.index(self.bigchain.me)
             # 计算到什么时间才需要当前node处理
             if nodeIndex > myIndex:
-                endtime = time() + (nodeIndex - myIndex) * 10 # 每个节点需要10s钟处理时间，
+                endtime = time() + (nodeIndex - myIndex) * 10 # 每个节点需要n秒钟处理时间，待定为10s
             else:
                 endtime = time() + (len(self.bigchain.nodelist) - nodeIndex + myIndex) * 10
             # 在到截止时间的过程中，不断的去查询这个block是否已经处理了。
-            while(endtime >time()):
+            while(endtime > time()):
                 print(".."+ str(endtime) +"--"+time())
-                sleep(2)
+                sleep(3)
                 isHandled = self.bigchain.selectFromWrite(invalid_block.id)
                 print(str(invalid_block.id) + "is  handle---" + str(isHandled))
                 if isHandled:
@@ -84,6 +82,8 @@ class Election:
             logger.info(' Rewriting %s transactions from invalid block %s --check_local_mem',
                         len(invalid_block.transactions),
                         invalid_block.id)
+            data = {'id': invalid_block.id, 'node_publickey': invalid_block.node_pubkey}
+            self.bigchain.insertRewrite(data)
             for tx in invalid_block.transactions:
                 self.bigchain.write_transaction(tx)
             return invalid_block

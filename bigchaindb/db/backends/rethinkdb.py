@@ -36,7 +36,6 @@ class RethinkDBBackend:
         Returns:
             The result of the operation.
         """
-
         return self.connection.run(
                 r.table('backlog')
                 .insert(signed_transaction, durability=self.durability))
