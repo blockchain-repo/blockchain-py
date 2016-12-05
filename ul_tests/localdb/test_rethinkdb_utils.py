@@ -5,9 +5,9 @@ if __name__ == "__main__":
 
     rq = RethinkdbUtils()
 
-    count_bigchain = rq.get_counts("bigchain")
+    count_bigchain = rq.get_counts("block")
 
-    count_votes = rq.get_counts("votes")
+    count_votes = rq.get_counts("vote")
 
     count_bigchain_between = rq.get_counts_between(table='bigchain',prefix_index='block',index='timestamp')
 

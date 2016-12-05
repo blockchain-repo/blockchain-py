@@ -10,10 +10,11 @@ class LocaldbValite():
     def __init__(self):
         self.rq = RethinkdbUtils()
         self.ldb = LocaldbUtils()
-        self.conn_bigchain = self.ldb.get_conn('bigchain')
+        self.conn_block = self.ldb.get_conn('block')
         self.conn_block_header = self.ldb.get_conn('block_header')
-        self.conn_votes = self.ldb.get_conn('votes')
+        self.conn_vote = self.ldb.get_conn('vote')
         self.conn_vote_header = self.ldb.get_conn('vote_header')
+        self.conn_block_records = self.ldb.get_conn('block_records')
 
 
     def check_records(self,table,localdb_table_conn,localdb_header_conn,count_key):
@@ -36,13 +37,24 @@ class LocaldbValite():
         if header_count and header_count.strip() != '':
             header_count = int(header_count)
 
-        result = "[localdb={}, rethinkdb={}, header={}]".format(localdb_records_count, rethinkdb_records_count, header_count)
-        isOK = False
+        if table == 'bigchain':
+            block_records_count = lv.ldb.get_records_count(lv.conn_block_records)
+            result = "block\t[rethinkdb={}, localdb={}, header={}, block_records={}]"\
+                .format(rethinkdb_records_count, localdb_records_count, header_count, block_records_count)
+            isOK = False
 
-        if localdb_records_count == rethinkdb_records_count\
-                 and rethinkdb_records_count == header_count:
-            isOK = True
+            if localdb_records_count == rethinkdb_records_count\
+                     and rethinkdb_records_count == header_count\
+                     and header_count == block_records_count:
+                isOK = True
+        else:
+            result = "vote\t[rethinkdb={}, localdb={}, header={}]"\
+                .format(localdb_records_count, rethinkdb_records_count, header_count)
+            isOK = False
 
+            if localdb_records_count == rethinkdb_records_count \
+                    and rethinkdb_records_count == header_count:
+                isOK = True
         return isOK,result
 
 
@@ -57,6 +69,7 @@ if __name__ == "__main__":
     parser.add_argument('-t', action="store_true",help='output the block_transactions info from rethinkdb')
     parser.add_argument('-i', action="store_true",help='ignore the partial info, if have the parameter')
     parser.add_argument('-b', action="store_true",help='show the statics info above in the file tail')
+    parser.add_argument('-q', action="store_true",help='hide the help info')
 
     args = parser.parse_args()
 
@@ -67,6 +80,7 @@ if __name__ == "__main__":
     order_block_votes = args.o
     ignore_diff_infos = args.i
     tail_infos = args.b
+    hide_format_help = args.q
 
     if not (result_only or block_votes or block_txs):
         result_only = True
@@ -83,13 +97,13 @@ if __name__ == "__main__":
     cost_time = time.time()
     ############################################### check_records ####################################################
     if result_only:
-        block_isOk,block_check = lv.check_records('bigchain',lv.conn_bigchain,lv.conn_block_header,'block_num')
-        votes_isOk,votes_check = lv.check_records('votes',lv.conn_votes,lv.conn_vote_header,'vote_num')
+        block_isOk,block_check = lv.check_records('bigchain',lv.conn_block,lv.conn_block_header,'current_block_num')
+        votes_isOk,votes_check = lv.check_records('votes',lv.conn_vote,lv.conn_vote_header,'current_vote_num')
 
         if block_isOk and votes_isOk:
-            check_records_info = "The localdb and rethinkdb is the same! The result as follows:\nblock\t{}\nvotes\t{}".format(block_check,votes_check)
+            check_records_info = "The localdb and rethinkdb is the same! The result as follows:\n{}\n{}".format(block_check,votes_check)
         else:
-            check_records_info = "The localdb and rethinkdb is not the same! The result as follows:\nblock\t{}\nvotes\t{}".format(block_check, votes_check)
+            check_records_info = "The localdb and rethinkdb is not the same! The result as follows:\n{}\n{}".format(block_check, votes_check)
         print(check_records_info)
         statics_info += check_records_info
 
@@ -107,8 +121,8 @@ if __name__ == "__main__":
         block_votes_count_number = 0
         for block_votes_count in block_votes_count_list:
             block_votes_count_number += 1
-            for block_id,votes_count in block_votes_count.items():
-                if show_votes_txs_detail:
+            if show_votes_txs_detail:
+                for block_id,votes_count in block_votes_count.items():
                     print("block_number={}\tblock_id={}\tblock_votes_count={}".format(block_votes_count_number,block_id,votes_count))
 
 
@@ -126,17 +140,25 @@ if __name__ == "__main__":
         block_txs_count_number = 0
         for block_txs_count in block_txs_count_list:
             block_txs_count_number += 1
-            for block_id, txs_count in block_txs_count.items():
-                if show_votes_txs_detail:
+            if show_votes_txs_detail:
+                for block_id, txs_count in block_txs_count.items():
                     print("block_number={}\tblock_id={}\tblock_txs_count={}".format(block_txs_count_number, block_id,
                                                                                 txs_count))
     cost_time = time.time() - cost_time
     if ignore_diff_infos:
-        parameters_info = "\nThe op with parameters[{}]\n{}".format(args, parser.format_help())
+        if hide_format_help:
+            parameters_info = "\nThe op with parameters[{}]\n".format(args)
+        else:
+            parameters_info = "\nThe op with parameters[{}]\n{}".format(args, parser.format_help())
+
         print(parameters_info)
         statics_info += "\nThe op with parameters[{}]\n".format(args)
     else:
-        parameters_info = "\nThe op cost time {}s, with parameters[{}]\n{}".format(cost_time, args, parser.format_help())
+        if hide_format_help:
+            parameters_info = "\nThe op cost time {}s, with parameters[{}]\n".format(cost_time, args)
+        else:
+            parameters_info = "\nThe op cost time {}s, with parameters[{}]\n{}".format(cost_time, args,
+                                                                                       parser.format_help())
         print(parameters_info)
         statics_info += "\nThe op cost time {}s, with parameters[{}]\n".format(cost_time, args)
 

@@ -6,7 +6,7 @@ if __name__ == "__main__":
 
     ld = LocaldbUtils()
 
-    votes_conn = ld.get_conn('votes')
+    votes_conn = ld.get_conn('vote')
 
     # all_votes = ld.get_all_records(votes_conn,show_only=False)
     # print(all_votes)

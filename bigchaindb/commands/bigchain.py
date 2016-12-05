@@ -137,6 +137,24 @@ def run_export_my_pubkey(args):
         # exits with exit code 1 (signals tha an error happened)
 
 
+def run_export_my_ip(args):
+    """Export this node's api_endpoint ip to standard output
+    """
+    logger.debug('unichain args = {}'.format(args))
+    bigchaindb.config_utils.autoconfigure(filename=args.config, force=True)
+    from urllib.parse import urlparse
+    api_endpoint = urlparse(bigchaindb.config['api_endpoint'])
+    node_ip = api_endpoint.netloc.lstrip().split(':')[0]
+    if node_ip is not None:
+        print(node_ip)
+    else:
+        sys.exit("This node's ip wasn't set anywhere "
+                 "so it can't be exported")
+        # raises SystemExit exception
+        # message is sent to stderr
+        # exits with exit code 1 (signals tha an error happened)
+
+
 def run_init(args):
     """Initialize the database"""
     bigchaindb.config_utils.autoconfigure(filename=args.config, force=True)
@@ -283,6 +301,9 @@ def create_parser():
 
     subparsers.add_parser('export-my-pubkey',
                           help="Export this node's public key")
+
+    subparsers.add_parser('export-my-ip',
+                          help="Export this node's ip for api_endpoint")
 
     # parser for database-level commands
     subparsers.add_parser('init',
