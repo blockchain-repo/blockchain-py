@@ -23,7 +23,6 @@ class Election:
 
     def __init__(self):
         self.bigchain = Bigchain()
-        print(self.bigchain.nodelist)
 
     def check_for_quorum(self, next_vote):
         """
@@ -47,7 +46,6 @@ class Election:
         """
         Liquidates transactions from invalid blocks so they can be processed again
         """
-        print(self.bigchain.me +"---" + invalid_block.node_pubkey)
         isHandled = self.bigchain.selectFromWrite(invalid_block.id)
         if self.bigchain.me == invalid_block.node_pubkey and isHandled ==False:
             logger.info('Rewriting %s transactions from invalid block %s', len(invalid_block.transactions), invalid_block.id)
@@ -60,7 +58,6 @@ class Election:
         return invalid_block
 
     def check_local_mem(self,invalid_block):
-        print("check_local_mem")
         isHandled = self.bigchain.selectFromWrite(invalid_block.id)
         if not isHandled:
             nodeIndex = self.bigchain.nodelist.index(invalid_block.node_pubkey)
@@ -72,10 +69,8 @@ class Election:
                 endtime = time() + (len(self.bigchain.nodelist) - nodeIndex + myIndex) * 10
             # 在到截止时间的过程中，不断的去查询这个block是否已经处理了。
             while(endtime > time()):
-                print(".."+ str(endtime) +"--"+time())
                 sleep(3)
                 isHandled = self.bigchain.selectFromWrite(invalid_block.id)
-                print(str(invalid_block.id) + "is  handle---" + str(isHandled))
                 if isHandled:
                     return
             # 当while执行完的时候，说明前边的节点没有处理，该当前节点处理了。
