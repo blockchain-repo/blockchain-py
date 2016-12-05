@@ -38,7 +38,7 @@ votes 可能会出现,对同一块的投票时间戳相差很大[比如:如果
 ```
 ### vote
 ```
-previous_block_id + '_' + node_pubkey
+previous_block_id + '-' + node_pubkey
 ```
 
 ### vote_header
