@@ -8,7 +8,7 @@ from extend.localdb.pipelines.local_utils import ChangeFeed
 from bigchaindb.db.utils import get_conn
 import bigchaindb
 import rethinkdb as r
-from extend.localdb.leveldb import utils as leveldb
+from extend.localdb.leveldb import utils as ldb
 import rapidjson
 import datetime
 
@@ -31,16 +31,18 @@ class LocalBlock(Node):
     DELETE = 2
     UPDATE = 4
 
-    def __init__(self,current_block_num=None,conn_header=None,conn_bigchain=None):
+    def __init__(self,current_block_num=None,conn_block=None,conn_block_header=None,conn_block_records=None):
         """Initialize the LocalBlockPipeline creator."""
 
-        self.conn_header = conn_header or leveldb.LocalBlock_Header().conn['block_header']
-        self.conn_bigchain = conn_bigchain or leveldb.LocalBlock_Header().conn['bigchain']
-        self.block_num = current_block_num or int(leveldb.get_withdefault(self.conn_header, 'block_num','0'))
-        self.block_count = 0 # after process start ,the node has write block to local
-        self.start_time = datetime.datetime.today()
+        self.conn_block = conn_block or ldb.LocalBlock().conn['block']
+        self.conn_block_header = conn_block_header or ldb.LocalBlock().conn['block_header']
+        self.conn_block_records = conn_block_records or ldb.LocalBlock().conn['block_records']
+        self.current_block_num = current_block_num or int(ldb.get_withdefault(self.conn_block_header, 'current_block_num','0'))
+        self.node_block_count = 0 # after process start ,the node has write block to local
+        self.node_start_time = datetime.datetime.today()
 
-    def write_block_header(self,block):
+
+    def write_local_block(self,block):
         """Write the block dict to leveldb.
 
         Instantly update the header dir, after change the block dir.
@@ -55,7 +57,7 @@ class LocalBlock(Node):
         block_id = block['id']
 
         # if exists
-        exist_block = leveldb.get(self.conn_bigchain, block_id) is not None
+        exist_block = ldb.get(self.conn_block, block_id) is not None
         if exist_block:
             logger.warning("\nThe block[id={}] is already exist.\n".format(block_id))
             return None
@@ -64,26 +66,25 @@ class LocalBlock(Node):
         block_size = len(block['block']['transactions'])
         block_json_str = rapidjson.dumps(block)
 
-        self.block_num = self.block_num + 1
+        self.current_block_num += 1
 
-        leveldb.insert(self.conn_bigchain, block_id, block_json_str, sync=False)
+        ldb.insert(self.conn_block, block_id, block_json_str, sync=False)
 
         block_header_data_dict = dict()
         block_header_data_dict['current_block_id'] = block_id
         block_header_data_dict['current_block_timestamp'] = current_block_timestamp
-        block_header_data_dict['block_num'] = self.block_num
-        leveldb.batch_insertOrUpdate(self.conn_header,block_header_data_dict,transaction=True)
+        block_header_data_dict['current_block_num'] = self.current_block_num
+        ldb.batch_insertOrUpdate(self.conn_block_header,block_header_data_dict,transaction=True)
         del block_header_data_dict
 
-        # leveldb.update(self.conn_header, 'current_block_id', block_id, sync=False)
-        # leveldb.update(self.conn_header, 'current_block_timestamp', current_block_timestamp, sync=False)
-        # leveldb.update(self.conn_header, 'block_num', self.block_num, sync=False)
+        # write the block_records [block_num=block_id] for restore pos
+        ldb.insert(self.conn_block_records, self.current_block_num, block_id)
 
-        self.block_count = self.block_count + 1
-        logger.warning('The count of this node(since start[{}]) has write to local block is: {}, block_num is: {}'
-                       .format(self.start_time,self.block_count,self.block_num))
+        self.node_block_count += 1
+        logger.warning('The count of this node(since start[{}]) has write to local block is: {}, current_block_num is: {}'
+                       .format(self.node_start_time,self.node_block_count,self.current_block_num))
 
-        info = "Current block(has write into localdb) info \n[id={},block_num={},block_size={}]\n".format(block_id, self.block_num, block_size)
+        info = "Current block(has write into localdb) info \n[id={},current_block_num={},block_size={}]\n".format(block_id, self.current_block_num, block_size)
         logger.info(info)
 
         # self.get_localblock_info()
@@ -94,68 +95,79 @@ class LocalBlock(Node):
     def get_localblock_info(self):
         """Only show the pre op result!"""
 
-        current_block_timestamp = leveldb.get(self.conn_header, 'current_block_timestamp')
-        current_block_id = leveldb.get(self.conn_header, 'current_block_id')
-        current_block_num = leveldb.get(self.conn_header, 'block_num')
-        current_block_inifo = "localdb info \n[current_block_timestamp={},block_num={},current__block_id={}]\n"\
+        current_block_timestamp = ldb.get(self.conn_block_header, 'current_block_timestamp')
+        current_block_id = ldb.get(self.conn_block_header, 'current_block_id')
+        current_block_num = ldb.get(self.conn_block_header, 'current_block_num')
+        current_block_inifo = "localdb info for current block \n[block_timestamp={},block_num={},block_id={}]\n"\
             .format(current_block_timestamp,current_block_num, current_block_id)
         logger.info(current_block_inifo)
 
 
-def init_localdb(current_block_num,conn_header,conn_bigchain):
+def init_localdb(current_block_num,conn_block,conn_block_header,conn_block_records):
     """Init leveldb dir [bigchain,header] when local_block pipeline run
     and update the Node info.
 
     Args:
         current_block_num(int): current_block counts
-        conn_header: localdb header dir pointer
-        conn_bigchain: localdb bigchian dir pointer
+        conn_block: localdb block dir pointer
+        conn_block_header: localdb block_header dir pointer
+        conn_block_records: localdb block_records dir pointer
     Returns:
 
     """
 
-    logger.info('leveldb init...')
+    logger.info('localdb init...')
     # logger.info('leveldb/header init host...' + str(bigchaindb.config['database']['host']))
 
     from urllib.parse import urlparse
     api_endpoint = urlparse(bigchaindb.config['api_endpoint'])
     node_host = api_endpoint.netloc.lstrip().split(':')[0]
+    node_pubkey = bigchaindb.config['keypair']['public']
+    node_prikey = bigchaindb.config['keypair']['private']
+    node_prikey_encode = len(node_prikey) * '*'
+    logger.info('localdb/node_info init Node info: [host={},public_key={},private_key={}]'
+                .format(node_host,node_pubkey,node_prikey_encode))
 
-    logger.info('leveldb/header init Node info: [host={},public_key={},private_key={}]'
-                .format(node_host,bigchaindb.config['keypair']['public'],
-                        bigchaindb.config['keypair']['private']))
+    # insert or update this node info and close the conn after write
+    conn_node_info = ldb.LocalBlock().conn['node_info']
+    node_info_data_dict = dict()
+    node_info_data_dict['host'] = node_host
+    node_info_data_dict['public_key'] = node_pubkey
+    node_info_data_dict['private_key'] = node_prikey
+    ldb.batch_insertOrUpdate(conn_node_info, node_info_data_dict, transaction=True)
+    ldb.close(conn_node_info)
+    del node_info_data_dict
 
-    leveldb.update(conn_header, 'host', node_host)
-    leveldb.update(conn_header, 'public_key', bigchaindb.config['keypair']['public'])
-    leveldb.update(conn_header, 'private_key', bigchaindb.config['keypair']['private'])
-
-    genesis_block_id = leveldb.get_withdefault(conn_header, 'genesis_block_id', '0')
+    # genesis block write
+    genesis_block_id = ldb.get_withdefault(conn_block_header, 'genesis_block_id', '0')
     if current_block_num == 0:
         genesis_block = r.db('bigchain').table('bigchain').order_by(r.asc(r.row['block']['timestamp'])).limit(1).run(
             get_conn())[0]
         genesis_block_id = genesis_block['id']
         genesis_block_json_str = rapidjson.dumps(genesis_block)
-        leveldb.insert(conn_bigchain, genesis_block_id, genesis_block_json_str)
-        leveldb.insert(conn_header, 'genesis_block_id', genesis_block_id)
-        leveldb.insert(conn_header, 'block_num', 1)
-        leveldb.insert(conn_header, 'current_block_id', genesis_block_id)
-        leveldb.insert(conn_header, 'current_block_timestamp', genesis_block['block']['timestamp'])
-        logger.info("create the genesis block [id={}]".format(genesis_block_id))
+        ldb.insert(conn_block, genesis_block_id, genesis_block_json_str)
         current_block_num = 1
 
-    logger.info('leveldb/header genesis_block_id {}'.format(genesis_block_id))
-    logger.info('leveldb init done')
+        block_header_data_dict = dict()
+        block_header_data_dict['genesis_block_id'] = genesis_block_id
+        block_header_data_dict['current_block_id'] = genesis_block_id
+        block_header_data_dict['current_block_timestamp'] = genesis_block['block']['timestamp']
+        block_header_data_dict['current_block_num'] = current_block_num
+        ldb.batch_insertOrUpdate(conn_block_header, block_header_data_dict, transaction=True)
+        del block_header_data_dict
+
+        logger.info("localdb write the genesis block [id={}]".format(genesis_block_id))
+
+        # write the block_records [block_num=block_id]
+        ldb.insert(conn_block_records,current_block_num,genesis_block_id)
+
+    logger.info('localdb genesis_block_id {}'.format(genesis_block_id))
+    logger.info('localdb init done')
+
     return current_block_num
 
 
 def initial():
-    # TODO maybe add the deal for pre localdb data check and recovery
-    """Before the pipeline deal the changefeed, we can add the deal:
-        1.get the Node missed or lost blocks data between [minval,maxval] for bigchain;
-        2.put the data into the special pipeline.
-
-    Return lost blocks
-    """
 
     return None
 
@@ -164,26 +176,27 @@ def get_changefeed(current_block_timestamp):
     """Create and return the changefeed for the table bigchain."""
 
     return ChangeFeed('bigchain','block',ChangeFeed.INSERT | ChangeFeed.UPDATE,current_block_timestamp,
-                      round_recover_limit=100,round_recover_limit_max=100,secondary_index='block_timestamp',prefeed=initial())
+                      round_recover_limit=100,round_recover_limit_max=200,secondary_index='block_timestamp',prefeed=initial())
 
 
 def create_pipeline():
     """Create and return the pipeline of operations to be distributed
     on different processes."""
 
-    conn_header = leveldb.LocalBlock_Header().conn['block_header']
-    conn_bigchain = leveldb.LocalBlock_Header().conn['bigchain']
+    conn_block = ldb.LocalBlock().conn['block']
+    conn_block_header = ldb.LocalBlock().conn['block_header']
+    conn_block_records = ldb.LocalBlock().conn['block_records']
 
-    current_block_num = int(leveldb.get_withdefault(conn_header, 'block_num', 0))
-    current_block_num = init_localdb(current_block_num,conn_header,conn_bigchain)
+    current_block_num = int(ldb.get_withdefault(conn_block_header, 'current_block_num', 0))
+    current_block_num = init_localdb(current_block_num,conn_block,conn_block_header,conn_block_records)
 
-    current_block_timestamp = leveldb.get_withdefault(conn_header, 'current_block_timestamp','0')
+    current_block_timestamp = ldb.get_withdefault(conn_block_header, 'current_block_timestamp','0')
 
-    localblock_pipeline = LocalBlock(current_block_num=current_block_num,
-                                     conn_header=conn_header,conn_bigchain=conn_bigchain)
+    localblock_pipeline = LocalBlock(current_block_num=current_block_num,conn_block=conn_block,
+                                     conn_block_header=conn_block_header,conn_block_records=conn_block_records)
 
     pipeline = Pipeline([
-        Node(localblock_pipeline.write_block_header)
+        Node(localblock_pipeline.write_local_block)
         # Node(localblock_pipeline.write_block_header,fraction_of_cores=1)
         # Node(localblock_pipeline.write_block_header,number_of_processes=1)
     ])

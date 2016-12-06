@@ -15,10 +15,9 @@ if __name__ == "__main__":
     # current_block_id = ld.get_val(conn_header,'current_block_id')
     # current_block_timestamp = ld.get_val(conn_header,'current_block_timestamp')
     # genesis_block_id = ld.get_val(conn_header,'genesis_block_id')
-    # host = ld.get_val(conn_header,'host')
     #
-    # result = "block_num={}\ncurrent_block_id={}\ncurrent_block_timestamp={}\ngenesis_block_id={}\nhost={}\n"\
-    #     .format(block_num,current_block_id,current_block_timestamp,genesis_block_id,host)
+    # result = "block_num={}\ncurrent_block_id={}\ncurrent_block_timestamp={}\ngenesis_block_id={}\n"\
+    #     .format(block_num,current_block_id,current_block_timestamp,genesis_block_id)
     #
     # print(result)
 

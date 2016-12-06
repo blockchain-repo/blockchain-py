@@ -10,10 +10,11 @@ class LocaldbValite():
     def __init__(self):
         self.rq = RethinkdbUtils()
         self.ldb = LocaldbUtils()
-        self.conn_bigchain = self.ldb.get_conn('bigchain')
+        self.conn_block = self.ldb.get_conn('block')
         self.conn_block_header = self.ldb.get_conn('block_header')
-        self.conn_votes = self.ldb.get_conn('votes')
+        self.conn_vote = self.ldb.get_conn('vote')
         self.conn_vote_header = self.ldb.get_conn('vote_header')
+        self.conn_block_records = self.ldb.get_conn('block_records')
 
 
     def check_records(self,table,localdb_table_conn,localdb_header_conn,count_key):
@@ -36,23 +37,34 @@ class LocaldbValite():
         if header_count and header_count.strip() != '':
             header_count = int(header_count)
 
-        result = "[localdb={}, rethinkdb={}, header={}]".format(localdb_records_count, rethinkdb_records_count, header_count)
-        isOK = False
+        if table == 'bigchain':
+            block_records_count = lv.ldb.get_records_count(lv.conn_block_records)
+            result = "block\t[rethinkdb={}, localdb={}, header={}, block_records={}]"\
+                .format(rethinkdb_records_count, localdb_records_count, header_count, block_records_count)
+            isOK = False
 
-        if localdb_records_count == rethinkdb_records_count\
-                 and rethinkdb_records_count == header_count:
-            isOK = True
+            if localdb_records_count == rethinkdb_records_count\
+                     and rethinkdb_records_count == header_count\
+                     and header_count == block_records_count:
+                isOK = True
+        else:
+            result = "vote\t[rethinkdb={}, localdb={}, header={}]"\
+                .format(localdb_records_count, rethinkdb_records_count, header_count)
+            isOK = False
 
+            if localdb_records_count == rethinkdb_records_count \
+                    and rethinkdb_records_count == header_count:
+                isOK = True
         return isOK,result
 
 
 if __name__ == "__main__":
 
     lv = LocaldbValite()
-    block_isOk,block_check = lv.check_records('bigchain',lv.conn_bigchain,lv.conn_block_header,'block_num')
-    votes_isOk,votes_check = lv.check_records('votes',lv.conn_votes,lv.conn_vote_header,'vote_num')
+    block_isOk,block_check = lv.check_records('bigchain',lv.conn_block,lv.conn_block_header,'current_block_num')
+    votes_isOk,votes_check = lv.check_records('votes',lv.conn_vote,lv.conn_vote_header,'current_vote_num')
 
     if block_isOk and votes_isOk:
-        print("The localdb and rethinkdb is the same! The result as follows:\nblock\t{}\nvotes\t{}".format(block_check,votes_check))
+        print("The localdb and rethinkdb is the same! The result as follows:\n{}\t\n{}".format(block_check,votes_check))
     else:
-        print("The localdb and rethinkdb is not the same! The result as follows:\nblock\t{}\nvotes\t{}".format(block_check, votes_check))
+        print("The localdb and rethinkdb is not the same! The result as follows:\n{}\t\n{}".format(block_check, votes_check))

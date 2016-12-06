@@ -30,7 +30,7 @@ class ChangeFeed(Node):
             prefeed (iterable): whatever set of data you want to be published
                 first.
         """
-        super().__init__(name='localchangefeed')
+        super().__init__(name='local_changefeed')
         self.prefeed = prefeed if prefeed else []
         self.table = table
         self.table_class = table_class

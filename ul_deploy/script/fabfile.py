@@ -249,7 +249,7 @@ def init_localdb():
         user_group = env.user
         sudo('rm -rf /data/localdb/*')
         sudo("echo init localdb")
-        sudo("mkdir -p /data/localdb/{bigchain,votes,block_header,vote_header}")
+        sudo("mkdir -p /data/localdb/{node_info,block,block_header,block_records,vote,vote_header}")
         sudo("chown -R " + user_group + ':' + user_group + ' /data/localdb')
 
 
@@ -474,7 +474,7 @@ def init_all_nodes():
         sudo('rm -rf /usr/local/lib/python3.4/dist-packages/BigchainDB-* 2>/dev/null')
         sudo('rm -rf ~/unichain 2>/dev/null')
         sudo('rm -rf /data/rethinkdb/* 2>/dev/null')
-        sudo('rm -rf /data/localdb/{bigchain,votes,block_header,vote_header}/* 2>/dev/null')
+        sudo('rm -rf /data/localdb/{node_info,block,block_header,block_records,vote,vote_header}/* 2>/dev/null')
 
 
 @task
@@ -623,7 +623,7 @@ def destroy_all_nodes():
         sudo('killall -9 pip,pip3 2>/dev/null')
 
         sudo('rm -rf /data/rethinkdb/* 2>/dev/null')
-        sudo('rm -rf /data/localdb/{bigchain,votes,block_header,vote_header}/* 2>/dev/null')
+        sudo('rm -rf /data/localdb/{node_info,block,block_header,block_records,vote,vote_header}/* 2>/dev/null')
 
         sudo('rm -rf /usr/local/lib/python3.4/dist-packages/BigchainDB-* 2>/dev/null')
         sudo('rm /usr/local/bin/bigchaindb 2>/dev/null')
@@ -721,7 +721,7 @@ def clear_unichain_data(flag='rethinkdb'):
             sudo('rm -rf /data/rethinkdb/*')
             sudo('rm -rf /data/localdb/*')
         elif flag == 'localdb':
-            sudo('rm -rf /data/localdb/{bigchain,votes,block_header,vote_header}/*')
+            sudo('rm -rf /data/localdb/{node_info,block,block_header,block_records,vote,vote_header}/*')
         elif flag == 'rethinkdb':
             sudo('rm -rf /data/rethinkdb/*')
         if flag in ('all','localdb','rethinkdb'):
