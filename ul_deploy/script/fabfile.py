@@ -64,14 +64,14 @@ def check_localdb():
 
 #step:check port&process&data,conf path
 @task
-def check_unichain_pro():
+def check_unichain():
     with settings(warn_only=True):
         print("[INFO]==========check unichain pro begin==========")
-        process_num=run('ps -aux|grep -E "/usr/local/bin/unichain_pro -y start|SCREEN -d -m unichain_pro -y start"|grep -v grep|wc -l')
+        process_num=run('ps -aux|grep -E "/usr/local/bin/unichain -y start|SCREEN -d -m unichain -y start"|grep -v grep|wc -l')
         if process_num == 0:
-            print("[INFO]=====process[unichain_pro] num check result: is 0")
+            print("[INFO]=====process[unichain] num check result: is 0")
         else:
-            print("[ERROR]=====process[unichain_pro] num check result: is %s" % (str(process_num)))
+            print("[ERROR]=====process[unichain] num check result: is %s" % (str(process_num)))
         ##TODO:confirm port in conf
         api_port=9984
         check_api_port=sudo('netstat -nlap|grep "LISTEN"|awk -v v_port=":%s" \'{if(v_port==$4) print $0}\'' % (api_port))
@@ -285,7 +285,7 @@ def init_localdb():
 def uninstall_unichain():
     with settings(warn_only=True):
         run('echo "[INFO]==========uninstall unichain-pro=========="')
-        sudo('killall -9 unichain_pro 2>/dev/null')
+        sudo('killall -9 unichain 2>/dev/null')
         sudo('killall -9 unichain_api 2>/dev/null')
         sudo('killall -9 pip,pip3 2>/dev/null')
         sudo('rm /usr/local/bin/unichain 2>/dev/null')
@@ -341,7 +341,7 @@ def set_replicas(num_replicas):
 @parallel
 def start_unichain():
     with settings(warn_only=True):
-        sudo('screen -d -m unichain_pro -y start &', pty=False, user=env.user)
+        sudo('screen -d -m unichain -y start &', pty=False, user=env.user)
         sudo('screen -d -m unichain_api start &', pty=False, user=env.user)
 
 
@@ -350,7 +350,7 @@ def start_unichain():
 def stop_unichain():
     with settings(warn_only=True):
         # sudo("kill `ps -ef|grep unichain | grep -v grep|awk '{print $2}'` ")
-        sudo("killall -9 unichain_pro 2>/dev/null")
+        sudo("killall -9 unichain 2>/dev/null")
         sudo("killall -9 unichain_api 2>/dev/null")
 
 
@@ -358,16 +358,16 @@ def stop_unichain():
 @parallel
 def restart_unichain():
     with settings(warn_only=True):
-        sudo("killall -9 unichain_pro 2>/dev/null")
+        sudo("killall -9 unichain 2>/dev/null")
         sudo("killall -9 unichain_api 2>/dev/null")
-        sudo('screen -d -m unichain_pro -y start &', pty=False, user=env.user)
+        sudo('screen -d -m unichain -y start &', pty=False, user=env.user)
         sudo('screen -d -m unichain_api start &', pty=False, user=env.user)
 
 
 @task
 @parallel
 def start_unichain_load():
-    sudo('screen -d -m unichain_pro load &', pty=False)
+    sudo('screen -d -m unichain load &', pty=False)
 
 
 # rethinkdb
@@ -484,7 +484,7 @@ def count_process_by_name(name):
 @parallel
 def init_all_nodes():
     with settings(warn_only=True):
-        sudo('killall -9 unichain_pro 2>/dev/null')
+        sudo('killall -9 unichain 2>/dev/null')
         sudo('killall -9 unichain_api 2>/dev/null')
         sudo('killall -9 rethinkdb 2>/dev/null')
         sudo('killall -9 pip3,pip 2>/dev/null')
@@ -499,7 +499,7 @@ def init_all_nodes():
 @parallel
 def kill_all_nodes():
     with settings(warn_only=True):
-        sudo('killall -9 unichain_pro 2>/dev/null')
+        sudo('killall -9 unichain 2>/dev/null')
         sudo('killall -9 unichain_api 2>/dev/null')
         sudo('killall -9 rethinkdb 2>/dev/null')
         sudo('killall -9 pip3,pip 2>/dev/null')
@@ -636,8 +636,8 @@ def test_nodes_rethinkdb(file=1,num=1,blank=False):
 def destroy_all_nodes():
     with settings(warn_only=True):
         sudo('killall -9 bigchaindb 2>/dev/null')
-        sudo('killall -9 simplechaindb 2>/dev/null') 
-        sudo('killall -9 unichain_pro 2>/dev/null')
+        sudo('killall -9 simplechaindb 2>/dev/null')
+        sudo('killall -9 unichain 2>/dev/null')
         sudo('killall -9 unichain_api 2>/dev/null')
         sudo('killall -9 rethinkdb 2>/dev/null')
         sudo('killall -9 pip,pip3 2>/dev/null')
@@ -701,10 +701,10 @@ def detect_localdb():
 
 #step: get port & detect port & detect process
 @task
-def detect_unichain_pro():
+def detect_unichain():
     with settings(warn_only=True):
         print("[INFO]==========detect unichain pro begin==========")
-        process_num=run('ps -aux|grep -E "/usr/local/bin/unichain_pro -y start|SCREEN -d -m unichain_pro -y start"|grep -v grep|wc -l')
+        process_num=run('ps -aux|grep -E "/usr/local/bin/unichain -y start|SCREEN -d -m unichain -y start"|grep -v grep|wc -l')
         if int(process_num) == 0:
             print("[ERROR]=====process[unichain] num detect result: is 0")
         else:

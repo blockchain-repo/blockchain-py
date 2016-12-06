@@ -66,9 +66,11 @@ case $1 in
     ;;
     start_all)
         ./clustercontrol.sh start | tee ../log/clusterconrol_start.log
+        ./run_server_check.sh | tee ../log/run_server_check.log 
     ;;
     stop_all)
         ./clustercontrol.sh stop | tee ../log/clustercontrol_stop.log
+        ./run_server_check.sh | tee ../log/run_server_check.log
     ;;
     start_node)
         str_param=`echo $@|awk '{for(i=2;i<=NF;i++){if(i!=NF)print $i" ";else print $i}}'`

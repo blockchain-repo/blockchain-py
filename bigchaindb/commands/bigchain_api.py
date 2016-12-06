@@ -55,7 +55,7 @@ def run_show_config(args):
     config['keypair']['private'] = 'x' * 45 if private_key else None
     print(json.dumps(config, indent=4, sort_keys=True))
 
-def run_api_start(args):
+def run_start(args):
     """ start api server"""
     logger.info('BigchainDB Version {}'.format(bigchaindb.__version__))
     logger.info('start api service....')
@@ -65,9 +65,12 @@ def create_parser():
     parser = argparse.ArgumentParser(
         description='Control your BigchainDB node.',
         parents=[utils.base_parser])
+    subparsers = parser.add_subparsers(title='Commands',
+                                       dest='command')
     # parser for starting BigchainDB
-    subparsers.add_parser('start_api',
+    subparsers.add_parser('start',
                           help='Start Unichain API service')
+    return parser
 
 def main():
     utils.start(create_parser(), sys.argv[1:], globals())

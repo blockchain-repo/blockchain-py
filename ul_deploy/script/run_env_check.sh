@@ -12,6 +12,6 @@ fab check_localdb
 
 #check unichain-pro
 echo -e "[INFO]==========check unichain pro=========="
-fab check_unichain_pro
+fab check_unichain
 
 exit 0

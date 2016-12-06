@@ -15,7 +15,7 @@ fab detect_localdb
 #detect unichain-pro
 # get bigchain port & check port & check process
 echo -e "[INFO]===========detect unichain-pro==========="
-fab detect_unichain_pro
+fab detect_unichain
 
 #detect unichain-api
 # get api port & check port & check api

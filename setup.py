@@ -99,7 +99,7 @@ setup(
 
     entry_points={
         'console_scripts': [
-            'unichain_pro=bigchaindb.commands.bigchain:main',
+            'unichain=bigchaindb.commands.bigchain:main',
             'unichain_api=bigchaindb.commands.bigchain_api:main',
         ],
     },

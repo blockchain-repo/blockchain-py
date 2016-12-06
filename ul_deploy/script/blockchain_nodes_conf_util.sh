@@ -54,12 +54,19 @@ function check_blocknodes_diff()
     fi
     if [ ! -f $last_conf ];then
         echo -e "[ERROR]bak of first_setup blockchain_nodes is not exist!!!continue will accur an unknown error!!! "
-        exit 1
-    fi
-    local diff_num=`cat $last_conf $now_conf 2>/dev/null|grep -vE "^#|^$"|sort|uniq -c|sed "s/^[ ]*//g"|grep  "^1 "|wc -l`
-    if [ $diff_num -gt 0 ];then
-        echo -e "[ERROR] blockchain_nodes has diff,cluster nodes are not same as first_setup"
-        return 1
+        echo -e "[WARNING]please confirm cluster nodes info right or not: [y/n]"
+        read cluster_info
+        if [ "`echo "$cluster_info"|tr A-Z  a-z`" == "y" -o "`echo "$cluster_info"|tr A-Z  a-z`" == "yes" ];then
+            echo -e "[INFO] continue install...."
+        else
+            exit 1
+        fi
+    else
+        local diff_num=`cat $last_conf $now_conf 2>/dev/null|grep -vE "^#|^$"|sort|uniq -c|sed "s/^[ ]*//g"|grep  "^1 "|wc -l`
+        if [ $diff_num -gt 0 ];then
+            echo -e "[ERROR] blockchain_nodes has diff,cluster nodes are not same as first_setup"
+            return 1
+        fi
     fi
     return 0
 }
