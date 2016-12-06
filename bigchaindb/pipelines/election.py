@@ -8,7 +8,6 @@ import logging
 
 import rethinkdb as r
 from multipipes import Pipeline, Node
-from bigchaindb.db.backends import rethinkdb
 from bigchaindb.pipelines.utils import ChangeFeed
 from bigchaindb.models import Block
 from bigchaindb import Bigchain
