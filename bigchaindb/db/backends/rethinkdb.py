@@ -36,7 +36,6 @@ class RethinkDBBackend:
         Returns:
             The result of the operation.
         """
-
         return self.connection.run(
                 r.table('backlog')
                 .insert(signed_transaction, durability=self.durability))
@@ -427,4 +426,4 @@ class RethinkDBBackend:
         return self.connection.run(r.table('rewrite').insert(data))
 
     def isBlockRewrited(self,id):
-        return self.connection.run(r.table('reassignnode').filter({'id': id}).count())
+        return self.connection.run(r.table('rewrite').filter({'id': id}).count())

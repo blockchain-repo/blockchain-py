@@ -9,13 +9,13 @@ import logging
 logger = logging.getLogger(__name__)
 
 
-class LocalBlock_Header(object):
-    """Singleton LocalBlock_Header encapsulates leveldb`s base ops base on plyvel.
+class LocalBlock(object):
+    """Singleton LocalBlock encapsulates leveldb`s base ops base on plyvel.
 
     Warn:
         1. leveldb [Only support a single process (possibly multi-threaded) can access a particular database at a time.];
         2. multi-thread [Singleton can deal.];
-        3. it`s only use for leveldb dir [bigchain ,header] op.
+        3. it`s only use for leveldb dir [block, block_header, block_records] op.
 
     Attributes:
         conn: The dict include the dir link config['database']['tables'].
@@ -26,8 +26,8 @@ class LocalBlock_Header(object):
 
     def __new__(cls):
         if not hasattr(cls, 'instance'):
-            logger.info('init bigchain & block_header dirs start')
-            cls.instance = super(LocalBlock_Header, cls).__new__(cls)
+            logger.info('init block, block_header, block_records dirs start')
+            cls.instance = super(LocalBlock, cls).__new__(cls)
             database = config['database']
             parent_dir = database['path']
             block_size = database['block_size']
@@ -37,12 +37,16 @@ class LocalBlock_Header(object):
             logger.info('leveldb config {}'.format(database.items()))
             cls.instance.conn = dict()
             logger.info('conn info: ' + str(cls.instance.conn.items()))
-            cls.instance.conn['block_header'] = l.DB(parent_dir + 'block_header/', create_if_missing=True,write_buffer_size=write_buffer_size,
-                                               block_size=block_size, max_open_files=max_open_files,lru_cache_size=lru_cache_size)
-            cls.instance.conn['bigchain'] = l.DB(parent_dir + 'bigchain/', create_if_missing=True,write_buffer_size=write_buffer_size,
-                                                 block_size=block_size,max_open_files=max_open_files,lru_cache_size=lru_cache_size)
-            logger.info('LocalBlock_Header conn {}'.format(cls.instance.conn.items()))
-            logger.info('init bigchain & block_header dirs end')
+            cls.instance.conn['node_info'] = l.DB(parent_dir + 'node_info/', create_if_missing=True, write_buffer_size=write_buffer_size,
+                                              block_size=block_size, max_open_files=max_open_files,lru_cache_size=lru_cache_size)
+            cls.instance.conn['block'] = l.DB(parent_dir + 'block/', create_if_missing=True, write_buffer_size=write_buffer_size,
+                                                 block_size=block_size, max_open_files=max_open_files, lru_cache_size=lru_cache_size)
+            cls.instance.conn['block_header'] = l.DB(parent_dir + 'block_header/', create_if_missing=True, write_buffer_size=write_buffer_size,
+                                               block_size=block_size, max_open_files=max_open_files, lru_cache_size=lru_cache_size)
+            cls.instance.conn['block_records'] = l.DB(parent_dir + 'block_records/', create_if_missing=True, write_buffer_size=write_buffer_size,
+                                                     block_size=block_size, max_open_files=max_open_files, lru_cache_size=lru_cache_size)
+            logger.info('LocalBlock conn {}'.format(cls.instance.conn.items()))
+            logger.info('init block, block_header, block_records dirs end')
 
         return cls.instance
 
@@ -53,7 +57,7 @@ class LocalVote(object):
     Warn:
         1. leveldb [Only support a single process (possibly multi-threaded) can access a particular database at a time.];
         2. multi-thread [Singleton can deal.];
-        3. it`s only use for leveldb dir [bigchain ,header] op.
+        3. it`s only use for leveldb dir [vote, vote_header] op.
 
     Attributes:
         conn: The dict include the dir link config['database']['tables'].
@@ -63,7 +67,7 @@ class LocalVote(object):
 
     def __new__(cls):
         if not hasattr(cls, 'instance'):
-            logger.info('init votes & vote_header dirs start')
+            logger.info('init vote, vote_header dirs start')
             cls.instance = super(LocalVote, cls).__new__(cls)
             database = config['database']
             parent_dir = database['path']
@@ -74,12 +78,12 @@ class LocalVote(object):
             print('leveldb config {}'.format(database.items()))
             cls.instance.conn = dict()
             logger.info('conn info: ' + str(cls.instance.conn.items()))
+            cls.instance.conn['vote'] = l.DB(parent_dir + 'vote/', create_if_missing=True,write_buffer_size=write_buffer_size,
+                                              block_size=block_size,max_open_files=max_open_files,lru_cache_size=lru_cache_size)
             cls.instance.conn['vote_header'] = l.DB(parent_dir + 'vote_header/', create_if_missing=True,write_buffer_size=write_buffer_size,
                                                      block_size=block_size, max_open_files=max_open_files,lru_cache_size=lru_cache_size)
-            cls.instance.conn['votes'] = l.DB(parent_dir + 'votes/', create_if_missing=True,write_buffer_size=write_buffer_size,
-                                              block_size=block_size,max_open_files=max_open_files,lru_cache_size=lru_cache_size)
             logger.info('LocalVote conn {}'.format(cls.instance.conn.items()))
-            logger.info('init votes & vote_header dirs end')
+            logger.info('init vote, vote_header dirs end')
 
         return cls.instance
 
@@ -126,12 +130,12 @@ def get_conn(name,prefix_db=None):
         the leveldb dir pointer.
     """
     if prefix_db is None or prefix_db not in config['database']['tables']:
-        raise BaseException("Ambigous localdb conn, you should make clear it!")
+        raise BaseException("Ambigous localdb conn, it should be explicit!")
 
-    if prefix_db in ("block_header","bigchain"):
-        return LocalBlock_Header().conn[name]
+    if prefix_db in ("node_info","block","block_header","block_records"):
+        return LocalBlock().conn[name]
 
-    if prefix_db in ("votes",'vote_header'):
+    if prefix_db in ("vote",'vote_header'):
         return LocalVote().conn[name]
 
     return BaseException("Error prefix_db {}!".format(prefix_db))

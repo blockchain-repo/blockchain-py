@@ -6,7 +6,7 @@ if __name__ == "__main__":
 
     ld = LocaldbUtils()
 
-    block_conn = ld.get_conn('bigchain')
+    block_conn = ld.get_conn('block')
 
     # all_blocks = ld.get_all_records(block_conn,show_only=False,limit=2)
     # for block in all_blocks:

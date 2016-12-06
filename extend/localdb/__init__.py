@@ -4,7 +4,7 @@
 config = {
     'database': {
         'path': '/data/localdb/',# path should be exist,the root dir for localdb
-        'tables':['bigchain','votes','block_header','vote_header'], # the localdb dirs
+        'tables':['node_info','block','block_header','block_records','vote','vote_header'], # the localdb dirs
         'block_size':None,# block size (in bytes)
         'write_buffer_size':2<<24,#  (int) – size of the write buffer (in bytes) 16MB *2 ?
         'max_open_files':None,# (int) – maximum number of files to keep open
