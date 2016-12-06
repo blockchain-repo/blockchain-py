@@ -68,7 +68,7 @@ class Bigchain(object):
         self.consensus = BaseConsensusRules
         # change RethinkDB read mode to majority.  This ensures consistency in query results
         self.read_mode = 'majority'
-        self.count = 0
+
         if not self.me or not self.me_private:
             raise exceptions.KeypairNotFoundException()
 
@@ -560,8 +560,6 @@ class Bigchain(object):
 
         if block_id == previous_block_id:
             raise exceptions.CyclicBlockchainError()
-        if self.count == 0:
-            decision = False
 
         vote = {
             'voting_for_block': block_id,
@@ -579,7 +577,7 @@ class Bigchain(object):
             'signature': signature,
             'vote': vote
         }
-        self.count +=1
+
         return vote_signed
 
     def write_vote(self, vote):
