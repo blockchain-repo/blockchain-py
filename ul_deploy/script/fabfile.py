@@ -13,7 +13,7 @@ import sys
 from fabric.api import sudo,cd, env, hosts
 from fabric.api import task, parallel
 from fabric.contrib.files import sed
-from fabric.operations import run, put
+from fabric.operations import run, put, get
 from fabric.context_managers import settings
 
 import json
@@ -770,15 +770,18 @@ def test_localdb_rethinkdb(args="-irbvt",filename="validate_localdb_format.py",d
 @task
 @parallel
 def bak_rethinkdb_conf(base):
-    sudo('cp -rf /etc/rethinkdb/instances.d/default.conf %s/rethinkdb/default.conf_%s_%s' % (base, env.user, env.host))
+    with settings(warn_only=True):
+        get('/etc/rethinkdb/instances.d/default.conf', '%s/rethinkdb/default.conf_%s_%s' % (base, env.user, env.host), use_sudo=True)
 
 @task
 @parallel
 def bak_collected_conf(base):
-    sudo('cp -rf /etc/collectd/collectd.conf  %s/collected/collected.conf_%s_%s' % (base, env.user, env.host))
+    with settings(warn_only=True):
+        get('/etc/collectd/collectd.conf', ' %s/collected/collected.conf_%s_%s' % (base, env.user, env.host), use_sudo=True)
 
 @task
 @parallel
 def bak_unichain_conf(base):
-    sudo('cp -rf ~/.unichain %s/unichain/unichain_%s_%s' % (base, env.user, env.host))
+    with settings(warn_only=True):
+        get('~/.unichain', '%s/unichain/unichain_%s_%s' % (base, env.user, env.host), use_sudo=True)
 
