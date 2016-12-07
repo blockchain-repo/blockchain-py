@@ -51,11 +51,11 @@ CLUSTER_BIGCHAIN_COUNT=`get_cluster_nodes_num`
 
 #check if cluster conf diff
 echo -e "[INFO]==========check cluster conf diff=========="
-check_blocknodes_diff
+#check_blocknodes_diff
 
 #bak old conf
 echo -e "[INFO]==========bak old conf=========="
-./bak_conf.sh "old"
+#./bak_conf.sh "old"
 
 #clusternodes stop
 echo -e "[INFO]==========stop clusternodes=========="
@@ -77,7 +77,7 @@ echo -e "[INFO]==========configure unchain=========="
 
 #bak current conf
 echo -e "[INFO]==========bak new conf=========="
-./bak_conf.sh "new"
+#./bak_conf.sh "new"
 
 if [[ -z $AUTO_START_FLAG || $AUTO_START_FLAG -eq 1 ]];then
     #start unichain nodes

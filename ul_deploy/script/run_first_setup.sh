@@ -96,7 +96,7 @@ fab set_replicas:${REPLICAS_NUM}
 
 #bak conf
 echo -e "[INFO]==========bak current conf=========="
-./bak_conf.sh "new"
+#./bak_conf.sh "new"
 
 if [[ -z $AUTO_START_FLAG || $AUTO_START_FLAG -eq 1 ]];then
     #start unichain nodes
