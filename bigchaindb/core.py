@@ -696,12 +696,21 @@ class Bigchain(object):
         return self.backend.updateAssigneebeat(assigneekey,time)
 
     def is_assignee_alive(self,assigneekey,timeout):
-        if (time() - self.backend.is_assignee_alive(assigneekey).next()['timestamp']) > timeout:
+        try:
+            timestamp = self.backend.is_assignee_alive(assigneekey).next()['timestamp']
+        except:
+            timestamp = 0.0
+        if (time() - timestamp) > timeout:
             return False
         return True
 
     def is_node_alive(self,txpublickey,timeout):
-        if (time() - self.backend.is_node_alive(txpublickey).next()['timestamp']) > timeout:
+        try:
+            timestamp = self.backend.is_node_alive(txpublickey).next()['timestamp']
+        except:
+            timestamp = 0.0
+
+        if (time() - timestamp) > timeout:
             return False
         return True
 
