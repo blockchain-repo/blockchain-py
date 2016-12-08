@@ -66,6 +66,9 @@ target/
 .python-version
 .idea
 
+# rethinkdb data dir
+*rethinkdb_data/
+
 # Ansible-specific files
 ntools/one-m/ansible/hosts
 ntools/one-m/ansible/ansible.cfg
@@ -75,6 +78,7 @@ ul_deploy/conf/collectd.conf
 ul_deploy/conf/rethinkdb.conf
 ul_deploy/conf/unichain_confiles/
 ul_deploy/conf/keypairs.py
+*.gz
 
 #first push should commend and none after
 ul_deploy/conf/blockchain_nodes
