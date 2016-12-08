@@ -13,7 +13,8 @@ import logging
 
 logger = logging.getLogger(__name__)
 
-class LocalVote(Node):
+
+class LocalVote():
     """Monitor the vote changes and write to leveldb
 
     This class monitor the change for votes through changefeed
@@ -35,7 +36,6 @@ class LocalVote(Node):
         self.node_vote_count = 0 # after process start ,the node has write vote to local
         self.node_start_time = datetime.datetime.today()
 
-
     def write_local_vote(self,vote):
         """Write the vote dict to leveldb.
 
@@ -55,9 +55,8 @@ class LocalVote(Node):
         # if exists
         exist_vote = ldb.get(self.conn_vote,vote_key) is not None
         if exist_vote:
-            logger.warning("\nThe vote[id={},vote_key={}] is already exist.\n".format(vote_id,vote_key))
+            # logger.warning("\nThe vote[id={},vote_key={}] is already exist.\n".format(vote_id,vote_key))
             return None
-
 
         vote_json_str = rapidjson.dumps(vote)
 
@@ -73,17 +72,17 @@ class LocalVote(Node):
         del vote_header_data_dict
 
         self.node_vote_count += 1
-        logger.warning('The count of this node(since start[{}]) has write to local vote is: {}, current_vote_num is: {}'
-            .format(self.node_start_time,self.node_vote_count, self.current_vote_num))
+        # logger.warning('The count of this node(since start[{}]) has write to local vote is: {}, current_vote_num is: {}'
+        #     .format(self.node_start_time,self.node_vote_count, self.current_vote_num))
 
-        info = "Current vote(has write into localdb) info \n[id={},current_vote_num={},vote_key(previous_block-node_pubkey)={}\n,voting_for_block={}]\n"\
+        info = "Current vote(has write into localdb) info \n[id={},current_vote_num={}," \
+               "vote_key(previous_block-node_pubkey)={},voting_for_block={}]\n"\
             .format(vote_id,self.current_vote_num,vote_key, vote['vote']['voting_for_block'])
         logger.info(info)
 
         # self.get_local_votes_for_block(previous_block)
 
         return None
-
 
     def get_local_votes_for_block(self, block_id):
         """Only show the pre op result!"""

@@ -17,7 +17,7 @@ import logging
 logger = logging.getLogger(__name__)
 
 
-class LocalBlock(Node):
+class LocalBlock():
     """Monitor the block changes and write to leveldb.
 
     This class monitor the change for block through changefeed
@@ -33,14 +33,12 @@ class LocalBlock(Node):
 
     def __init__(self,current_block_num=None,conn_block=None,conn_block_header=None,conn_block_records=None):
         """Initialize the LocalBlockPipeline creator."""
-
         self.conn_block = conn_block or ldb.LocalBlock().conn['block']
         self.conn_block_header = conn_block_header or ldb.LocalBlock().conn['block_header']
         self.conn_block_records = conn_block_records or ldb.LocalBlock().conn['block_records']
         self.current_block_num = current_block_num or int(ldb.get_withdefault(self.conn_block_header, 'current_block_num','0'))
         self.node_block_count = 0 # after process start ,the node has write block to local
         self.node_start_time = datetime.datetime.today()
-
 
     def write_local_block(self,block):
         """Write the block dict to leveldb.
@@ -59,7 +57,7 @@ class LocalBlock(Node):
         # if exists
         exist_block = ldb.get(self.conn_block, block_id) is not None
         if exist_block:
-            logger.warning("\nThe block[id={}] is already exist.\n".format(block_id))
+            # logger.warning("\nThe block[id={}] is already exist.\n".format(block_id))
             return None
 
         current_block_timestamp = block['block']['timestamp']
@@ -70,6 +68,10 @@ class LocalBlock(Node):
 
         ldb.insert(self.conn_block, block_id, block_json_str, sync=False)
 
+        # write the block_records [block_num=block_id] for restore pos
+        # before the block_header write, can ensure the data precise
+        ldb.insert(self.conn_block_records, self.current_block_num, block_id)
+
         block_header_data_dict = dict()
         block_header_data_dict['current_block_id'] = block_id
         block_header_data_dict['current_block_timestamp'] = current_block_timestamp
@@ -77,20 +79,17 @@ class LocalBlock(Node):
         ldb.batch_insertOrUpdate(self.conn_block_header,block_header_data_dict,transaction=True)
         del block_header_data_dict
 
-        # write the block_records [block_num=block_id] for restore pos
-        ldb.insert(self.conn_block_records, self.current_block_num, block_id)
-
         self.node_block_count += 1
-        logger.warning('The count of this node(since start[{}]) has write to local block is: {}, current_block_num is: {}'
-                       .format(self.node_start_time,self.node_block_count,self.current_block_num))
+        # logger.warning('The count of this node(since start[{}]) has write to local block is: {}, current_block_num is: {}'
+        #                .format(self.node_start_time,self.node_block_count,self.current_block_num))
 
-        info = "Current block(has write into localdb) info \n[id={},current_block_num={},block_size={}]\n".format(block_id, self.current_block_num, block_size)
+        info = "Current block(has write into localdb) info \n[id={},current_block_num={}," \
+               "block_size={}]\n".format(block_id, self.current_block_num, block_size)
         logger.info(info)
 
         # self.get_localblock_info()
 
         return None
-
 
     def get_localblock_info(self):
         """Only show the pre op result!"""
@@ -130,10 +129,13 @@ def init_localdb(current_block_num,conn_block,conn_block_header,conn_block_recor
 
     # insert or update this node info and close the conn after write
     conn_node_info = ldb.LocalBlock().conn['node_info']
+    node_restart_times = int(ldb.get_withdefault(conn_node_info, 'restart_times', '0'))
+    node_restart_times += 1
     node_info_data_dict = dict()
     node_info_data_dict['host'] = node_host
     node_info_data_dict['public_key'] = node_pubkey
     node_info_data_dict['private_key'] = node_prikey
+    node_info_data_dict['restart_times'] = node_restart_times
     ldb.batch_insertOrUpdate(conn_node_info, node_info_data_dict, transaction=True)
     ldb.close(conn_node_info)
     del node_info_data_dict

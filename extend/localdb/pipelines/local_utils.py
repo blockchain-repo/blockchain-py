@@ -82,7 +82,6 @@ class ChangeFeed(Node):
                 # self.outqueue.put(change['new_val'])
                 pass
 
-
     def round_write_localdb(self,change_data):
         """send the change data to localdb pipelines
 
@@ -118,31 +117,32 @@ class ChangeFeed(Node):
                              index=self.secondary_index)
                     .order_by(index=r.asc(self.secondary_index)).limit(self.round_recover_limit))
 
-        logger.warning(
-            "\nThis round the data to be put into {} [pipeline outqueue], interval number(fuzzy)={}, at most, {} records will be dealed in this round.\n".format(
-                self.table_class, missing_data_count, self.round_recover_limit))
+        # logger.warning(
+        #     "\nThis round the data to be put into {} [pipeline outqueue], interval number(fuzzy)={}, at most,
+        #  {} records will be dealed in this round.\n".format(
+        #         self.table_class, missing_data_count, self.round_recover_limit))
 
         for data in round_recover_data:
             self.round_recover_count = self.round_recover_count + 1
             self.outqueue.put(data)
-            logger.warning(
-                "\nASync recover data for {} has been put[pipeline outqueue], sequence number(fuzzy)={}, timestamp={}\n".format(
-                    self.table_class, self.round_recover_count, data[self.table_class]['timestamp']))
+            # logger.warning(
+            #     "\nASync recover data for {} has been put[pipeline outqueue], sequence number(fuzzy)={},
+            # timestamp={}\n".format(self.table_class, self.round_recover_count, data[self.table_class]['timestamp']))
 
         # round init_timestamp must be set to the last missing_data timestamp for this round
         if data:
             self.init_timestamp = data[self.table_class]['timestamp']
-            print("Interval`s last data for {}, next round`s init_timestamp is {}\n".format(self.table_class,
-                                                                                            self.init_timestamp))
+            # print("Interval`s last data for {}, next round`s init_timestamp is {}\n".format(self.table_class,
+            #                                                                                 self.init_timestamp))
 
         else:
             self.init_timestamp = self.current_timestamp
-            print("Interval has no data for {}, next round`s init_timestamp is {}\n".format(self.table_class,
-                                                                                            self.init_timestamp))
+            # print("Interval has no data for {}, next round`s init_timestamp is {}\n".format(self.table_class,
+            #                                                                                 self.init_timestamp))
 
         self.diff_time = time.time() - self.diff_time
-        logger.info("This round for {}[cost={}s,round_recover_count={},last_round_recovr_count={}]\n".format(
-            self.table_class, self.diff_time, self.round_recover_count, self.last_round_recovr_count))
+        # logger.info("This round for {}[cost={}s,round_recover_count={},last_round_recovr_count={}]\n".format(
+        #     self.table_class, self.diff_time, self.round_recover_count, self.last_round_recovr_count))
 
         # TODO: can be better
         # [closed,closed] 1+1=2 >=3
@@ -171,8 +171,10 @@ class ChangeFeed(Node):
         if self.round_recover_limit >= self.round_recover_limit_max:
             self.round_recover_limit = self.round_recover_limit_max
 
-        logger.warning(
-            "\nThis round the data have been put into {} [pipeline outqueue], interval number(fuzzy)={},  at most, {} records will be dealed in the next round.\n".format(
-                self.table_class, missing_data_count, self.round_recover_limit))
+        # logger.warning(
+        #     "\nThis round the data have been put into {} [pipeline outqueue], interval number(fuzzy)={},
+        # at most, {} records will be dealed in the next round.\n".format(
+        #         self.table_class, missing_data_count, self.round_recover_limit))
+
         # record the round recover count
         self.last_round_recovr_count = self.round_recover_count

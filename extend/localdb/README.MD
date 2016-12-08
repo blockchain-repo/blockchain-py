@@ -7,6 +7,7 @@
 host=node_ip
 public_key=node`s public key
 private_key=node`s private key
+restart_times=0
 ```
 ---
 ### block

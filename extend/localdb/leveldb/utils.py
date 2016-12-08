@@ -2,6 +2,7 @@
 # bytes can only contain ASCII literal characters.
 
 import plyvel as l
+import os
 from extend.localdb import config
 
 import logging
@@ -26,27 +27,33 @@ class LocalBlock(object):
 
     def __new__(cls):
         if not hasattr(cls, 'instance'):
-            logger.info('init block, block_header, block_records dirs start')
+            logger.info('init localdb dirs [block, block_header, block_records] start')
             cls.instance = super(LocalBlock, cls).__new__(cls)
             database = config['database']
             parent_dir = database['path']
+            if not os.path.exists(parent_dir):
+                logging.error("localdb dirs is not exist!")
+                raise IOError("localdb dirs is not exist, you should create dirs {} for "
+                              "localdb grant acess for current user!".format(parent_dir))
             block_size = database['block_size']
             write_buffer_size = database['write_buffer_size']
             max_open_files = database['max_open_files']
             lru_cache_size = database['lru_cache_size']
-            logger.info('leveldb config {}'.format(database.items()))
             cls.instance.conn = dict()
-            logger.info('conn info: ' + str(cls.instance.conn.items()))
-            cls.instance.conn['node_info'] = l.DB(parent_dir + 'node_info/', create_if_missing=True, write_buffer_size=write_buffer_size,
-                                              block_size=block_size, max_open_files=max_open_files,lru_cache_size=lru_cache_size)
-            cls.instance.conn['block'] = l.DB(parent_dir + 'block/', create_if_missing=True, write_buffer_size=write_buffer_size,
-                                                 block_size=block_size, max_open_files=max_open_files, lru_cache_size=lru_cache_size)
-            cls.instance.conn['block_header'] = l.DB(parent_dir + 'block_header/', create_if_missing=True, write_buffer_size=write_buffer_size,
-                                               block_size=block_size, max_open_files=max_open_files, lru_cache_size=lru_cache_size)
-            cls.instance.conn['block_records'] = l.DB(parent_dir + 'block_records/', create_if_missing=True, write_buffer_size=write_buffer_size,
+            try:
+                cls.instance.conn['node_info'] = l.DB(parent_dir + 'node_info/', create_if_missing=True, write_buffer_size=write_buffer_size,
+                                                  block_size=block_size, max_open_files=max_open_files,lru_cache_size=lru_cache_size)
+                cls.instance.conn['block'] = l.DB(parent_dir + 'block/', create_if_missing=True, write_buffer_size=write_buffer_size,
                                                      block_size=block_size, max_open_files=max_open_files, lru_cache_size=lru_cache_size)
-            logger.info('LocalBlock conn {}'.format(cls.instance.conn.items()))
-            logger.info('init block, block_header, block_records dirs end')
+                cls.instance.conn['block_header'] = l.DB(parent_dir + 'block_header/', create_if_missing=True, write_buffer_size=write_buffer_size,
+                                                   block_size=block_size, max_open_files=max_open_files, lru_cache_size=lru_cache_size)
+                cls.instance.conn['block_records'] = l.DB(parent_dir + 'block_records/', create_if_missing=True, write_buffer_size=write_buffer_size,
+                                                     block_size=block_size, max_open_files=max_open_files, lru_cache_size=lru_cache_size)
+            except IOError as msg:
+                logger.error("You can`t acess the local data {}".format(parent_dir))
+                exit(-1)
+
+            logger.info('init localdb dirs [block, block_header, block_records] end')
 
         return cls.instance
 
@@ -67,23 +74,28 @@ class LocalVote(object):
 
     def __new__(cls):
         if not hasattr(cls, 'instance'):
-            logger.info('init vote, vote_header dirs start')
+            logger.info('init localdb dirs [vote, vote_header] start')
             cls.instance = super(LocalVote, cls).__new__(cls)
             database = config['database']
             parent_dir = database['path']
+            if not os.path.exists(parent_dir):
+                logging.error("localdb dirs is not exist!")
+                raise IOError("localdb dirs is not exist, you should create dirs {} for "
+                              "localdb grant acess for current user!".format(parent_dir))
             block_size = database['block_size']
             write_buffer_size = database['write_buffer_size']
             max_open_files = database['max_open_files']
             lru_cache_size = database['lru_cache_size']
-            print('leveldb config {}'.format(database.items()))
             cls.instance.conn = dict()
-            logger.info('conn info: ' + str(cls.instance.conn.items()))
-            cls.instance.conn['vote'] = l.DB(parent_dir + 'vote/', create_if_missing=True,write_buffer_size=write_buffer_size,
-                                              block_size=block_size,max_open_files=max_open_files,lru_cache_size=lru_cache_size)
-            cls.instance.conn['vote_header'] = l.DB(parent_dir + 'vote_header/', create_if_missing=True,write_buffer_size=write_buffer_size,
-                                                     block_size=block_size, max_open_files=max_open_files,lru_cache_size=lru_cache_size)
-            logger.info('LocalVote conn {}'.format(cls.instance.conn.items()))
-            logger.info('init vote, vote_header dirs end')
+            try:
+                cls.instance.conn['vote'] = l.DB(parent_dir + 'vote/', create_if_missing=True,write_buffer_size=write_buffer_size,
+                                                  block_size=block_size,max_open_files=max_open_files,lru_cache_size=lru_cache_size)
+                cls.instance.conn['vote_header'] = l.DB(parent_dir + 'vote_header/', create_if_missing=True,write_buffer_size=write_buffer_size,
+                                                         block_size=block_size, max_open_files=max_open_files,lru_cache_size=lru_cache_size)
+            except IOError as msg:
+                logger.error("You can`t acess the local data {}".format(parent_dir))
+                exit(-1)
+            logger.info('init localdb dirs [vote, vote_header] end')
 
         return cls.instance
 
