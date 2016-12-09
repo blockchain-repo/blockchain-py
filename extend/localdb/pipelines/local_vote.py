@@ -5,7 +5,9 @@ This module  takes care of all the changes for bigchain and votes.
 from multipipes import Pipeline, Node
 from extend.localdb.pipelines.local_utils import ChangeFeed
 
+from bigchaindb.db.utils import get_conn
 from extend.localdb.leveldb import utils as ldb
+import rethinkdb as r
 import rapidjson
 import datetime
 
@@ -35,6 +37,7 @@ class LocalVote():
         self.current_vote_num = current_vote_num or int(ldb.get_withdefault(self.conn_vote_header, 'current_vote_num', '0'))
         self.node_vote_count = 0 # after process start ,the node has write vote to local
         self.node_start_time = datetime.datetime.today()
+        self.round_recover_limit = 200
 
     def write_local_vote(self,vote):
         """Write the vote dict to leveldb.
@@ -75,9 +78,8 @@ class LocalVote():
         # logger.warning('The count of this node(since start[{}]) has write to local vote is: {}, current_vote_num is: {}'
         #     .format(self.node_start_time,self.node_vote_count, self.current_vote_num))
 
-        info = "Current vote(has write into localdb) info \n[id={},current_vote_num={}," \
-               "vote_key(previous_block-node_pubkey)={},voting_for_block={}]\n"\
-            .format(vote_id,self.current_vote_num,vote_key, vote['vote']['voting_for_block'])
+        info = "Vote[num={},voting_for_block={},id={}]"\
+            .format(self.current_vote_num, vote['vote']['voting_for_block'], vote_id)
         logger.info(info)
 
         # self.get_local_votes_for_block(previous_block)
@@ -100,15 +102,21 @@ class LocalVote():
 
 
 def initial():
+    records_count = r.db('bigchain').table('votes').count().run(get_conn())
+    if records_count >= 1:
+        # here max is no effect!
+        # return r.db('bigchain').table('votes').max(index='vote_timestamp').default(None).run(get_conn())
+        return records_count,r.db('bigchain').table('votes').max(index='vote_timestamp').run(get_conn())
+    else:
+        return None
 
-    return None
 
-
-def get_changefeed(current_vote_timestamp):
+def get_changefeed(current_vote_num,current_vote_timestamp):
     """Create and return the changefeed for the votes."""
 
-    return ChangeFeed('votes','vote',ChangeFeed.INSERT | ChangeFeed.UPDATE,current_vote_timestamp,
-                      round_recover_limit=1000,round_recover_limit_max=2000,secondary_index='vote_timestamp',prefeed=initial())
+    return ChangeFeed('votes','vote',ChangeFeed.INSERT | ChangeFeed.UPDATE,current_vote_num,current_vote_timestamp,
+                      round_recover_limit=200,round_recover_limit_max=2000,secondary_index='vote_timestamp',
+                      prefeed=initial())
 
 
 def create_pipeline():
@@ -129,13 +137,13 @@ def create_pipeline():
         # Node(localvote_pipeline.write_vote,number_of_processes=1)
     ])
 
-    return pipeline,current_vote_timestamp
+    return pipeline,current_vote_num,current_vote_timestamp
 
 
 def start():
     """Create, start, and return the localvote pipeline."""
 
-    pipeline,current_vote_timestamp = create_pipeline()
-    pipeline.setup(indata=get_changefeed(current_vote_timestamp))
+    pipeline,current_vote_num,current_vote_timestamp = create_pipeline()
+    pipeline.setup(indata=get_changefeed(current_vote_num,current_vote_timestamp))
     pipeline.start()
     return pipeline

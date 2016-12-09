@@ -1,5 +1,7 @@
 # unichain dir structure
 
+# 如果block 丢失数量较大, 不能保证及时恢复完整, 需要进行首轮恢复处理!
+
 ## localdb dirs
 ---
 ### node_info
