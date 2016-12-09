@@ -26,7 +26,6 @@ class RethinkdbUtils():
         return self.bigchain.connection.run(
             r.table(table).count())
 
-
     def get_counts_between(self,table,index,start=None,end=None,left_bound=None,right_bound=None,
                            prefix_index=None,order_by=False):
 
@@ -133,7 +132,6 @@ class RethinkdbUtils():
                 output.append(item)
         return output
 
-
     def get(self,table,key):
         """get the records with default key in table
 
@@ -151,7 +149,6 @@ class RethinkdbUtils():
             return None
 
         return self.bigchain.connection.run(r.table(table).get(key))
-
 
     def get_txs_count(self,id=None,order_by=False):
         """get all the transactions count in block
@@ -193,7 +190,6 @@ class RethinkdbUtils():
                 del block_txs_count_dict
         return block_count,txs_count,block_txs_count_list
 
-
     def get_votes_by_block_id(self, block_id):
         """Get all the votes casted for a specific block.
 
@@ -206,7 +202,6 @@ class RethinkdbUtils():
         return self.bigchain.connection.run(
             r.table('votes', read_mode=self.read_mode)
                 .between([block_id, r.minval], [block_id, r.maxval], index='block_and_voter'))
-
 
     def get_votes_by_block_id_and_voter(self, block_id, node_pubkey):
         """Get all the votes casted for a specific block by a specific voter.
@@ -221,7 +216,6 @@ class RethinkdbUtils():
         return self.bigchain.connection.run(
             r.table('votes', read_mode=self.read_mode)
                 .get_all([block_id, node_pubkey], index='block_and_voter'))
-
 
     def get_block_votes(self,id,order_by=False):
         """get all the votes for the special block or all blocks
@@ -238,7 +232,6 @@ class RethinkdbUtils():
         else:
             return self.bigchain.connection.run(r.table('votes',read_mode=self.read_mode).filter(
                 r.row['vote']['voting_for_block'] == id))
-
 
     def get_blocks_votes_count(self,id=None,order_by=False):
         """get all the votes for the special block or all blocks

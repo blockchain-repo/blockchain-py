@@ -15,8 +15,6 @@ class LocaldbUtils():
         self.root = config['database']['path']
         self.tables = config['database']['tables']
 
-
-
     def get_conn(self,conn_name):
         if conn_name in self.tables:
             try:
@@ -28,8 +26,21 @@ class LocaldbUtils():
                 print("LocalDBUtils.get_conn() exception {}".format(localdb_utils_ex))
                 return None
 
+    @staticmethod
+    def close(conn):
+        """Close the conn.
+        Args:
+            conn: the leveldb dir pointer.
 
-    def get_val(self,conn,key):
+        Returns:
+
+        """
+
+        if conn:
+            conn.close()
+
+    @staticmethod
+    def get_val(conn,key):
         """Get the value with the special key
 
         Args:
@@ -47,8 +58,8 @@ class LocaldbUtils():
             else:
                 return None
 
-
-    def get_val_prefix(self,conn,prefix=None):
+    @staticmethod
+    def get_val_prefix(conn,prefix=None):
         """Get the value with the special prefix
 
         Args:
@@ -68,8 +79,8 @@ class LocaldbUtils():
         else:
             return None
 
-
-    def __convert_to_obj(self,json_str_bytes):
+    @staticmethod
+    def __convert_to_obj(json_str_bytes):
         """Convert the input[must be (b`K,b`V) format]
 
         Args:
@@ -92,8 +103,8 @@ class LocaldbUtils():
                 is_obj = False
                 return key,bytes(val).decode('utf-8')
 
-
-    def get_records_count(self,conn):
+    @staticmethod
+    def get_records_count(conn):
         """Get the localdb records count
 
         Args:
@@ -121,7 +132,6 @@ class LocaldbUtils():
             raw_iterator.next()
 
         return count
-
 
     def get_all_records(self,conn,show_only=False,limit=None):
         if not conn:
@@ -188,7 +198,3 @@ class LocaldbUtils():
                     # Only move ,no returnVal
                     raw_iterator.next()
                 return result
-
-
-
-

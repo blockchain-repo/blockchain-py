@@ -15,6 +15,7 @@ class LocaldbValite():
         self.conn_vote = self.ldb.get_conn('vote')
         self.conn_vote_header = self.ldb.get_conn('vote_header')
         self.conn_block_records = self.ldb.get_conn('block_records')
+        self.conn_node_info = self.ldb.get_conn('node_info')
 
 
     def check_records(self,table,localdb_table_conn,localdb_header_conn,count_key):
@@ -36,6 +37,8 @@ class LocaldbValite():
 
         if header_count and header_count.strip() != '':
             header_count = int(header_count)
+        if header_count is None:
+            header_count = 0
 
         if table == 'bigchain':
             block_records_count = lv.ldb.get_records_count(lv.conn_block_records)
@@ -49,27 +52,38 @@ class LocaldbValite():
                 isOK = True
         else:
             result = "vote\t[rethinkdb={}, localdb={}, header={}]"\
-                .format(localdb_records_count, rethinkdb_records_count, header_count)
+                .format(rethinkdb_records_count, localdb_records_count, header_count)
             isOK = False
 
             if localdb_records_count == rethinkdb_records_count \
                     and rethinkdb_records_count == header_count:
                 isOK = True
+
         return isOK,result
 
+    def get_node_info(self):
+        node_host = self.ldb.get_val(self.conn_node_info,"host")
+        node_public_key = self.ldb.get_val(self.conn_node_info,"public_key")
+        node_restart_times = self.ldb.get_val(self.conn_node_info,"restart_times")
+        return node_host, node_public_key, node_restart_times
+
+    def close_conn(self,*args):
+        for arg in args:
+            self.ldb.close(arg)
 
 if __name__ == "__main__":
 
     parser = argparse.ArgumentParser(description="Validate localdb & format result output")
 
     parser.add_argument('-a', action="store_true",help='show the votes & txs detail info, if with -vt')
-    parser.add_argument('-r', action="store_true",help='output the localdb and rethinkdb check result')
-    parser.add_argument('-o', action="store_true",help='output the votes & transactions info from rethinkdb by order asc')
-    parser.add_argument('-v', action="store_true",help='output the block_votes info from rethinkdb')
-    parser.add_argument('-t', action="store_true",help='output the block_transactions info from rethinkdb')
-    parser.add_argument('-i', action="store_true",help='ignore the partial info, if have the parameter')
     parser.add_argument('-b', action="store_true",help='show the statics info above in the file tail')
+    parser.add_argument('-i', action="store_true",help='ignore the partial info[node_info and so on], if have the parameter')
+    parser.add_argument('-n', action="store_true",help='show the node info')
+    parser.add_argument('-o', action="store_true",help='output the votes & transactions info from rethinkdb by order asc')
     parser.add_argument('-q', action="store_true",help='hide the help info')
+    parser.add_argument('-r', action="store_true",help='output the localdb and rethinkdb check result')
+    parser.add_argument('-t', action="store_true",help='output the block_transactions info from rethinkdb')
+    parser.add_argument('-v', action="store_true",help='output the block_votes info from rethinkdb')
 
     args = parser.parse_args()
 
@@ -80,6 +94,7 @@ if __name__ == "__main__":
     order_block_votes = args.o
     ignore_diff_infos = args.i
     tail_infos = args.b
+    node_info = args.n
     hide_format_help = args.q
 
     if not (result_only or block_votes or block_txs):
@@ -144,6 +159,7 @@ if __name__ == "__main__":
                 for block_id, txs_count in block_txs_count.items():
                     print("block_number={}\tblock_id={}\tblock_txs_count={}".format(block_txs_count_number, block_id,
                                                                                 txs_count))
+
     cost_time = time.time() - cost_time
     if ignore_diff_infos:
         if hide_format_help:
@@ -154,6 +170,14 @@ if __name__ == "__main__":
         print(parameters_info)
         statics_info += "\nThe op with parameters[{}]\n".format(args)
     else:
+        ############################################### get node info ####################################################
+        if node_info:
+            node_host, node_public_key, node_restart_times = lv.get_node_info()
+            get_node_info = "\nThe node info is: [host={}, public_key={}, restart_times={}]\n" \
+                .format(node_host, node_public_key, node_restart_times)
+            print(get_node_info)
+            statics_info += get_node_info
+
         if hide_format_help:
             parameters_info = "\nThe op cost time {}s, with parameters[{}]\n".format(cost_time, args)
         else:
@@ -164,3 +188,4 @@ if __name__ == "__main__":
 
     if tail_infos:
        print("The statics info detail as follows:\n{}".format(statics_info))
+    lv.close_conn(lv.conn_block,lv.conn_block_header,lv.conn_block_records,lv.conn_vote,lv.conn_vote_header,lv.conn_node_info)
