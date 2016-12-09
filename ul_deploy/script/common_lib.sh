@@ -21,7 +21,7 @@ function gen_replicas_num()
 }
 
 
-BAK_BASE_PATH=~/unichain_BAKUP
+BAK_BASE_PATH=~/`pwd|awk -F"/" '{print $4}'`"_BAKUP"
 #bak deployed conf
 #Args: $1 => date_str
 function init_bak_old_dir()
