@@ -83,8 +83,7 @@ class LocalBlock():
         # logger.warning('The count of this node(since start[{}]) has write to local block is: {}, current_block_num is: {}'
         #                .format(self.node_start_time,self.node_block_count,self.current_block_num))
 
-        info = "Current block(has write into localdb) info \n[id={},current_block_num={}," \
-               "block_size={}]\n".format(block_id, self.current_block_num, block_size)
+        info = "Block[num={},size={},id={}]".format(self.current_block_num, block_size, block_id)
         logger.info(info)
 
         # self.get_localblock_info()
@@ -170,15 +169,16 @@ def init_localdb(current_block_num,conn_block,conn_block_header,conn_block_recor
 
 
 def initial():
-
-    return None
+    records_count = r.db('bigchain').table('bigchain').count().run(get_conn())
+    return records_count,r.db('bigchain').table('bigchain').max(index='block_timestamp').default(None).run(get_conn())
 
 
 def get_changefeed(current_block_timestamp):
     """Create and return the changefeed for the table bigchain."""
 
     return ChangeFeed('bigchain','block',ChangeFeed.INSERT | ChangeFeed.UPDATE,current_block_timestamp,
-                      round_recover_limit=100,round_recover_limit_max=200,secondary_index='block_timestamp',prefeed=initial())
+                      round_recover_limit=200,round_recover_limit_max=2000,secondary_index='block_timestamp',
+                      prefeed=initial())
 
 
 def create_pipeline():
