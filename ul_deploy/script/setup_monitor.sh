@@ -5,5 +5,5 @@ apt-get update
 apt-get -y --force-yes install docker-engine
 wget -O /usr/local/bin/docker-compose https://github.com/docker/compose/releases/download/1.8.0/docker-compose-`uname -s`-`uname -m`
 chmod +x /usr/local/bin/docker-compose
-#wget -q https://raw.githubusercontent.com/BUAANLSDE/Simplechaindb/master/docker-compose-monitor.yml
-INFLUXDB_DATA=/monitor/data docker-compose -f ../docker-compose-monitor.yml up
+
+INFLUXDB_DATA=/monitor/data INIT_SCRIPT=$PWD/init_script.influxql docker-compose -f ../../docker-compose-monitor.yml up
