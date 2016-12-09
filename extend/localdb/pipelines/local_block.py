@@ -172,7 +172,6 @@ def initial():
     records_count = r.db('bigchain').table('bigchain').count().run(get_conn())
     return records_count,r.db('bigchain').table('bigchain').max(index='block_timestamp').default(None).run(get_conn())
 
-
 def get_changefeed(current_block_num,current_block_timestamp):
     """Create and return the changefeed for the table bigchain."""
 
