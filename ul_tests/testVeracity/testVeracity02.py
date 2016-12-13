@@ -4,14 +4,16 @@ import time
 import sys
 import multiprocessing as mp
 import os
-
+import uuid
+import json
 # post test
 
 
 processCount = sys.argv[1]
 
-url = 'http://36.110.115.195:38/testVeracity_api/v1/write_tx/'
+url = 'http://127.0.0.1:9984/testVeracity_api/v1/createtxBypayload/'
 headers = {'content-type': 'application/json'}
+
 
 def startRun():
     postpid = os.getpid()
@@ -22,10 +24,16 @@ def startRun():
         print('will create %d transactions and then sleep %ds' % (random_transactions, sleep_random))
         # starttimefor = datetime.datetime.now().microsecond
         for i in range(random_transactions):
-            # time.sleep(0.4)
+
             try:
+                # time.sleep(0.4)
+                data = {
+                    "uuid": str(uuid.uuid4())
+                }
+                payload = json.dumps(data)
+
                 postcount = postcount+1
-                res = requests.post(url, params={'postpid':postpid,'postcount':postcount}, headers=headers)
+                res = requests.post(url, data=payload, headers=headers)
                 print("code:%d .. %d has send %d posts" % (res.status_code,postpid,postcount))
             except Exception as e:
                 print(e)
