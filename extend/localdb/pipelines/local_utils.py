@@ -54,7 +54,7 @@ class ChangeFeed(Node):
         self.round_recover_limit = self.round_recover_limit_max if round_recover_limit \
             and round_recover_limit >= self.round_recover_limit_max else round_recover_limit
         self.diff_time = 0 # adjacent data change deal cost time
-        self.pre_round = 0 # prefeed deal round
+        self.pre_round = 1 # prefeed deal round
         if table_class == 'vote':
             self.round_recover_limit *= self.nodes_count
             self.round_recover_limit_max *= self.nodes_count
@@ -62,28 +62,28 @@ class ChangeFeed(Node):
     def run_forever(self):
         if self.prefeed:
             records_count,data = self.prefeed
-            records_count -= self.init_records_num
             if records_count >= 1000000:
-                self.pre_round = (records_count - 1) / 2000 + 1
                 self.round_recover_limit = 2000
+                self.pre_round = records_count / 2000
             elif records_count >= 100000:
-                self.pre_round = (records_count - 1) / 1500 + 1
-                self.round_recover_limit = 1000
+                self.pre_round = records_count / 2000
+                self.round_recover_limit = 2000
             elif records_count >= 10000:
-                self.pre_round = (records_count - 1) / 1000 + 1
+                self.pre_round = records_count / 1000
                 self.round_recover_limit = 1000
-            elif records_count > 0:
-                self.pre_round = 1
+            elif records_count >= 1000:
+                self.pre_round = records_count / 1000
+                self.round_recover_limit = 1000
+            else:
                 self.round_recover_limit = 1000
 
-            self.pre_round = int(self.pre_round)
             while True:
-                if self.pre_round <= 0:
-                    break
-                logger.info("{} has {} rounds to check and fix the missing localdb data[count={}]"
+                logger.info("{} has {} rounds to write the missing localdb data[count={}]"
                             .format(self.table_class, self.pre_round, records_count))
                 self.round_write_localdb(data)
                 self.pre_round -= 1
+                if self.pre_round <= 0:
+                    break
 
         while True:
             try:

@@ -175,7 +175,7 @@ def initial():
 def get_changefeed(current_block_num,current_block_timestamp):
     """Create and return the changefeed for the table bigchain."""
 
-    return ChangeFeed('bigchain','block',ChangeFeed.INSERT | ChangeFeed.UPDATE,current_block_num,current_block_timestamp,
+    return ChangeFeed('bigchain','block',ChangeFeed.INSERT | ChangeFeed.UPDATE,current_block_timestamp,
                       round_recover_limit=200,round_recover_limit_max=2000,secondary_index='block_timestamp',
                       prefeed=initial())
 

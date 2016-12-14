@@ -101,6 +101,7 @@ setup(
         'console_scripts': [
             'unichain=bigchaindb.commands.bigchain:main',
             'unichain_api=bigchaindb.commands.bigchain_api:main',
+            'unichain_restore=extend.localdb.restore.api.restore_api:main'
         ],
     },
     install_requires=install_requires,

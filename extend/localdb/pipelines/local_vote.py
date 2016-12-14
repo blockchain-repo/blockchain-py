@@ -51,9 +51,10 @@ class LocalVote():
 
         vote_id = vote['id']
         current_vote_timestamp = vote['vote']['timestamp']
-        previous_block = vote['vote']['previous_block']
+        # previous_block = vote['vote']['previous_block']
+        voting_for_block = vote['vote']['voting_for_block']
         node_pubkey = vote['node_pubkey']
-        vote_key = previous_block + '-' + node_pubkey
+        vote_key = voting_for_block + '-' + node_pubkey
 
         # if exists
         exist_vote = ldb.get(self.conn_vote,vote_key) is not None
@@ -114,7 +115,7 @@ def initial():
 def get_changefeed(current_vote_num,current_vote_timestamp):
     """Create and return the changefeed for the votes."""
 
-    return ChangeFeed('votes','vote',ChangeFeed.INSERT | ChangeFeed.UPDATE,current_vote_num,current_vote_timestamp,
+    return ChangeFeed('votes','vote',ChangeFeed.INSERT | ChangeFeed.UPDATE,current_vote_timestamp,
                       round_recover_limit=200,round_recover_limit_max=2000,secondary_index='vote_timestamp',
                       prefeed=initial())
 

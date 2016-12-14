@@ -100,6 +100,21 @@ class LocalVote(object):
         return cls.instance
 
 
+def check_conn_free(*args):
+    root_path = config['database']['path']
+    conn_names = config['database']['tables']
+    include = len(set(args).difference(conn_names)) == 0
+    if args and include:
+        conn_names = args
+    try:
+        for conn_name in conn_names:
+            conn = l.DB(root_path + conn_name + "/")
+    except IOError:
+        logger.warning("Conn is busy or can`t access, you must close it and again can use!")
+        return False
+    return True
+
+
 def close(conn):
     """Close the conn.
     Args:
@@ -133,7 +148,7 @@ def close_all():
 
 
 def get_conn(name,prefix_db=None):
-    """Insert the value with the special key.
+    """Get the conn with the special key.
 
     Args:
         name: the leveldb dir name.
