@@ -796,4 +796,3 @@ def bak_collected_conf(base):
 def bak_unichain_conf(base):
     with settings(warn_only=True):
         get('~/.unichain', '%s/unichain/unichain_%s_%s' % (base, env.user, env.host), use_sudo=True)
-

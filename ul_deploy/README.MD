@@ -58,3 +58,9 @@ startnode.sh & stopnode.sh                      单节点控制
 
 ./startnode.sh -h user@host -p password   [ -r ]  [ -u ]   启动指定的节点。 -r 启动 该节点上的rethinkdb ，-u 启动该节点上的unichain
 ./stopnode.sh  -h user@host -p password   [ -r ]  [ -u ]   关闭指定的节点。 -r 关闭 该节点上的rethinkdb ，-u 关闭该节点上的unichain
+
+###修改配置文件
+修改bigchain的config,增加key之类,若出现 keyerror
+解决方案:
+    1.则需要部署机器安装并运行unichian configure,之后在运行脚本
+    2.copy任意节点的,最新代码生成的 .unichain 文件到部署机器,同目录下,再运行脚本
