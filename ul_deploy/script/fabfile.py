@@ -335,6 +335,18 @@ def set_shards(num_shards=len(public_dns_names)):
 def set_replicas(num_replicas):
     run('unichain set-replicas {}'.format(num_replicas))
 
+# unichain_restore_app
+@task
+@parallel
+def start_unichain_restore():
+    with settings(warn_only=True):
+        sudo('screen -d -m unichain_restore -y start &', pty=False, user=env.user)
+
+@task
+@parallel
+def stop_unichain_restore():
+    with settings(warn_only=True):
+        sudo("killall -9 unichain_restore 2>/dev/null")
 
 # unichain
 @task

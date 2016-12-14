@@ -35,7 +35,7 @@ config = {
         'workers': None,  # if none, the value will be cpu_count
         'threads': None,  # if none, the value will be cpu_count
     },
-    'restore_endpoint': os.environ.get('BIGCHAINDB_RESTORE_ENDPOINT') or 'http://localhost:9986/api/v1',
+    'restore_endpoint': os.environ.get('BIGCHAINDB_RESTORE_ENDPOINT') or 'http://localhost:9986/api/v1/collect',
 }
 
 

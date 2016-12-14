@@ -52,7 +52,6 @@ def test_post(url, data):
             print(response.headers)
             compress = config['restore_server']['compress']
             result = decode_data(result,compress)
-            print(result)
     else:
         print("timeout or error!")
     return result
@@ -69,6 +68,8 @@ if __name__ == "__main__":
     except (BaseException,ConnectionRefusedError,ConnectionError) as msg:
         exit(msg)
 
+    if not node_info:
+        exit("not exist data!")
     block_num = node_info['block_num']
     type = 'block'
     data = None
