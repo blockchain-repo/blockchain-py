@@ -109,6 +109,7 @@ def check_conn_free(*args):
     try:
         for conn_name in conn_names:
             conn = l.DB(root_path + conn_name + "/")
+            close(conn)
     except IOError:
         logger.warning("Conn is busy or can`t access, you must close it and again can use!")
         return False

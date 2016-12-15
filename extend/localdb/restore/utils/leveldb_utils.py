@@ -22,6 +22,7 @@ class LocaldbUtils():
         try:
             for conn_name in conn_names:
                  conn = l.DB(self.root + conn_name + "/")
+                 self.close(conn)
         except IOError as msg:
             print("Conn is busy or can`t access, you must close it and again can use!")
             return False

@@ -15,8 +15,8 @@ url_dict = dict()
 
 
 restore_endpoint = config['restore_endpoint']
-url_dict['node'] = '{}/collect/node/'.format(restore_endpoint)
-url_dict['block'] = '{}/collect/block/'.format(restore_endpoint)
+url_dict['node'] = '{}/node/'.format(restore_endpoint)
+url_dict['block'] = '{}/block/'.format(restore_endpoint)
 request_data = dict()
 
 request_data['node'] = \
@@ -74,17 +74,21 @@ if __name__ == "__main__":
     type = 'block'
     data = None
     url = None
-    if type == 'node':
-        url = url_dict[type]
-        data = request_data[type]
-    elif type == 'block':
-        url = url_dict[type]
-        data = request_data[type]
-        for i in range(1,block_num+1):
-            data['current_block_num'] = i
-            test_post(url,data=data)
-    else:
-        exit(0,'error request')
+    try:
+        if type == 'node':
+            url = url_dict[type]
+            data = request_data[type]
+        elif type == 'block':
+            url = url_dict[type]
+            data = request_data[type]
+            for i in range(1,block_num+1):
+                data['current_block_num'] = i
+                test_post(url,data=data)
+        else:
+            exit(0,'error request')
+    except (BaseException, ConnectionRefusedError, ConnectionError) as msg:
+        exit(msg)
+
     cost = time.time() - start
     print("cost time {}s".format(cost))
 

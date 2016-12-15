@@ -138,7 +138,7 @@ if __name__ == "__main__":
             block_votes_count_number += 1
             if show_votes_txs_detail:
                 for block_id,votes_count in block_votes_count.items():
-                    print("block_number={}\tblock_id={}\tblock_votes_count={}".format(block_votes_count_number,block_id,votes_count))
+                    print("block_number={:<7}\tblock_id={}\tblock_votes_count={}".format(block_votes_count_number,block_id,votes_count))
 
 
     ############################################### get_txs_count ####################################################
@@ -157,7 +157,7 @@ if __name__ == "__main__":
             block_txs_count_number += 1
             if show_votes_txs_detail:
                 for block_id, txs_count in block_txs_count.items():
-                    print("block_number={}\tblock_id={}\tblock_txs_count={}".format(block_txs_count_number, block_id,
+                    print("block_number={:<7}\tblock_id={}\tblock_txs_count={}".format(block_txs_count_number, block_id,
                                                                                 txs_count))
 
     cost_time = time.time() - cost_time
