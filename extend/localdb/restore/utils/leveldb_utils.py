@@ -13,6 +13,7 @@ class LocaldbUtils():
     def __init__(self):
         self.root = config['database']['path']
         self.tables = config['database']['tables']
+        self.node_host = None
 
     def check_conn_free(self,*args):
         conn_names = self.tables
@@ -23,10 +24,10 @@ class LocaldbUtils():
         try:
             for conn_name in conn_names:
                 conn = l.DB(self.root + conn_name + "/")
-                self.close(conn)
-        except IOError as msg:
+                conn.close()
+        except (Exception,IOError) as msg:
             print("Conn is busy or can`t access, you must close it and again can use!")
-            self.close(conn)
+            conn.close()
             return False
         return True
 
@@ -45,6 +46,10 @@ class LocaldbUtils():
         if conn:
             conn.close()
 
+    def close_conn(self,*args):
+        for arg in args:
+            self.close(arg)
+
     def get_restore_node_info(self):
         conn_node_info = self.get_conn('node_info')
         conn_block_header = self.get_conn('block_header')
@@ -55,10 +60,9 @@ class LocaldbUtils():
         restart_times = int(self.get_val(conn_node_info,'restart_times'))
         block_num = int(self.get_val(conn_block_header,'current_block_num'))
         vote_num = int(self.get_val(conn_vote_header,'current_vote_num'))
-        self.close(conn_node_info)
-        self.close(conn_block_header)
-        self.close(conn_vote_header)
 
+        self.close_conn(conn_node_info, conn_block_header, conn_vote_header)
+        self.node_host = host
         response = {
             "host": host,
             "pubkey": public_key,
@@ -79,6 +83,8 @@ class LocaldbUtils():
         block = self.get_obj(conn_block, block_id)
         block_votes = self.get_obj_prefix(conn_vote, prefix=block_id)
         total_block_num = int(self.get_val(conn_block_header, 'current_block_num'))
+
+        self.close_conn(conn_block_records, conn_block, conn_vote, conn_block_header)
         response = {
             "block_num": block_num,
             "total_block_num": total_block_num,
