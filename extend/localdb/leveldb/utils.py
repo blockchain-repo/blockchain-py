@@ -106,12 +106,14 @@ def check_conn_free(*args):
     include = len(set(args).difference(conn_names)) == 0
     if args and include:
         conn_names = args
+    conn = None
     try:
         for conn_name in conn_names:
             conn = l.DB(root_path + conn_name + "/")
             close(conn)
     except IOError:
         logger.warning("Conn is busy or can`t access, you must close it and again can use!")
+        close(conn)
         return False
     return True
 

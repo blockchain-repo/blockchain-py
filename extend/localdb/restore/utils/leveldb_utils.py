@@ -19,12 +19,14 @@ class LocaldbUtils():
         include = len(set(args).difference(conn_names)) == 0
         if args and include:
             conn_names = args
+        conn = None
         try:
             for conn_name in conn_names:
-                 conn = l.DB(self.root + conn_name + "/")
-                 self.close(conn)
+                conn = l.DB(self.root + conn_name + "/")
+                self.close(conn)
         except IOError as msg:
             print("Conn is busy or can`t access, you must close it and again can use!")
+            self.close(conn)
             return False
         return True
 
