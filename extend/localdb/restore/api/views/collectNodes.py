@@ -19,6 +19,40 @@ ldb = leveldb_utils.LocaldbUtils()
 # - http://stackoverflow.com/a/13432373/597097
 
 
+class NodeLocaldbCheck(Resource):
+
+    def post(self):
+        """API endpoint to push transactions to the Federation.
+
+                Return:
+                    A ``dict`` containing the data about the transaction.
+                """
+        # `force` will try to format the body of the POST request even if the `content-type` header is not
+        # set to `application/json`
+
+        req = request.get_json(force=True)
+        if not req:
+            return make_error(400, 'Invalid parameters')
+        target = req['target']
+
+        if target and target == 'check':
+            can_access = ldb.check_conn_free()
+            response = {
+                "free": True,
+                "desc": 'can access the node localdb data.'
+            }
+            if not can_access:
+                response['free'] = False
+                response['desc'] = 'node localdb dirs is busy or not exist!'
+            compress = config['restore_server']['compress']
+            if compress:
+                print("node check response{}".format(response))
+            response = deal_response(response, make_response, compress=compress)
+            return response
+        else:
+            return make_error(400, 'Invalid parameters')
+
+
 class NodeBaseInfoApi(Resource):
     def post(self):
         """API endpoint to push transactions to the Federation.
@@ -26,8 +60,6 @@ class NodeBaseInfoApi(Resource):
         Return:
             A ``dict`` containing the data about the transaction.
         """
-        # pool = current_app.config['restore_pool']
-
         # `force` will try to format the body of the POST request even if the `content-type` header is not
         # set to `application/json`
 
@@ -74,6 +106,9 @@ class NodeBlockVotes(Resource):
             print("block num={:<5} {}".format(current_block_num,response))
         return response
 
+node_collect_api.add_resource(NodeLocaldbCheck,
+                             '/check',
+                             strict_slashes=False)
 node_collect_api.add_resource(NodeBaseInfoApi,
                              '/node',
                              strict_slashes=False)

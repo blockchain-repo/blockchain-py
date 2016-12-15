@@ -1,10 +1,22 @@
+## node localdb check
+### http://127.0.0.1:9986/api/v1/collect/check/ post
+request=
+{
+ 	"target":"check",
+	"desc":"check the node localdb dirs"
+}
+
+response = {
+    "free": True,
+    "desc": 'can access the node localdb data.'
+}
 
 ## node info
 ### http://127.0.0.1:9986/api/v1/collect/node/ post
 request=
 {
  	"status":"start",
- 	"target":"node"
+ 	"target":"node",
 	"desc":"collect node info"
 }
 

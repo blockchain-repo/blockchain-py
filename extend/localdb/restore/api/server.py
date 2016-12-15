@@ -49,7 +49,7 @@ def create_app(settings):
     """Return an instance of the Flask application.
 
     Args:
-        debug (bool): a flag to activate the debug mode for the app
+        settings debug (bool): a flag to activate the debug mode for the app
             (default: False).
     """
 
@@ -75,11 +75,12 @@ def create_server(settings):
 
     settings = copy.deepcopy(settings)
 
+    # use the localdb so, it must single process
     if not settings.get('workers'):
-        settings['workers'] = (multiprocessing.cpu_count())
+        settings['workers'] = 1
 
     if not settings.get('threads'):
-        settings['threads'] = (multiprocessing.cpu_count())
+        settings['threads'] = (int(multiprocessing.cpu_count()/8) + 4)
 
     app = create_app(settings)
     standalone = StandaloneApplication(app, settings)

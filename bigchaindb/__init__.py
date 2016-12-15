@@ -32,8 +32,7 @@ config = {
     'restore_server': {
         'bind': os.environ.get('BIGCHAINDB_RESTORE_SERVER_BIND') or 'localhost:9986',
         'compress': True, # if compress, compress the response data
-        'workers': None,  # if none, the value will be cpu_count
-        'threads': None,  # if none, the value will be cpu_count
+        'threads': None,  # if none, the value will be int(cpu_count/8) + 4
     },
     'restore_endpoint': os.environ.get('BIGCHAINDB_RESTORE_ENDPOINT') or 'http://localhost:9986/api/v1/collect',
 }
