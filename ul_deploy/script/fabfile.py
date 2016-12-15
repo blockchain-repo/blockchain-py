@@ -347,7 +347,10 @@ def start_unichain_restore():
 def stop_unichain_restore(port=9986):
     with settings(warn_only=True):
         sudo("killall -9 unichain_restore 2>/dev/null")
-        sudo("kill -9 `netstat -nlp | grep :{} | awk '{print $7}' | awk -F'/' '{ print $1 }'`".format(port))
+        try:
+            sudo("kill -9 `netstat -nlp | grep :{} | awk '{print $7}' | awk -F'/' '{ print $1 }'`".format(port))
+        except:
+            pass
         run("echo stop unichain_restore and kill the port {}".format(port))
 
 # unichain
@@ -355,6 +358,7 @@ def stop_unichain_restore(port=9986):
 @parallel
 def start_unichain():
     with settings(warn_only=True):
+        stop_unichain_restore()
         sudo('screen -d -m unichain -y start &', pty=False, user=env.user)
         sudo('screen -d -m unichain_api start &', pty=False, user=env.user)
 
@@ -372,6 +376,7 @@ def stop_unichain():
 @parallel
 def restart_unichain():
     with settings(warn_only=True):
+        stop_unichain_restore()
         sudo("killall -9 unichain 2>/dev/null")
         sudo("killall -9 unichain_api 2>/dev/null")
         sudo('screen -d -m unichain -y start &', pty=False, user=env.user)
@@ -533,7 +538,10 @@ def kill_process_with_name(name):
 def kill_process_with_port(port):
     with settings(warn_only=True):
         run("echo kill process use the port %s" %(port))
-        sudo("kill -9 `netstat -nlp | grep :{} | awk '{print $7}' | awk -F'/' '{ print $1 }'`".format(port))
+        try:
+            sudo("kill -9 `netstat -nlp | grep :{} | awk '{print $7}' | awk -F'/' '{ print $1 }'`".format(port))
+        except:
+            pass
 
 @task
 @parallel

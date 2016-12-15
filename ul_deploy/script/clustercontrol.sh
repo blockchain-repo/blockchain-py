@@ -6,6 +6,11 @@ then
    exit 1
 fi
 
+# no matter start or stop cluster, the unichain_restore api must be stop
+# the api share the localdb dirs and must be single process!
+echo -e "[INFO]=========stop cluster unichain_restore...=========="
+fab stop_unichain_restore
+
 # start or stop cluster
 if [ $1 == "start" ]
 then

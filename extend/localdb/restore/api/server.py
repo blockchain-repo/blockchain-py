@@ -77,10 +77,10 @@ def create_server(settings):
 
     # use the localdb so, it must single process
     if not settings.get('workers'):
-        settings['workers'] = 1
+        settings['workers'] = (int(multiprocessing.cpu_count()/2) + 2)
 
     if not settings.get('threads'):
-        settings['threads'] = (int(multiprocessing.cpu_count()/8) + 4)
+        settings['threads'] = (int(multiprocessing.cpu_count()/2) + 2)
 
     app = create_app(settings)
     standalone = StandaloneApplication(app, settings)
