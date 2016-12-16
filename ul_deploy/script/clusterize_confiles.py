@@ -118,6 +118,12 @@ for i, filename in enumerate(conf_files):
         # Set Statsd host
         conf_dict['statsd']['host'] = gMonitorServer
 
+        # localdb restore app
+        conf_dict['restore_server']['bind'] = '0.0.0.0:9986'
+        conf_dict['restore_server']['compress'] = True
+        conf_dict['restore_endpoint'] = 'http://' + public_hosts[i] +\
+                                        ':9986/api/v1/collect'
+
     # Delete the config file
     # os.remove(file_path)
 

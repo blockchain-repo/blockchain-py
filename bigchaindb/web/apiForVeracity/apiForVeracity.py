@@ -5,6 +5,7 @@ import uuid
 import bigchaindb
 from bigchaindb.models import Transaction
 import os
+import rapidjson
 
 logger = logging.getLogger(__name__)
 
@@ -35,6 +36,23 @@ def createTrans():
     # print(tx['transaction']['metadata']['data']['postcount'], end="-postcount,")
     # print(tx['transaction']['metadata']['data']['createcount'],end="-createcount,")
     return flask.jsonify(**tx)
+
+@testVeracity_api.route('/createtxBypayload/', methods=['POST','GET'])
+def createtxBypayload():
+    pool = current_app.config['bigchain_pool']
+    monitor = current_app.config['monitor']
+
+    payload_dict = request.get_json(force=True)
+
+    with pool() as b:
+        tx = Transaction.create([b.me], [b.me], metadata=payload_dict)
+        tx = tx.sign([b.me_private])
+        rate = bigchaindb.config['statsd']['rate']
+        with monitor.timer('write_transaction', rate=rate):
+            b.write_transaction(tx)
+    tx = tx.to_dict()
+    del payload_dict
+    return rapidjson.dumps(tx)
 
 @testVeracity_api.route('get', methods=['POST','GET'])
 def getTxByCondetion(conditions):

@@ -32,3 +32,5 @@ if __name__ == "__main__":
     total_records = ld.get_records_count(votes_conn)
     print("total_records is {}".format(total_records))
 
+    ld.close(votes_conn)
+

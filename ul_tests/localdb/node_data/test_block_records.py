@@ -13,3 +13,5 @@ if __name__ == "__main__":
 
     total_records = ld.get_records_count(conn_block_records)
     print("total_records is {}".format(total_records))
+
+    ld.close(conn_block_records)

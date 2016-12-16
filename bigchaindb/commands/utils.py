@@ -53,7 +53,6 @@ def start_rethinkdb():
     # The last `line` contains info about the error.
     raise StartupError(line)
 
-
 def start(parser, argv, scope):
     """Utility function to execute a subcommand.
 
