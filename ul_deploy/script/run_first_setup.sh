@@ -83,7 +83,7 @@ fab init_localdb
 
 #unichain install&configure&init&shards&replicas
 echo -e "[INFO]==========install unichain=========="
-./install_unichain_archive.sh "git" "dev"
+./install_unichain_archive.sh "local"
 echo -e "[INFO]=========configure unichain========="
 ./configure_unichain.sh ${CLUSTER_BIGCHAIN_COUNT}
 echo -e "[INFO]=========init unichain========="
@@ -91,7 +91,7 @@ fab init_unichain
 echo -e "[INFO]==========set shards unichain=========="
 fab set_shards:${CLUSTER_BIGCHAIN_COUNT}
 echo -e "[INFO]==========set replicas unichain=========="
-REPLICAS_NUM=`get_replicas_num ${CLUSTER_BICHAIN_COUNT}`
+REPLICAS_NUM=`gen_replicas_num ${CLUSTER_BIGCHAIN_COUNT}`
 fab set_replicas:${REPLICAS_NUM}
 
 #bak conf
