@@ -40,6 +40,7 @@ request=
 }
 
 response = {
+    "host":host,
     "block_num": block_num,
     "total_block_num": total_block_num,
     "block_id":block_id,

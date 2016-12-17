@@ -2,9 +2,12 @@
 import plyvel as l
 import rapidjson
 import sys
+import os
+import logging
 
 from extend.localdb import config
 
+logger = logging.getLogger(__file__)
 
 class LocaldbUtils():
     """To test the localdb
@@ -15,19 +18,31 @@ class LocaldbUtils():
         self.tables = config['database']['tables']
         self.node_host = None
 
-    def check_conn_free(self,*args):
+    def check_dirs_exist(self, *args):
+        exist_path = os.path.exists()
+        if not exist_path:
+            logger.error("localdb dirs is not exist!")
+            return False
+        return True
+
+    def check_conn_free(self, close_flag=True, *args):
         conn_names = self.tables
         include = len(set(args).difference(conn_names)) == 0
         if args and include:
             conn_names = args
         conn = None
+        conn_name_temp = None
         try:
             for conn_name in conn_names:
+                conn_name_temp = conn_name
                 conn = l.DB(self.root + conn_name + "/")
-                conn.close()
+                self.close(conn)
         except (Exception,IOError) as msg:
-            print("Conn is busy or can`t access, you must close it and again can use!")
-            conn.close()
+            logger.error("Conn {} is busy or can`t access, you must close it and check that"
+                         ",the local dirs have not content also can cause the failure!"
+                         "\nYou should read the error msg: {}".format(conn_name_temp, msg))
+            if close_flag:
+                self.close(conn)
             return False
         return True
 
@@ -70,7 +85,6 @@ class LocaldbUtils():
             "block_num": block_num,
             "vote_num": vote_num
         }
-
         return response
 
     def get_restore_block_info(self,block_num):
@@ -86,6 +100,7 @@ class LocaldbUtils():
 
         self.close_conn(conn_block_records, conn_block, conn_vote, conn_block_header)
         response = {
+            "host":self.node_host,
             "block_num": block_num,
             "total_block_num": total_block_num,
             "block_id":block_id,
@@ -293,7 +308,3 @@ class LocaldbUtils():
                     # Only move ,no returnVal
                     raw_iterator.next()
                 return result
-
-
-
-

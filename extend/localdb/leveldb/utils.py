@@ -50,8 +50,10 @@ class LocalBlock(object):
                 cls.instance.conn['block_records'] = l.DB(parent_dir + 'block_records/', create_if_missing=True, write_buffer_size=write_buffer_size,
                                                      block_size=block_size, max_open_files=max_open_files, lru_cache_size=lru_cache_size)
             except IOError as msg:
-                logger.error("You can`t acess the local data {}".format(parent_dir))
-                exit(-1)
+                error_tip = "You can`t acess the local data {}".format(parent_dir)
+                logger.error(error_tip)
+                close_all()
+                raise IOError(error_tip)
 
             logger.info('init localdb dirs [block, block_header, block_records] end')
 
@@ -93,8 +95,10 @@ class LocalVote(object):
                 cls.instance.conn['vote_header'] = l.DB(parent_dir + 'vote_header/', create_if_missing=True,write_buffer_size=write_buffer_size,
                                                          block_size=block_size, max_open_files=max_open_files,lru_cache_size=lru_cache_size)
             except IOError as msg:
-                logger.error("You can`t acess the local data {}".format(parent_dir))
-                exit(-1)
+                error_tip = "You can`t acess the local data {}".format(parent_dir)
+                logger.error(error_tip)
+                close_all()
+                raise IOError(error_tip)
             logger.info('init localdb dirs [vote, vote_header] end')
 
         return cls.instance

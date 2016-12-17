@@ -36,7 +36,7 @@ class NodeLocaldbCheck(Resource):
         target = req['target']
 
         if target and target == 'check':
-            can_access = ldb.check_conn_free()
+            can_access = ldb.check_conn_free(close_flag=False)
             response = {
                 "free": True,
                 "desc": 'can access the node localdb data.'
@@ -46,7 +46,7 @@ class NodeLocaldbCheck(Resource):
                 response['desc'] = 'node localdb dirs is busy or not exist!'
             compress = config['restore_server']['compress']
             if compress:
-                print("node check response{}".format(response))
+                print("node check response {}".format(response))
             response = deal_response(response, make_response, compress=compress)
             return response
         else:
@@ -73,7 +73,7 @@ class NodeBaseInfoApi(Resource):
             compress = config['restore_server']['compress']
             response = ldb.get_restore_node_info()
             if compress:
-                print("node info response{}".format(response))
+                print("node info response {}".format(response))
             response = deal_response(response, make_response, compress=compress)
             return response
         else:

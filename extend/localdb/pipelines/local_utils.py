@@ -16,8 +16,8 @@ class ChangeFeed(Node):
     DELETE = 2
     UPDATE = 4
 
-    def __init__(self, table, table_class,operation,init_records_num,init_timestamp=0,round_recover_limit=None,
-                 round_recover_limit_max=None,secondary_index=None ,prefeed=None):
+    def __init__(self, table, table_class, operation, init_records_num, init_timestamp=0, round_recover_limit=None,
+                 round_recover_limit_max=None, secondary_index=None, prefeed=None):
         """Create a new RethinkDB ChangeFeed.
 
         Args:
@@ -61,7 +61,7 @@ class ChangeFeed(Node):
 
     def run_forever(self):
         if self.prefeed:
-            records_count,data = self.prefeed
+            records_count, data = self.prefeed
             if records_count >= 1000000:
                 self.round_recover_limit = 2000
                 self.pre_round = records_count / 2000
@@ -78,6 +78,8 @@ class ChangeFeed(Node):
                 self.round_recover_limit = 1000
 
             while True:
+                if records_count == 0:
+                    break
                 logger.info("{} has {} rounds to write the missing localdb data[count={}]"
                             .format(self.table_class, self.pre_round, records_count))
                 self.round_write_localdb(data)
@@ -108,7 +110,7 @@ class ChangeFeed(Node):
                 # self.outqueue.put(change['new_val'])
                 pass
 
-    def round_write_localdb(self,change_data):
+    def round_write_localdb(self, change_data):
         """send the change data to localdb pipelines
 
         Args:

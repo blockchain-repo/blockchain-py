@@ -31,16 +31,17 @@ class LocalBlock():
     DELETE = 2
     UPDATE = 4
 
-    def __init__(self,current_block_num=None,conn_block=None,conn_block_header=None,conn_block_records=None):
+    def __init__(self, current_block_num=None, conn_block=None, conn_block_header=None, conn_block_records=None):
         """Initialize the LocalBlockPipeline creator."""
         self.conn_block = conn_block or ldb.LocalBlock().conn['block']
         self.conn_block_header = conn_block_header or ldb.LocalBlock().conn['block_header']
         self.conn_block_records = conn_block_records or ldb.LocalBlock().conn['block_records']
-        self.current_block_num = current_block_num or int(ldb.get_withdefault(self.conn_block_header, 'current_block_num','0'))
+        self.current_block_num = current_block_num or int(ldb.get_withdefault(self.conn_block_header
+                                                                              , 'current_block_num', '0'))
         self.node_block_count = 0 # after process start ,the node has write block to local
         self.node_start_time = datetime.datetime.today()
 
-    def write_local_block(self,block):
+    def write_local_block(self, block):
         """Write the block dict to leveldb.
 
         Instantly update the header dir, after change the block dir.
@@ -101,7 +102,7 @@ class LocalBlock():
         logger.info(current_block_inifo)
 
 
-def init_localdb(current_block_num,conn_block,conn_block_header,conn_block_records):
+def init_localdb(current_block_num, conn_block, conn_block_header, conn_block_records):
     """Init leveldb dir [bigchain,header] when local_block pipeline run
     and update the Node info.
 
@@ -168,16 +169,18 @@ def init_localdb(current_block_num,conn_block,conn_block_header,conn_block_recor
     return current_block_num
 
 
-def initial():
-    records_count = r.db('bigchain').table('bigchain').count().run(get_conn())
-    return records_count,r.db('bigchain').table('bigchain').max(index='block_timestamp').default(None).run(get_conn())
+def initial(current_block_num, current_block_timestamp):
 
-def get_changefeed(current_block_num,current_block_timestamp):
+    records_count = r.db('bigchain').table('bigchain').count().run(get_conn())
+    records_count = records_count - current_block_num
+    return records_count, r.db('bigchain').table('bigchain').max(index='block_timestamp').default(None).run(get_conn())
+
+def get_changefeed(current_block_num, current_block_timestamp):
     """Create and return the changefeed for the table bigchain."""
 
-    return ChangeFeed('bigchain','block',ChangeFeed.INSERT | ChangeFeed.UPDATE,current_block_timestamp,
-                      round_recover_limit=200,round_recover_limit_max=2000,secondary_index='block_timestamp',
-                      prefeed=initial())
+    return ChangeFeed('bigchain','block', ChangeFeed.INSERT | ChangeFeed.UPDATE, current_block_timestamp,
+                      round_recover_limit=200, round_recover_limit_max=2000, secondary_index='block_timestamp',
+                      prefeed=initial(current_block_num, current_block_timestamp))
 
 
 def create_pipeline():
@@ -189,12 +192,12 @@ def create_pipeline():
     conn_block_records = ldb.LocalBlock().conn['block_records']
 
     current_block_num = int(ldb.get_withdefault(conn_block_header, 'current_block_num', 0))
-    current_block_num = init_localdb(current_block_num,conn_block,conn_block_header,conn_block_records)
+    current_block_num = init_localdb(current_block_num, conn_block, conn_block_header, conn_block_records)
 
     current_block_timestamp = ldb.get_withdefault(conn_block_header, 'current_block_timestamp','0')
 
-    localblock_pipeline = LocalBlock(current_block_num=current_block_num,conn_block=conn_block,
-                                     conn_block_header=conn_block_header,conn_block_records=conn_block_records)
+    localblock_pipeline = LocalBlock(current_block_num=current_block_num, conn_block=conn_block,
+                                     conn_block_header=conn_block_header, conn_block_records=conn_block_records)
 
     pipeline = Pipeline([
         Node(localblock_pipeline.write_local_block)
@@ -202,13 +205,13 @@ def create_pipeline():
         # Node(localblock_pipeline.write_block_header,number_of_processes=1)
     ])
 
-    return pipeline,current_block_num,current_block_timestamp
+    return pipeline, current_block_num, current_block_timestamp
 
 
 def start():
     """Create, start, and return the localblock pipeline."""
 
     pipeline,current_block_num,current_block_timestamp = create_pipeline()
-    pipeline.setup(indata=get_changefeed(current_block_num,current_block_timestamp))
+    pipeline.setup(indata=get_changefeed(current_block_num, current_block_timestamp))
     pipeline.start()
     return pipeline

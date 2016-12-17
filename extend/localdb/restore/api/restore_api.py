@@ -19,7 +19,7 @@ def run_start(args):
     """ start api server"""
 
     ldb = LocaldbUtils()
-    localdb_can_access = ldb.check_conn_free()
+    localdb_can_access = ldb.check_conn_free(close_flag=False)
     if not localdb_can_access:
         error_info = "You can`t start the restore, must shutdown the busy process or check other!"
         logger.error(error_info)
