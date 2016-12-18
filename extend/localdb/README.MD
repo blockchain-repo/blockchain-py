@@ -1,15 +1,12 @@
 # unichain dir structure
 
-# 如果block 丢失数量较大, 不能保证及时恢复完整, 需要进行首轮恢复处理!
-
-## localdb dirs
+## cluster tables
 ---
 ### node_info
 ```
 host=node_ip
 public_key=node`s public key
 private_key=node`s private key
-restart_times=0
 ```
 ---
 ### block
@@ -24,24 +21,14 @@ current_timestamp=current block timestamp
 current_block_num=current block_records count
 ```
 ---
-```
-恢复的时候根据block_num恢复,因为同一个块的previous block
-可能不同,根据votes恢复可能会出现大量重复,循环查找问题!
-```
 ### block_records
 ```
 block_num=block_id
 ```
 ---
-```
-votes 可能会出现,对同一块的投票时间戳相差很大[比如:如果
-新增节点的话,会对所有块,本节点为投票的进行投票,时间戳就是
-当前投票的,其他节点的投票可能是很久以前的]所以节点信息,
-应尽可能保持不变!
-```
 ### vote
 ```
-previous_block_id + '-' + node_pubkey
+voting_block_id + '-' + node_pubkey
 ```
 
 ### vote_header

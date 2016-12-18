@@ -36,7 +36,7 @@ class NodeLocaldbCheck(Resource):
         target = req['target']
 
         if target and target == 'check':
-            can_access = ldb.check_conn_free(close_flag=False)
+            can_access = ldb.check_conn_free(close_flag=True)
             response = {
                 "free": True,
                 "desc": 'can access the node localdb data.'

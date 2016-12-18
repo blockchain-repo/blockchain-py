@@ -4,8 +4,8 @@ from ul_tests.db.utils_localdb import LocaldbUtils
 from ul_tests.db.utils_rethinkdb import RethinkdbUtils
 import time
 
-class LocaldbValite():
-    """Valide the localdb data is valide"""
+class LocaldbValidate():
+    """Valide the localdb data is valid"""
 
     def __init__(self):
         self.rq = RethinkdbUtils()

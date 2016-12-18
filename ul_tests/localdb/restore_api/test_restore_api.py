@@ -63,6 +63,7 @@ if __name__ == "__main__":
         exit("localdb conn is busy, please check!")
 
     start = time.time()
+    node_info = None
     try:
         node_info = test_post(url_dict['node'],request_data['node'])
     except (BaseException,ConnectionRefusedError,ConnectionError) as msg:

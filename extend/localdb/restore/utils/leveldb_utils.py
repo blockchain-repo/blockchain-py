@@ -1,7 +1,6 @@
 
 import plyvel as l
 import rapidjson
-import sys
 import os
 import logging
 
@@ -36,8 +35,8 @@ class LocaldbUtils():
             for conn_name in conn_names:
                 conn_name_temp = conn_name
                 conn = l.DB(self.root + conn_name + "/")
-                self.close(conn)
-        except (Exception,IOError) as msg:
+                # self.close(conn)
+        except (Exception, IOError) as msg:
             logger.error("Conn {} is busy or can`t access, you must close it and check that"
                          ",the local dirs have not content also can cause the failure!"
                          "\nYou should read the error msg: {}".format(conn_name_temp, msg))
