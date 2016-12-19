@@ -69,7 +69,7 @@ class LocaldbValidate():
 
 if __name__ == "__main__":
 
-    lv = LocaldbValite()
+    lv = LocaldbValidate()
     block_isOk,block_check = lv.check_records('bigchain',lv.conn_block,lv.conn_block_header,'current_block_num')
     votes_isOk,votes_check = lv.check_records('votes',lv.conn_vote,lv.conn_vote_header,'current_vote_num')
     node_host, node_public_key, node_restart_times = lv.get_node_info()

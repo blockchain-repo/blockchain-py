@@ -31,13 +31,16 @@ class LocalBlock():
     DELETE = 2
     UPDATE = 4
 
-    def __init__(self, current_block_num=None, conn_block=None, conn_block_header=None, conn_block_records=None):
+    def __init__(self, current_block_num=None, conn_block=None, conn_block_header=None, conn_block_records=None,
+                 total_block_txs_num=None):
         """Initialize the LocalBlockPipeline creator."""
         self.conn_block = conn_block or ldb.LocalBlock().conn['block']
         self.conn_block_header = conn_block_header or ldb.LocalBlock().conn['block_header']
         self.conn_block_records = conn_block_records or ldb.LocalBlock().conn['block_records']
         self.current_block_num = current_block_num or int(ldb.get_withdefault(self.conn_block_header
                                                                               , 'current_block_num', '0'))
+        self.total_block_txs_num = total_block_txs_num or int(ldb.get_withdefault(self.conn_block_header
+                                                                              , 'total_block_txs_num', '0'))
         self.node_block_count = 0 # after process start ,the node has write block to local
         self.node_start_time = datetime.datetime.today()
 
@@ -56,27 +59,31 @@ class LocalBlock():
         block_id = block['id']
 
         # if exists
+        # also can search the block_records dir
         exist_block = ldb.get(self.conn_block, block_id) is not None
         if exist_block:
             # logger.warning("\nThe block[id={}] is already exist.\n".format(block_id))
             return None
 
         current_block_timestamp = block['block']['timestamp']
-        block_size = len(block['block']['transactions'])
+        block_txs_num = len(block['block']['transactions'])
         block_json_str = rapidjson.dumps(block)
 
         self.current_block_num += 1
+        self.total_block_txs_num += block_txs_num
 
         ldb.insert(self.conn_block, block_id, block_json_str, sync=False)
 
-        # write the block_records [block_num=block_id] for restore pos
+        # write the block_records [block_num=block_id-block_txs-accumulate_block_txs] for restore pos
         # before the block_header write, can ensure the data precise
-        ldb.insert(self.conn_block_records, self.current_block_num, block_id)
+        block_records_val = "{}-{}-{}".format(block_id, block_txs_num, self.total_block_txs_num)
+        ldb.insert(self.conn_block_records, self.current_block_num, block_records_val)
 
         block_header_data_dict = dict()
         block_header_data_dict['current_block_id'] = block_id
         block_header_data_dict['current_block_timestamp'] = current_block_timestamp
         block_header_data_dict['current_block_num'] = self.current_block_num
+        block_header_data_dict['total_block_txs_num'] = self.total_block_txs_num
         ldb.batch_insertOrUpdate(self.conn_block_header,block_header_data_dict,transaction=True)
         del block_header_data_dict
 
@@ -84,7 +91,8 @@ class LocalBlock():
         # logger.warning('The count of this node(since start[{}]) has write to local block is: {}, current_block_num is: {}'
         #                .format(self.node_start_time,self.node_block_count,self.current_block_num))
 
-        info = "Block[num={},size={},id={}]".format(self.current_block_num, block_size, block_id)
+        info = "Block[num={},size={},id={},accumulate_txs={}]".format(
+            self.current_block_num, block_txs_num, block_id, self.total_block_txs_num)
         logger.info(info)
 
         # self.get_localblock_info()
@@ -145,6 +153,7 @@ def init_localdb(current_block_num, conn_block, conn_block_header, conn_block_re
     if current_block_num == 0:
         genesis_block = r.db('bigchain').table('bigchain').order_by(r.asc(r.row['block']['timestamp'])).limit(1).run(
             get_conn())[0]
+        current_block_txs_num = len(genesis_block['block']['transactions'])
         genesis_block_id = genesis_block['id']
         genesis_block_json_str = rapidjson.dumps(genesis_block)
         ldb.insert(conn_block, genesis_block_id, genesis_block_json_str)
@@ -155,13 +164,15 @@ def init_localdb(current_block_num, conn_block, conn_block_header, conn_block_re
         block_header_data_dict['current_block_id'] = genesis_block_id
         block_header_data_dict['current_block_timestamp'] = genesis_block['block']['timestamp']
         block_header_data_dict['current_block_num'] = current_block_num
+        block_header_data_dict['total_block_txs_num'] = current_block_txs_num
         ldb.batch_insertOrUpdate(conn_block_header, block_header_data_dict, transaction=True)
         del block_header_data_dict
 
         logger.info("localdb write the genesis block [id={}]".format(genesis_block_id))
 
-        # write the block_records [block_num=block_id]
-        ldb.insert(conn_block_records,current_block_num,genesis_block_id)
+        # write the block_records [block_num=block_id-block_txs-total_block-txs]
+        block_records_val = "{}-{}-{}".format(genesis_block_id, current_block_txs_num, current_block_txs_num)
+        ldb.insert(conn_block_records, current_block_num, block_records_val)
 
     logger.info('localdb genesis_block_id {}'.format(genesis_block_id))
     logger.info('localdb init done')
@@ -195,9 +206,11 @@ def create_pipeline():
     current_block_num = init_localdb(current_block_num, conn_block, conn_block_header, conn_block_records)
 
     current_block_timestamp = ldb.get_withdefault(conn_block_header, 'current_block_timestamp','0')
-
+    total_block_txs_num = int(ldb.get_withdefault(conn_block_header
+                                                       , 'total_block_txs_num', '0'))
     localblock_pipeline = LocalBlock(current_block_num=current_block_num, conn_block=conn_block,
-                                     conn_block_header=conn_block_header, conn_block_records=conn_block_records)
+                                     conn_block_header=conn_block_header, conn_block_records=conn_block_records,
+                                     total_block_txs_num=total_block_txs_num)
 
     pipeline = Pipeline([
         Node(localblock_pipeline.write_local_block)
@@ -211,7 +224,7 @@ def create_pipeline():
 def start():
     """Create, start, and return the localblock pipeline."""
 
-    pipeline,current_block_num,current_block_timestamp = create_pipeline()
+    pipeline, current_block_num, current_block_timestamp = create_pipeline()
     pipeline.setup(indata=get_changefeed(current_block_num, current_block_timestamp))
     pipeline.start()
     return pipeline

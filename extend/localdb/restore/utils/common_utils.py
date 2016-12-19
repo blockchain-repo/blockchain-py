@@ -56,12 +56,13 @@ def decode_data(data, compress=False, charset="utf-8", show=True):
         return data_json_obj
 
 
-def encode_data(data, compress=False, encoding="utf8"):
+def encode_data(data, compress=False, encoding="utf8", show=True):
     """
     Args:
         data: json obj data
         compress: if True, compress the data
         encoding: encode
+        show: if True, show the compress info
     Return:
         bytes str or json str[compress=False]
     """
@@ -71,6 +72,12 @@ def encode_data(data, compress=False, encoding="utf8"):
             data = rapidjson.dumps(data)
             response_data_bytes = bytes(data, encoding=encoding)
             response_data = zlib.compress(response_data_bytes, zlib.Z_BEST_COMPRESSION)
+            if show:
+                ################################# compress info ###################################
+                ratio = "%.2f%%" % (len(response_data) / len(data) * 100)
+                print("Send message, size={:<10}, decompress size={:<10},compression ratio={:<8}"
+                      .format(len(data), len(response_data), ratio))
+                ################################# compress info ###################################
             return response_data
         else:
             return data

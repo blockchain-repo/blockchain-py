@@ -100,7 +100,7 @@ if __name__ == "__main__":
     if not (result_only or block_votes or block_txs):
         result_only = True
 
-    lv = LocaldbValite()
+    lv = LocaldbValidate()
 
     statics_info = ""
     if not ignore_diff_infos:

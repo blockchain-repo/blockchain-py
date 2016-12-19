@@ -16,6 +16,7 @@ class LocaldbUtils():
         self.root = config['database']['path']
         self.tables = config['database']['tables']
         self.node_host = None
+        self.total_block_txs_num = None
 
     def check_dirs_exist(self, *args):
         exist_path = os.path.exists()
@@ -73,6 +74,7 @@ class LocaldbUtils():
         public_key = self.get_val(conn_node_info,'public_key')
         restart_times = int(self.get_val(conn_node_info,'restart_times'))
         block_num = int(self.get_val(conn_block_header,'current_block_num'))
+        total_block_txs_num = int(self.get_val(conn_block_header,'total_block_txs_num'))
         vote_num = int(self.get_val(conn_vote_header,'current_vote_num'))
 
         self.close_conn(conn_node_info, conn_block_header, conn_vote_header)
@@ -82,6 +84,7 @@ class LocaldbUtils():
             "pubkey": public_key,
             "restart_times": restart_times,
             "block_num": block_num,
+            "total_block_txs_num": total_block_txs_num,
             "vote_num": vote_num
         }
         return response
@@ -92,16 +95,25 @@ class LocaldbUtils():
         conn_vote = self.get_conn('vote')
         conn_block_header = self.get_conn('block_header')
 
-        block_id = self.get_val(conn_block_records, block_num)
+        block_records = self.get_val(conn_block_records, block_num)
+        block_records_val = block_records.split("-")
+        block_id = block_records_val[0]
+        block_txs = block_records_val[1]
+        accumulate_block_txs = block_records_val[2]
+
         block = self.get_obj(conn_block, block_id)
         block_votes = self.get_obj_prefix(conn_vote, prefix=block_id)
         total_block_num = int(self.get_val(conn_block_header, 'current_block_num'))
-
+        total_block_txs_num = int(self.get_val(conn_block_header, 'total_block_txs_num'))
         self.close_conn(conn_block_records, conn_block, conn_vote, conn_block_header)
+        # block_num = block_id - block_txs - accumulate_block_txs
         response = {
             "host":self.node_host,
             "block_num": block_num,
             "total_block_num": total_block_num,
+            "block_txs": block_txs,
+            "accumulate_block_txs": accumulate_block_txs,
+            "total_block_txs_num": total_block_txs_num,
             "block_id":block_id,
             "block": block,
             "votes": block_votes,

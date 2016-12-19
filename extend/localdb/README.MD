@@ -19,11 +19,12 @@ genesis_block_id=genesis block id
 current_block_id=current block_id
 current_timestamp=current block timestamp
 current_block_num=current block_records count
+total_block_txs_num=number
 ```
 ---
 ### block_records
 ```
-block_num=block_id
+block_num=block_id-block_txs-accumulate_block_txs
 ```
 ---
 ### vote

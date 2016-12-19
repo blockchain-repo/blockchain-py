@@ -17,6 +17,7 @@ url_dict = dict()
 restore_endpoint = config['restore_endpoint']
 url_dict['node'] = '{}/node/'.format(restore_endpoint)
 url_dict['block'] = '{}/block/'.format(restore_endpoint)
+url_dict['rethinkdb'] = '{}/rethinkdb/'.format(restore_endpoint)
 request_data = dict()
 
 request_data['node'] = \
@@ -35,13 +36,30 @@ request_data['block'] = \
         "desc": "collect node block_votes info"
     }
 
-headers = {
+block = {"id":2,"val":3}
+# votes = {"id":2,"val":3}
+votes = None
+
+request_data['rethinkdb'] = \
+    {
+        "target": "rethinkdb",
+        "current_block_num": current_block_num,
+        "block":block,
+        "votes":votes,
+        "desc": "post data to cluster"
+    }
+
+headers_default = {
   'Content-Type': "application/json"
 }
 
+headers_stream = {'Content-Type':"application/octet-stream"}
 
-def test_post(url, data):
+def test_post(url, data, headers=None):
     data = rapidjson.dumps(data)
+    print("url={},data={}".format(url,data))
+    if not headers:
+        headers = headers_default
     response = requests.post(url, data=data, headers=headers)
     result = None
     if response:
@@ -58,6 +76,14 @@ def test_post(url, data):
 
 if __name__ == "__main__":
     ldb = LocaldbUtils()
+    try:
+        rethinkdb_info = test_post(url_dict['rethinkdb'], request_data['rethinkdb'], headers=headers_stream)
+        print("rethinkdb_info={}".format(rethinkdb_info))
+    except (BaseException, ConnectionRefusedError, ConnectionError) as msg:
+        exit(msg)
+
+    exit(1)
+
     free_conn = ldb.check_conn_free()
     if not free_conn:
         exit("localdb conn is busy, please check!")
