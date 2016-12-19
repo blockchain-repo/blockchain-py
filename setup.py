@@ -34,7 +34,7 @@ tests_require = [
     'flake8',
     'pylint',
     'pytest',
-    'pytest-cov>=2.2.1',
+    'pytest-cov~=2.2.1',
     'pytest-xdist',
     'pytest-flask',
 ]
@@ -45,10 +45,10 @@ dev_require = [
 ]
 
 docs_require = [
-    'Sphinx>=1.3.5',
-    'recommonmark>=0.4.0',
-    'sphinx-rtd-theme>=0.1.9',
-    'sphinxcontrib-httpdomain>=1.5.0',
+    'Sphinx~=1.3.5',
+    'recommonmark~=0.4.0',
+    'sphinx-rtd-theme~=0.1.9',
+    'sphinxcontrib-httpdomain~=1.5.0',
 ]
 
 benchmarks_require = [
@@ -57,12 +57,12 @@ benchmarks_require = [
 
 install_requires = [
     'rethinkdb~=2.3',  # i.e. a version between 2.3 and 3.0
-    'pysha3>=0.3',
-    'cryptoconditions>=0.5.0',
-    'statsd>=3.2.1',
-    'python-rapidjson>=0.0.6',
-    'logstats>=0.2.1',
-    'flask>=0.10.1',
+    'pysha3>0.3',
+    'cryptoconditions~=0.5.0',
+    'statsd~=3.2.1',
+    'python-rapidjson~=0.0.6',
+    'logstats~=0.2.1',
+    'flask~=0.10.1',
     'flask-restful~=0.3.0',
     'requests~=2.9',
     'gunicorn~=19.0',
@@ -101,7 +101,6 @@ setup(
         'console_scripts': [
             'unichain=bigchaindb.commands.bigchain:main',
             'unichain_api=bigchaindb.commands.bigchain_api:main',
-            'unichain_restore=extend.localdb.restore.api.restore_api:main'
         ],
     },
     install_requires=install_requires,

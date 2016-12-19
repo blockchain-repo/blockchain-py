@@ -65,7 +65,7 @@ case $1 in
         ./run_server_check.sh | tee ../log/run_server_check.log
     ;;
     start_all)
-        ./clustercontrol.sh start | tee ../log/clusterconrol_start.log
+        ./clustercontrol.sh start | tee ../log/clustercontrol_start.log
         ./run_server_check.sh | tee ../log/run_server_check.log 
     ;;
     stop_all)

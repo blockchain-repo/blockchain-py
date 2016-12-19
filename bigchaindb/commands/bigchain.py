@@ -5,9 +5,6 @@ command-line interface.
 
 import os
 import sys
-import datetime
-import logging
-import logging.config
 import argparse
 import copy
 import json
@@ -32,53 +29,11 @@ from bigchaindb import processes
 from bigchaindb.monitor import Monitor
 monitor = Monitor()
 
-####log configure####
-BASE_DIR = os.path.expandvars('$HOME')
-LOG_DIR = os.path.join(BASE_DIR, "unichain_log")
-if not os.path.exists(LOG_DIR):
-    os.makedirs(LOG_DIR) 
-LOG_FILE = "unichain.log." + datetime.datetime.now().strftime("%Y%m%d%H%M%S")
-
-LOGGING = {
-    "version": 1,
-    "disable_existing_loggers": False,
-    "formatters": {
-        "simple": {
-            'format': '%(asctime)s [%(name)s:%(lineno)d] [%(levelname)s]- %(message)s'
-        },
-        'standard': {
-            'format': '%(asctime)s [%(threadName)s:%(thread)d] [%(name)s:%(lineno)d] [%(levelname)s]- %(message)s'
-        },
-    },
-    "handlers": {
-        "console": {
-            "class": "logging.StreamHandler",
-            "level": "INFO",
-            "formatter": "simple",
-            "stream": "ext://sys.stdout"
-        },
-        "default": {
-            "class": "logging.handlers.RotatingFileHandler",
-            "level": "NOTSET",
-            "formatter": "standard",
-            "filename": os.path.join(LOG_DIR, LOG_FILE),
-            'mode': 'w+',
-            "maxBytes": 1024*1024*5,  # 5 MB
-            "backupCount": 20,
-            "encoding": "utf8"
-        }
-    },
-    "root": {
-        'handlers': ["console","default"],
-        'level': "INFO",
-        'propagate': False
-    }
-}
-logging.config.dictConfig(LOGGING)
-logger = logging.getLogger(__file__)
-
 import time
 import random
+from bigchaindb.logger import *
+#import logging
+logger = logging.getLogger("unichain")
 # We need this because `input` always prints on stdout, while it should print
 # to stderr. It's a very old bug, check it out here:
 # - https://bugs.python.org/issue1927
@@ -156,21 +111,6 @@ def run_configure(args, skip_if_exists=False):
         conf['backlog_reassign_delay'] = \
             input('Stale transaction reassignment delay (in seconds)? (default `{}`): '.format(val)) \
             or val
-
-        val = conf['restore_server']['bind']
-        conf['restore_server']['bind'] = \
-            input('Restore Server {}? (default `{}`): '.format('bind', val)) \
-            or val
-
-        val = conf['restore_server']['compress']
-        compress = input('Restore Server {}? (default {}, only input False can be False): '.format('compress', val))
-        if compress == 'False':
-            compress = False
-        elif val is None or compress.strip() == '':
-            compress = val
-        else:
-            compress = True
-        conf['restore_server']['compress'] = compress
 
     if config_path != '-':
         bigchaindb.config_utils.write_config(conf, config_path)

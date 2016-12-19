@@ -38,7 +38,7 @@ def do_work():
         httpClient.request(api_method, api_url, str_test_data_json_body, test_data_json_headers)
         response = httpClient.getresponse()
         response_status = str(response.status)
-        log_str = '[request] api_full_url: ' + api_full_url + ', tx_id: ' + test_data_json_body["id"] + \
+        log_str = '[request] api_full_url: ' + api_full_url + \
                   '[response] status: ' + str(response_status)
         if response_status and str(response_status) == "200":
             log_str = "%s; request success." % (log_str)

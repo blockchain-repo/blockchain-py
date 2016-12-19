@@ -93,7 +93,11 @@ def api_request_work():
 def api_reponse_work(response):
     global api_full_url
     global test_error_num
-    response_status = str(response.status)
+    response_status = "200"
+    if not response:
+        response_status = "500"
+    else:
+        response_status = str(response.status)
     log_str = '[request] api_full_url: ' + api_full_url + ', [response] status: ' + str(response_status)
     if response_status and str(response_status) == "200":
         log_str = "%s; request success." % (log_str)

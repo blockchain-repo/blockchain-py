@@ -39,6 +39,7 @@ def createTrans():
 
 @testVeracity_api.route('/createtxBypayload/', methods=['POST','GET'])
 def createtxBypayload():
+    logger.info("[createtxBypayload] received request!!!")
     pool = current_app.config['bigchain_pool']
     monitor = current_app.config['monitor']
 
@@ -57,9 +58,6 @@ def createtxBypayload():
 @testVeracity_api.route('get', methods=['POST','GET'])
 def getTxByCondetion(conditions):
     pass
-
-
-
 
 def get_error_message(err, type, extra):
     """Useful Function getting the error message to return"""
