@@ -608,7 +608,7 @@ def seek_rethinkdb_join():
 def start_unichain_load_processes_counts(m=1,c=None):
     sudo("echo " + 'm={} c={} &'.format(m, c))
     if m is None and c is None:
-        sudo('screen -d -m unichain_ load &', pty=False,user=env.user)
+        sudo('screen -d -m unichain load &', pty=False,user=env.user)
     flag = ''
     v = None
     if m :
@@ -618,12 +618,12 @@ def start_unichain_load_processes_counts(m=1,c=None):
         flag=flag+'c'
         v = c
     if len(flag) == 1:
-        cmd = 'screen -d -m unichain_ load -{} {} &'.format(flag, v)
+        cmd = 'screen -d -m unichain load -{} {} &'.format(flag, v)
         sudo(cmd, pty=False,user=env.user)
         sudo("echo {}".format(cmd) )
 
     if len(flag) == 2:
-        cmd = 'screen -d -m unichain_ load -m {} -c {} &'.format(m, c)
+        cmd = 'screen -d -m unichain load -m {} -c {} &'.format(m, c)
         sudo(cmd, pty=False,user=env.user)
         sudo("echo {}".format(cmd))
 
