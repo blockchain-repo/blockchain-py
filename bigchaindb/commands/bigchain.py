@@ -112,6 +112,21 @@ def run_configure(args, skip_if_exists=False):
             input('Stale transaction reassignment delay (in seconds)? (default `{}`): '.format(val)) \
             or val
 
+        val = conf['restore_server']['bind']
+        conf['restore_server']['bind'] = \
+            input('Restore Server {}? (default `{}`): '.format('bind', val)) \
+            or val
+
+        val = conf['restore_server']['compress']
+        compress = input('Restore Server {}? (default {}, only input False can be False): '.format('compress', val))
+        if compress == 'False':
+            compress = False
+        elif val is None or compress.strip() == '':
+            compress = val
+        else:
+            compress = True
+        conf['restore_server']['compress'] = compress
+
     if config_path != '-':
         bigchaindb.config_utils.write_config(conf, config_path)
     else:

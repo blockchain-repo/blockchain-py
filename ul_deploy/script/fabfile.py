@@ -335,12 +335,30 @@ def set_shards(num_shards=len(public_dns_names)):
 def set_replicas(num_replicas):
     run('unichain set-replicas {}'.format(num_replicas))
 
+# unichain_restore_app
+@task
+@parallel
+def start_unichain_restore():
+    with settings(warn_only=True):
+        sudo('screen -d -m unichain_restore -y start &', pty=False, user=env.user)
+
+@task
+@parallel
+def stop_unichain_restore(port=9986):
+    with settings(warn_only=True):
+        sudo("killall -9 unichain_restore 2>/dev/null")
+        try:
+            sudo("kill -9 `netstat -nlp | grep :{} | awk '{print $7}' | awk -F'/' '{ print $1 }'`".format(port))
+        except:
+            pass
+        run("echo stop unichain_restore and kill the port {}".format(port))
 
 # unichain
 @task
 @parallel
 def start_unichain():
     with settings(warn_only=True):
+        stop_unichain_restore()
         sudo('screen -d -m unichain -y start &', pty=False, user=env.user)
         sudo('screen -d -m unichain_api start &', pty=False, user=env.user)
 
@@ -519,7 +537,10 @@ def kill_process_with_name(name):
 def kill_process_with_port(port):
     with settings(warn_only=True):
         run("echo kill process use the port %s" %(port))
-        sudo("killall -9 `netstat -nlp | grep :{} | awk '{print $7}' | awk -F'/' '{ print $1 }'`".format(port))
+        try:
+            sudo("kill -9 `netstat -nlp | grep :{} | awk '{print $7}' | awk -F'/' '{ print $1 }'`".format(port))
+        except:
+            pass
 
 @task
 @parallel
@@ -784,4 +805,3 @@ def bak_collected_conf(base):
 def bak_unichain_conf(base):
     with settings(warn_only=True):
         get('~/.unichain', '%s/unichain/unichain_%s_%s' % (base, env.user, env.host), use_sudo=True)
-
