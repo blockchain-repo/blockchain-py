@@ -305,6 +305,7 @@ def init_unichain():
         run('unichain -y drop',pty=False)
         run('unichain init', pty=False)
         set_shards()
+        set_replicas()
 
 
 # Configure BigchainDB
@@ -327,13 +328,15 @@ def drop_unichain():
 def set_shards(num_shards=len(public_dns_names)):
     # num_shards = len(public_hosts)
     run('unichain set-shards {}'.format(num_shards))
+    run("echo set shards = {}".format(num_shards))
 
 
 # Set the number of replicas (tables[bigchain,votes,backlog])
 @task
 @hosts(public_dns_names[0])
-def set_replicas(num_replicas):
+def set_replicas(num_replicas=(int(len(public_dns_names)/2)+1)):
     run('unichain set-replicas {}'.format(num_replicas))
+    run("echo set replicas = {}".format(num_replicas))
 
 # unichain_restore_app
 @task

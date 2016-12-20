@@ -26,7 +26,9 @@ class LocaldbUtils():
         return True
 
     def check_conn_free(self, close_flag=True, *args):
-        conn_names = self.tables
+        # conn_names = self.tables
+        conn_names = ['node_info', 'block_header', 'block_records', 'vote_header'] # block
+        # conn_names = ['node_info','block_header','block_records','vote','vote_header'] # block
         include = len(set(args).difference(conn_names)) == 0
         if args and include:
             conn_names = args
@@ -36,15 +38,35 @@ class LocaldbUtils():
             for conn_name in conn_names:
                 conn_name_temp = conn_name
                 conn = l.DB(self.root + conn_name + "/")
-                # self.close(conn)
+                self.close(conn)
         except (Exception, IOError) as msg:
             logger.error("Conn {} is busy or can`t access, you must close it and check that"
                          ",the local dirs have not content also can cause the failure!"
                          "\nYou should read the error msg: {}".format(conn_name_temp, msg))
             if close_flag:
                 self.close(conn)
+                print("close conn={}".format(conn))
             return False
+        finally:
+            self.close_all()
         return True
+
+    def close_all(self):
+        """Close all databases dir."""
+
+        tables = config['database']['tables']
+        logger.info('leveldb close all databases {}'.format(tables))
+        result = []
+        for table in tables:
+            if table is not None:
+                try:
+                    dir = config['database']['path'] + table + '/'
+                    dir.close()
+                    result.append(dir)
+                except:
+                    # print(table + ' is not exist')
+                    continue
+        logger.info('leveldb close all...{}'.format(result))
 
     def get_conn(self,conn_name):
         if conn_name in self.tables:

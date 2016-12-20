@@ -25,19 +25,16 @@ rdb = rethinkdb_utils.RethinkdbUtils()
 class NodeLocaldbCheck(Resource):
 
     def post(self):
-        """API endpoint to push transactions to the Federation.
+        """API endpoint to check the Federation localdb.
 
-                Return:
-                    A ``dict`` containing the data about the transaction.
-                """
-        # `force` will try to format the body of the POST request even if the `content-type` header is not
-        # set to `application/json`
+        Return:
+            A ``json stream``
+        """
 
         req = request.get_json(force=True)
         if not req:
             return make_error(400, 'Invalid parameters')
         target = req['target']
-
         if target and target == 'check':
             can_access = ldb.check_conn_free(close_flag=True)
             response = {
@@ -58,13 +55,11 @@ class NodeLocaldbCheck(Resource):
 
 class NodeBaseInfoApi(Resource):
     def post(self):
-        """API endpoint to push transactions to the Federation.
+        """API endpoint to get the Federation local db info.
 
         Return:
-            A ``dict`` containing the data about the transaction.
+            A ``json stream``
         """
-        # `force` will try to format the body of the POST request even if the `content-type` header is not
-        # set to `application/json`
 
         req = request.get_json(force=True)
         if not req:
@@ -85,14 +80,11 @@ class NodeBaseInfoApi(Resource):
 
 class NodeBlockVotes(Resource):
     def post(self):
-        """API endpoint to push transactions to the Federation.
+        """API endpoint to get the Federation local db info.
 
-                Return:
-                    A ``dict`` containing the data about the transaction.
-                """
-
-        # `force` will try to format the body of the POST request even if the `content-type` header is not
-        # set to `application/json`
+        Return:
+            A ``json stream``
+        """
 
         req = request.get_json(force=True)
         if not req:
@@ -110,17 +102,80 @@ class NodeBlockVotes(Resource):
         return response
 
 
+class NodeRreRestore(Resource):
+    def post(self):
+        """API endpoint to init the Federation rethinkdb.
+
+        Return:
+            A ``json stream``
+        """
+        req = request.get_json(force=True)
+        if not req:
+            return make_error(400, 'Invalid parameters')
+
+        target = req['target']
+        exist_db = False
+        need_init = True
+        reset_sent = False
+        records_count = 0
+        desc = ""
+        if target and target == 'pre_restore':
+            have_send_num = req['sent_num']
+            db_name = req['db']
+            clear = req['clear']
+            fore_clear = req['fore_clear']
+            exist_db = rdb.exists_database(db_name)
+            if exist_db:
+                records_count = rdb.get_count(table='bigchain', dbname=db_name)
+                last_block_id = rdb.get_last_before_block_id(dbname=db_name)
+                if have_send_num == records_count:
+                    need_init = False
+                    desc = "Cluster can go on recovering!"
+                elif records_count == 0:
+                    need_init = False
+                    reset_sent = True
+                    desc = "Cluster data is blank, will reset sent_num and go on recovering!"
+                else:
+                    # if !=, must init rethinkdb and central restore_header
+                    sent_id = req['sent_id']
+                    # avoid the interpurt, cause the lose one write records
+                    if have_send_num >= 1 and have_send_num + 1 == records_count \
+                            and sent_id == last_block_id:
+                        need_init = False
+                        desc = "Central sent records is ok and will go on!"
+                    else:
+                        need_init = True
+                        desc = "Cluster db need init first!"
+                    if clear:
+                        rdb.clear(dbname=db_name)
+                        reset_sent = True
+                        need_init = False
+                        desc = "Cluster db clear data and central need reset restore_header!"
+
+                if fore_clear:
+                    rdb.clear(dbname=db_name)
+                    reset_sent = True
+                    desc = "Cluster db fore clear!"
+
+        response = {
+            "exist_db": exist_db,
+            "records_count": records_count,
+            "need_init": need_init,  # init and clear, use fab init_unichain
+            "reset_sent":reset_sent,
+            "desc": desc
+        }
+        compress = config['restore_server']['compress']
+        response = deal_response(response, make_response, compress=compress)
+        return response
+
+
 class NodeWriteRethinkdb(Resource):
     def post(self):
-        """API endpoint to push transactions to the Federation.
+        """API endpoint to write the central localdb data to Federation rethinkdb.
 
-                Return:
-                    A ``dict`` containing the data about the transaction.
-                """
-
-        # `force` will try to format the body of the POST request even if the `content-type` header is not
-        # set to `application/json`
-
+        Return:
+            A ``json stream``
+        """
 
         req = request.data
         # b'' <==> len(req) == 0 <==> not req
@@ -178,6 +233,9 @@ node_collect_api.add_resource(NodeBaseInfoApi,
                              strict_slashes=False)
 node_collect_api.add_resource(NodeBlockVotes,
                              '/block',
+                             strict_slashes=False)
+node_collect_api.add_resource(NodeRreRestore,
+                             '/pre_restore',
                              strict_slashes=False)
 node_collect_api.add_resource(NodeWriteRethinkdb,
                              '/rethinkdb',

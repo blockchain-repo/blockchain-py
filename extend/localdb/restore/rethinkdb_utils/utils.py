@@ -31,7 +31,7 @@ class Connection:
 
         self.host = host or bigchaindb.config['database']['host']
         self.port = port or bigchaindb.config['database']['port']
-        self.db = db or "restore_{}".format(bigchaindb.config['database']['name'])
+        self.db = db or bigchaindb.config['database']['name']
         self.max_tries = max_tries
         self.conn = None
 
@@ -75,19 +75,19 @@ def get_backend(host=None, port=None, db=None):
     # multiple backends to support. Right now it returns the RethinkDB one.
     return rethinkdb.RethinkDBBackend(host=host or bigchaindb.config['database']['host'],
                                       port=port or bigchaindb.config['database']['port'],
-                                      db="restore_{}".format(db or bigchaindb.config['database']['name']))
+                                      db=db or bigchaindb.config['database']['name'])
 
 
-def get_conn():
+def get_conn(db=None):
     '''Get the connection to the database.'''
 
     return r.connect(host=bigchaindb.config['database']['host'],
                      port=bigchaindb.config['database']['port'],
-                     db="restore_{}".format(bigchaindb.config['database']['name']))
+                     db=db or bigchaindb.config['database']['name'])
 
 
-def get_database_name():
-    return "restore_{}".format(bigchaindb.config['database']['name'])
+def get_database_name(db=None):
+    return db or bigchaindb.config['database']['name']
 
 
 def create_database(conn, dbname):
@@ -174,14 +174,14 @@ def create_votes_secondary_index(conn, dbname):
     r.db(dbname).table('votes').index_wait().run(conn)
 
 
-def init_database():
+def init_database(db=None):
     """use the special db name init it
 
     :param db:
     :return:
     """
-    conn = get_conn()
-    dbname = get_database_name()
+    conn = get_conn(db=db)
+    dbname = get_database_name(db=db)
     create_database(conn, dbname)
 
     table_names = ['bigchain', 'backlog', 'votes', 'heartbeat', 'reassignnode', 'rewrite']
@@ -191,13 +191,68 @@ def init_database():
     create_bigchain_secondary_index(conn, dbname)
     create_backlog_secondary_index(conn, dbname)
     create_votes_secondary_index(conn, dbname)
-
-
-def init():
-    dbname = "restore_{}".format(get_database_name())
-    init_database()
-
     logger.info('Init {} Done, have fun!'.format(dbname))
+
+
+def get_count(dbname, table):
+    """get the records count in table
+    :param dbname:
+    :param table:
+    :return:
+    """
+    table_names = ['bigchain', 'backlog', 'votes', 'heartbeat', 'reassignnode', 'rewrite']
+    conn = get_conn(db=dbname)
+    if table in table_names:
+        return r.db(dbname).table(table).count().run(conn)
+    else:
+        return -1
+
+
+def get_last_before_block_id(dbname):
+    """get the last block`s id in table
+    :param dbname:
+    :param table:
+    :return:
+    """
+    conn = get_conn(db=dbname)
+    try:
+        return r.db(dbname).table('bigchain').order_by(index=r.desc('block_timestamp')).nth(1)['id']\
+        .default(None).run(conn)
+    except:
+        return None
+
+
+def clear(conn, dbname, tables):
+    """clear the database data
+
+    :param conn:
+    :param dbname:
+    :param tables:(tuple or list ) str
+    :return:
+    """
+    table_names = ['bigchain', 'backlog', 'votes', 'heartbeat', 'reassignnode', 'rewrite']
+    conn = get_conn(db=dbname)
+    table_in_names = dict()
+    if not tables:
+        for table in table_names:
+            result = r.db(dbname).table(table).delete().run(conn)
+            table_in_names[table] = result['deleted']
+    else:
+        if isinstance(tables, list):
+            for table in tables:
+                if table in table_names:
+                    result = r.db(dbname).table(table).delete().run(conn)
+                    table_in_names[table] = result['deleted']
+        elif isinstance(tables, tuple):
+            for table in tables:
+                if table in table_names:
+                    result = r.db(dbname).table(table).delete().run(conn)
+                    table_in_names[table] = result['deleted']
+        else :
+            if tables in table_names:
+                result = r.db(dbname).table(tables).delete().run(conn)
+                table_in_names[tables] = result['deleted']
+    print("clear database {} tables {}".format(dbname, table_in_names))
 
 
 def drop(assume_yes=False):
