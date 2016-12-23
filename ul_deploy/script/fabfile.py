@@ -808,3 +808,96 @@ def bak_collected_conf(base):
 def bak_unichain_conf(base):
     with settings(warn_only=True):
         get('~/.unichain', '%s/unichain/unichain_%s_%s' % (base, env.user, env.host), use_sudo=True)
+
+################################ Docker related ######################################
+# Install docker
+@task
+@parallel
+def install_docker():
+    with settings(warn_only=True):
+        sudo("echo deb https://apt.dockerproject.org/repo ubuntu-trusty main > /etc/apt/sources.list.d/docker.list")
+        sudo("apt-key adv --keyserver hkp://p80.pool.sks-keyservers.net:80 --recv-keys 58118E89F3A912897C070ADBF76221572C52609D")
+        sudo("apt-get update")
+        sudo("apt-get install -y --force-yes docker-engine")
+        sudo("wget -O /usr/local/bin/docker-compose https://github.com/docker/compose/releases/download/1.8.0/docker-compose-`uname -s`-`uname -m`")
+        sudo('chmod +x /usr/local/bin/docker-compose')
+
+# Load docker image
+@task
+@parallel
+def load_image():
+    with settings(warn_only=True):
+        if run("test -d ~/docker").failed:
+            sudo("mkdir ~/docker")
+        with cd('~/docker'):
+            # todo: remove existed file
+            sudo("wget http://ofbwpkkls.bkt.clouddn.com/unichain.tar.gz")
+            sudo("tar zxvf unichain.tar.gz")
+            sudo('docker load < unichain.tar')
+            #sudo("wget http://ofbwpkkls.bkt.clouddn.com/docker-compose.yml")
+            sudo('rm -f docker-compose.yml')
+        put('../../docker-compose.yml', '~/docker/docker-compose.yml', mode=0x0600, use_sudo=True)
+
+# Up docker container
+@task
+@parallel
+def start_docker():
+    with settings(warn_only=True):
+        with cd('~/docker'):
+            sudo("docker-compose up -d rdb")
+            sudo("docker-compose up -d bdb")
+
+# Send the specified configuration file to
+# the remote host and save it there in
+# /uni_docker/.unichain
+# Use in conjunction with set_host()
+# No @parallel
+@task
+def send_confile_for_docker(confile):
+    with settings(warn_only=True):
+        if run("test -d /uni_docker").failed:
+            sudo("mkdir /uni_docker")
+            sudo("chown -R " + env.user + ':' + env.user + ' /uni_docker')
+        put('../conf/unichain_confiles/' + confile,
+            '/uni_docker/.unichain')
+
+# Configure RethinkDB
+@task
+@parallel
+def configure_rethinkdb_for_docker():
+    """Confiure of RethinkDB"""
+    with settings(warn_only=True):
+        if run("test -d /uni_docker").failed:
+            sudo("mkdir /uni_docker")
+            sudo("chown -R " + env.user + ':' + env.user + ' /uni_docker')
+        # copy config file to target system
+        put('../conf/rethinkdb.conf',
+            '/uni_docker/default.conf')
+
+# Stop and remove all containers
+@task
+@parallel
+def remove_all_docker_containers():
+    sudo("docker rm -f $(docker ps -a -q)")
+
+# Remove rethinkdb data and configs
+@task
+@parallel
+def remove_all_docker_data():
+    sudo("rm -rf /uni_docker")
+
+# Up docker container
+@task
+@parallel
+def start_docker_rdb():
+    with settings(warn_only=True):
+        with cd('~/docker'):
+            sudo("docker-compose up -d rdb")
+# No @parallel
+# db exception occurs if starting bdb at the same time
+# In fact, one node to init database is enough
+@task
+def start_docker_bdb():
+    with settings(warn_only=True):
+        with cd('~/docker'):
+            sudo("docker-compose up -d bdb")

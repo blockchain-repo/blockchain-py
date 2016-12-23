@@ -2,35 +2,21 @@ version: '2'
 
 services:
   rdb:
-    image: rethinkdb
-    ports:
-      - "58080:8080"
-      - "28015"
-    volumes_from:
-      - rdb-data
-
-  rdb-data:
-    image: rethinkdb
+    image: hub.c.163.com/library/rethinkdb
     volumes:
-      - /data
-    command: "true"
+      - /uni_docker/rethinkdb_data:/data
+      - /uni_docker/default.conf:/etc/rethinkdb/instances.d/default.conf
+    command: rethinkdb --bind all --config-file /etc/rethinkdb/instances.d/default.conf
+    network_mode: "host"
 
   bdb:
-    build:
-      context: .
-      dockerfile: Dockerfile-dev
+    image: unichain_bdb
     container_name: docker-bigchaindb
     volumes:
-      - ./bigchaindb:/usr/src/app/bigchaindb
-      - ./tests:/usr/src/app/tests
-      - ./docs:/usr/src/app/docs
-      - ./setup.py:/usr/src/app/setup.py
-      - ./setup.cfg:/usr/src/app/setup.cfg
-      - ./pytest.ini:/usr/src/app/pytest.ini
+      - /uni_docker/.unichain:/etc/unichain/.unichain
     environment:
-      BIGCHAINDB_DATABASE_HOST: rdb
-      BIGCHAINDB_API_ENDPOINT: http://bdb:9984/api/v1
-      BIGCHAINDB_SERVER_BIND: 0.0.0.0:9984
+      BIGCHAINDB_CONFIG_PATH: /etc/unichain/.unichain
     ports:
-      - "9984"
-    command: bigchaindb start
+      - "9984:9984"
+    command: bash -c "unichain start & unichain_api start"
+    network_mode: "host"
