@@ -5,9 +5,8 @@ RUN apt-get update
 RUN mkdir -p /usr/src/app
 WORKDIR /usr/src/app
 
-RUN pip install --upgrade pip
-
+RUN pip install --upgrade pip -i https://pypi.douban.com/simple
 COPY . /usr/src/app/
 
-RUN pip install --no-cache-dir -e .[dev]
-RUN bigchaindb -y configure
+RUN python3 setup.py install
+RUN unichain -y configure
