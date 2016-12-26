@@ -16,7 +16,14 @@ services:
       - /uni_docker/.unichain:/etc/unichain/.unichain
     environment:
       BIGCHAINDB_CONFIG_PATH: /etc/unichain/.unichain
-    ports:
-      - "9984:9984"
     command: bash -c "unichain start & unichain_api start"
+    network_mode: "host"
+
+  bdb_init:
+    image: unichain_bdb
+    volumes:
+      - /uni_docker/.unichain:/etc/unichain/.unichain
+    environment:
+      BIGCHAINDB_CONFIG_PATH: /etc/unichain/.unichain
+    command: bash -c "unichain init && unichain set-shards $NUM_SHARDS && unichain set-replicas $NUM_REPLICAS"
     network_mode: "host"

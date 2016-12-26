@@ -844,8 +844,7 @@ def load_image():
 def start_docker():
     with settings(warn_only=True):
         with cd('~/docker'):
-            sudo("docker-compose up -d rdb")
-            sudo("docker-compose up -d bdb")
+            sudo("docker-compose up")
 
 # Send the specified configuration file to
 # the remote host and save it there in
@@ -884,7 +883,7 @@ def remove_all_docker_containers():
 @task
 @parallel
 def remove_all_docker_data():
-    sudo("rm -rf /uni_docker")
+    sudo("rm -rf /uni_docker/rethinkdb_data")
 
 # Up docker container
 @task
@@ -893,11 +892,19 @@ def start_docker_rdb():
     with settings(warn_only=True):
         with cd('~/docker'):
             sudo("docker-compose up -d rdb")
-# No @parallel
-# db exception occurs if starting bdb at the same time
-# In fact, one node to init database is enough
+
+# As db has already been inited, no problem to start bdb at the same time
 @task
+@parallel
 def start_docker_bdb():
     with settings(warn_only=True):
         with cd('~/docker'):
             sudo("docker-compose up -d bdb")
+
+# Init database and set shards/replicas
+@task
+@hosts(public_dns_names[0])
+def start_docker_bdb_init(num_shards=len(public_dns_names), num_replicas=(int(len(public_dns_names)/2)+1)):
+    with settings(warn_only=True):
+        with cd('~/docker'):
+            sudo("NUM_SHARDS={} NUM_REPLICAS={} docker-compose up -d bdb_init".format(num_shards, num_replicas))

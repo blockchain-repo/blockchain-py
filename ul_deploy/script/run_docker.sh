@@ -58,16 +58,12 @@ echo -e "[INFO]=========configure unichain========="
 #
 echo -e "[INFO]==========start service=========="
 fab start_docker_rdb
-fab start_docker_bdb
-
 #unichain init&shards&replicas
 echo -e "[INFO]=========init unichain========="
-#fab init_unichain
-echo -e "[INFO]==========set shards unichain=========="
-#fab set_shards:${CLUSTER_BIGCHAIN_COUNT}
-echo -e "[INFO]==========set replicas unichain=========="
-REPLICAS_NUM=`get_replicas_num ${CLUSTER_BICHAIN_COUNT}`
-#fab set_replicas:${REPLICAS_NUM}
+REPLICAS_NUM=`gen_replicas_num ${CLUSTER_BIGCHAIN_COUNT}`
+fab start_docker_bdb_init:num_shards=${CLUSTER_BIGCHAIN_COUNT},num_replicas=${REPLICAS_NUM}
+#
+fab start_docker_bdb
 
 
 exit 0
