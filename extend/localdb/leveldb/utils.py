@@ -41,14 +41,18 @@ class LocalBlock(object):
             lru_cache_size = database['lru_cache_size']
             cls.instance.conn = dict()
             try:
-                cls.instance.conn['node_info'] = l.DB(parent_dir + 'node_info/', create_if_missing=True, write_buffer_size=write_buffer_size,
-                                                  block_size=block_size, max_open_files=max_open_files,lru_cache_size=lru_cache_size)
-                cls.instance.conn['block'] = l.DB(parent_dir + 'block/', create_if_missing=True, write_buffer_size=write_buffer_size,
-                                                     block_size=block_size, max_open_files=max_open_files, lru_cache_size=lru_cache_size)
-                cls.instance.conn['block_header'] = l.DB(parent_dir + 'block_header/', create_if_missing=True, write_buffer_size=write_buffer_size,
-                                                   block_size=block_size, max_open_files=max_open_files, lru_cache_size=lru_cache_size)
-                cls.instance.conn['block_records'] = l.DB(parent_dir + 'block_records/', create_if_missing=True, write_buffer_size=write_buffer_size,
-                                                     block_size=block_size, max_open_files=max_open_files, lru_cache_size=lru_cache_size)
+                cls.instance.conn['node_info'] = l.DB(parent_dir + 'node_info/', create_if_missing=True,
+                                                      write_buffer_size=write_buffer_size, block_size=block_size,
+                                                      max_open_files=max_open_files, lru_cache_size=lru_cache_size)
+                cls.instance.conn['block'] = l.DB(parent_dir + 'block/', create_if_missing=True,
+                                                  write_buffer_size=write_buffer_size, block_size=block_size,
+                                                  max_open_files=max_open_files, lru_cache_size=lru_cache_size)
+                cls.instance.conn['block_header'] = l.DB(parent_dir + 'block_header/', create_if_missing=True,
+                                                         write_buffer_size=write_buffer_size, block_size=block_size,
+                                                         max_open_files=max_open_files, lru_cache_size=lru_cache_size)
+                cls.instance.conn['block_records'] = l.DB(parent_dir + 'block_records/', create_if_missing=True,
+                                                          write_buffer_size=write_buffer_size, block_size=block_size,
+                                                          max_open_files=max_open_files, lru_cache_size=lru_cache_size)
             except IOError as msg:
                 error_tip = "You can`t acess the local data {}".format(parent_dir)
                 logger.error(error_tip)
@@ -90,10 +94,12 @@ class LocalVote(object):
             lru_cache_size = database['lru_cache_size']
             cls.instance.conn = dict()
             try:
-                cls.instance.conn['vote'] = l.DB(parent_dir + 'vote/', create_if_missing=True,write_buffer_size=write_buffer_size,
-                                                  block_size=block_size,max_open_files=max_open_files,lru_cache_size=lru_cache_size)
-                cls.instance.conn['vote_header'] = l.DB(parent_dir + 'vote_header/', create_if_missing=True,write_buffer_size=write_buffer_size,
-                                                         block_size=block_size, max_open_files=max_open_files,lru_cache_size=lru_cache_size)
+                cls.instance.conn['vote'] = l.DB(parent_dir + 'vote/', create_if_missing=True,
+                                                 write_buffer_size=write_buffer_size, block_size=block_size,
+                                                 max_open_files=max_open_files, lru_cache_size=lru_cache_size)
+                cls.instance.conn['vote_header'] = l.DB(parent_dir + 'vote_header/', create_if_missing=True,
+                                                        write_buffer_size=write_buffer_size, block_size=block_size,
+                                                        max_open_files=max_open_files, lru_cache_size=lru_cache_size)
             except IOError as msg:
                 error_tip = "You can`t acess the local data {}".format(parent_dir)
                 logger.error(error_tip)
@@ -154,7 +160,7 @@ def close_all():
     logger.info('leveldb close all...{}'.format(result))
 
 
-def get_conn(name,prefix_db=None):
+def get_conn(name, prefix_db=None):
     """Get the conn with the special key.
 
     Args:
@@ -166,20 +172,21 @@ def get_conn(name,prefix_db=None):
     if prefix_db is None or prefix_db not in config['database']['tables']:
         raise BaseException("Ambigous localdb conn, it should be explicit!")
 
-    if prefix_db in ("node_info","block","block_header","block_records"):
+    if prefix_db in ("node_info", "block", "block_header", "block_records"):
         return LocalBlock().conn[name]
 
-    if prefix_db in ("vote",'vote_header'):
+    if prefix_db in ("vote", 'vote_header'):
         return LocalVote().conn[name]
 
     return BaseException("Error prefix_db {}!".format(prefix_db))
 
 
-def insert(conn,key,value,sync=False):
+def insert(conn, key, value, sync=False):
     """Insert the value with the special key.
 
       Args:
           conn: the leveldb dir pointer.
+          value:
           key:
           sync(bool) – whether to use synchronous writes.
 
@@ -188,10 +195,10 @@ def insert(conn,key,value,sync=False):
     """
 
     # logger.info('leveldb insert...' + str(key) + ":" +str(value))
-    conn.put(bytes(str(key),config['encoding']),bytes(str(value),config['encoding']),sync=sync)
+    conn.put(bytes(str(key), config['encoding']), bytes(str(value), config['encoding']), sync=sync)
 
 
-def batch_insertOrUpdate(conn,dict,transaction=False,sync=False):
+def batch_insertOrUpdate(conn, dict, transaction=False, sync=False):
     """Batch insert or update the value with the special key in dict.
 
     Args:
@@ -205,13 +212,13 @@ def batch_insertOrUpdate(conn,dict,transaction=False,sync=False):
 
     """
 
-    with conn.write_batch(transaction=transaction,sync=sync) as b:
+    with conn.write_batch(transaction=transaction, sync=sync) as b:
         for key in dict:
             # logger.warn('key: ' + str(key) + ' --- value: ' + str(dict[key]))
-            b.put(bytes(str(key),config['encoding']),bytes(str(dict[key]),config['encoding']))
+            b.put(bytes(str(key), config['encoding']), bytes(str(dict[key]), config['encoding']))
 
 
-def delete(conn,key,sync=False):
+def delete(conn, key, sync=False):
     """Delete the value with the special key.
 
     Args:
@@ -224,10 +231,10 @@ def delete(conn,key,sync=False):
     """
 
     # logger.info('leveldb delete...' + str(key) )
-    conn.delete(bytes(str(key),config['encoding']),sync=sync)
+    conn.delete(bytes(str(key), config['encoding']), sync=sync)
 
 
-def batch_delete(conn,dict,transaction=False,sync=False):
+def batch_delete(conn, dict, transaction=False, sync=False):
     """Batch delete the value with the special key in dict.
 
     Args:
@@ -241,12 +248,12 @@ def batch_delete(conn,dict,transaction=False,sync=False):
 
     """
 
-    with conn.write_batch(transaction=transaction,sync=sync) as b:
-        for key,value in dict:
-            b.delete(bytes(str(key),config['encoding']))
+    with conn.write_batch(transaction=transaction, sync=sync) as b:
+        for key, value in dict:
+            b.delete(bytes(str(key), config['encoding']))
 
 
-def update(conn,key,value,sync=False):
+def update(conn, key, value, sync=False):
     """Update the value with the special key.
 
     Args:
@@ -260,10 +267,10 @@ def update(conn,key,value,sync=False):
     """
 
     # logger.info('leveldb update...' + str(key) + ":" +str(value))
-    conn.put(bytes(str(key),config['encoding']), bytes(str(value),config['encoding']),sync=sync)
+    conn.put(bytes(str(key), config['encoding']), bytes(str(value), config['encoding']), sync=sync)
 
 
-def get(conn,key):
+def get(conn, key):
     """Get the value with the special key.
 
     Args:
@@ -284,7 +291,7 @@ def get(conn,key):
         return None
 
 
-def get_with_prefix(conn,prefix):
+def get_with_prefix(conn, prefix):
     """Get the records with the special prefix.
 
     block-v1=v1
@@ -313,7 +320,7 @@ def get_with_prefix(conn,prefix):
         return None
 
 
-def get_withdefault(conn,key,default_value):
+def get_withdefault(conn, key, default_value):
     """Get the value with the key.
 
     Args:
@@ -327,7 +334,7 @@ def get_withdefault(conn,key,default_value):
 
     # logger.info('leveldb get...' + str(key) + ",default_value=" + str(default_value))
     # get the value for the bytes_key,if not exists return defaule_value
-    bytes_val = conn.get(bytes(str(key),config['encoding']),bytes(str(default_value),config['encoding']))
+    bytes_val = conn.get(bytes(str(key), config['encoding']), bytes(str(default_value), config['encoding']))
     # return bytes(bytes_val).decode(config['encoding'])
     # logger.info('leveldb get...' + str(key) + ",default_value=" + bytes(bytes_val).decode(config['encoding']))
     return bytes(bytes_val).decode(config['encoding'])

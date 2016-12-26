@@ -58,6 +58,15 @@ class LocalVote():
         vote_key = voting_for_block + '-' + node_pubkey
 
         # if exists
+        # if process wait long, the *.ldb files merge may cause the IO Errot,
+        # try fix it by get the conn again
+        try:
+            exist_vote = ldb.get(self.conn_vote, vote_key) is not None
+        except BaseException as msg:
+            logging.warning(msg)
+            self.conn_vote = ldb.LocalVote().conn['vote']
+            exist_vote = ldb.get(self.conn_vote, vote_key) is not None
+
         exist_vote = ldb.get(self.conn_vote, vote_key) is not None
         if exist_vote:
             # logger.warning("\nThe vote[id={},vote_key={}] is already exist.\n".format(vote_id,vote_key))
@@ -84,23 +93,7 @@ class LocalVote():
             .format(self.current_vote_num, vote['vote']['voting_for_block'], vote_id)
         logger.info(info)
 
-        # self.get_local_votes_for_block(previous_block)
-
         return None
-
-    def get_local_votes_for_block(self, block_id):
-        """Only show the pre op result!"""
-
-        # votes = ldb.get_with_prefix(self.conn_vote, block_id + '-')
-        # previous_block_votes_info = "\nprevious_block votes info \n[id={},\nvotes={}]\n".format(block_id,votes)
-        # logger.info(previous_block_votes_info)
-
-        current_vote_timestamp = ldb.get(self.conn_vote_header, 'current_vote_timestamp')
-        current_vote_id = ldb.get(self.conn_vote_header, 'current_vote_id')
-        current_vote_num = ldb.get(self.conn_vote_header, 'current_vote_num')
-        current_vote_inifo = "localdb info for current vote \n[vote_timestamp={},vote_num={},vote_id={}]\n"\
-            .format(current_vote_timestamp, current_vote_num, current_vote_id)
-        logger.info(current_vote_inifo)
 
 
 def initial(current_vote_num, current_vote_timestamp):

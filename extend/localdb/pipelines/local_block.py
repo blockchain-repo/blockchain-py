@@ -60,7 +60,15 @@ class LocalBlock():
 
         # if exists
         # also can search the block_records dir
-        exist_block = ldb.get(self.conn_block, block_id) is not None
+        # if process wait long, the *.ldb files merge may cause the IO Errot,
+        # try fix it by get the conn again
+        try:
+            exist_block = ldb.get(self.conn_block, block_id) is not None
+        except BaseException as msg:
+            logging.warning(msg)
+            self.conn_block = ldb.LocalBlock().conn['block']
+            exist_block = ldb.get(self.conn_block, block_id) is not None
+
         if exist_block:
             # logger.warning("\nThe block[id={}] is already exist.\n".format(block_id))
             return None
@@ -95,19 +103,7 @@ class LocalBlock():
             self.current_block_num, block_txs_num, block_id, self.total_block_txs_num)
         logger.info(info)
 
-        # self.get_localblock_info()
-
         return None
-
-    def get_localblock_info(self):
-        """Only show the pre op result!"""
-
-        current_block_timestamp = ldb.get(self.conn_block_header, 'current_block_timestamp')
-        current_block_id = ldb.get(self.conn_block_header, 'current_block_id')
-        current_block_num = ldb.get(self.conn_block_header, 'current_block_num')
-        current_block_inifo = "localdb info for current block \n[block_timestamp={},block_num={},block_id={}]\n"\
-            .format(current_block_timestamp,current_block_num, current_block_id)
-        logger.info(current_block_inifo)
 
 
 def init_localdb(current_block_num, conn_block, conn_block_header, conn_block_records):
