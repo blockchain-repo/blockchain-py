@@ -28,7 +28,7 @@ logger = logging.getLogger(__name__)
 
 CONFIG_DEFAULT_PATH = os.environ.setdefault(
     'BIGCHAINDB_CONFIG_PATH',
-    os.path.join(os.path.expanduser('~'), '.unichain'),
+    os.path.join(os.path.expanduser('~'), '.unichain_order'),
 )
 
 CONFIG_PREFIX = 'BIGCHAINDB'

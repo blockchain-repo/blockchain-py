@@ -31,7 +31,7 @@ mkdir $CONFDIR
 for (( i=0; i<$NUMFILES; i++ )); do
     CONPATH=$CONFDIR"/bcdb_conf"$i
     echo "Writing "$CONPATH
-    unichain -y -c $CONPATH configure
+    unichain_order -y -c $CONPATH configure
 done
 
 
