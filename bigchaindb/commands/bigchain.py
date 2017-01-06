@@ -33,7 +33,7 @@ import time
 import random
 from bigchaindb.logger import *
 #import logging
-logger = logging.getLogger("unichain_order")
+logger = logging.getLogger("localdb_tax")
 # We need this because `input` always prints on stdout, while it should print
 # to stderr. It's a very old bug, check it out here:
 # - https://bugs.python.org/issue1927
@@ -138,7 +138,7 @@ def run_configure(args, skip_if_exists=False):
 def run_export_my_pubkey(args):
     """Export this node's public key to standard output
     """
-    logger.debug('unichain_order args = {}'.format(args))
+    logger.debug('unichain_tax args = {}'.format(args))
     bigchaindb.config_utils.autoconfigure(filename=args.config, force=True)
     pubkey = bigchaindb.config['keypair']['public']
     if pubkey is not None:
@@ -154,7 +154,7 @@ def run_export_my_pubkey(args):
 def run_export_my_ip(args):
     """Export this node's api_endpoint ip to standard output
     """
-    logger.debug('unichain_order args = {}'.format(args))
+    logger.debug('unichain_tax args = {}'.format(args))
     bigchaindb.config_utils.autoconfigure(filename=args.config, force=True)
     from urllib.parse import urlparse
     api_endpoint = urlparse(bigchaindb.config['api_endpoint'])
@@ -217,7 +217,7 @@ def run_start(args):
         pass
     except KeypairNotFoundException:
         sys.exit("Can't start BigchainDB, no keypair found. "
-                 'Did you run `unichain_order configure`?')
+                 'Did you run `unichain_tax configure`?')
 
     db.init_databaseData()
 

@@ -3,7 +3,7 @@
 
 config = {
     'database': {
-        'path': '/data/localdb_order/',  # path should be exist,the root dir for localdb
+        'path': '/data/localdb_tax/',  # path should be exist,the root dir for localdb
         'tables': ['node_info', 'block', 'block_header', 'block_records', 'vote', 'vote_header'],  # the localdb dirs
         'block_size': None,  # block size (in bytes)
         'write_buffer_size': 512 << 20,  # (int) – size of the write buffer (in bytes) 512MB

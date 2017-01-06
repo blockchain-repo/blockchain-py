@@ -70,7 +70,7 @@ install_requires = [
 ]
 
 setup(
-    name='BigchainDB',
+    name='UnichainTax',
     version=version['__version__'],
     description='BigchainDB: A Scalable Blockchain Database',
     long_description=__doc__,
@@ -99,9 +99,9 @@ setup(
 
     entry_points={
         'console_scripts': [
-            'unichain_order=bigchaindb.commands.bigchain:main',
-            'unichain_order_api=bigchaindb.commands.bigchain_api:main',
-            'unichain_order_restore=extend.localdb.restore.api.restore_api:main'
+            'unichain_tax=bigchaindb.commands.bigchain:main',
+            'unichain_tax_api=bigchaindb.commands.bigchain_api:main',
+            'unichain_tax_restore=extend.localdb.restore.api.restore_api:main'
         ],
     },
     install_requires=install_requires,
