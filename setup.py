@@ -68,7 +68,7 @@ install_requires = [
 ]
 
 setup(
-    name='BigchainDB',
+    name='UnichainCash',
     version=version['__version__'],
     description='BigchainDB: A Scalable Blockchain Database',
     long_description=__doc__,

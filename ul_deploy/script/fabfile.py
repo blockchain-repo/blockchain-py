@@ -259,10 +259,10 @@ def install_localdb():
 def init_localdb():
     with settings(warn_only=True):
         user_group = env.user
-        sudo('rm -rf /data/localdb_order/*')
-        sudo("echo init localdb_order")
-        sudo("mkdir -p /data/localdb_order/{node_info,block,block_header,block_records,vote,vote_header}")
-        sudo("chown -R " + user_group + ':' + user_group + ' /data/localdb_order')
+        sudo('rm -rf /data/localdb_cash/*')
+        sudo("echo init localdb_cash")
+        sudo("mkdir -p /data/localdb_cash/{node_info,block,block_header,block_records,vote,vote_header}")
+        sudo("chown -R " + user_group + ':' + user_group + ' /data/localdb_cash')
 
 
 # @task
@@ -513,7 +513,7 @@ def init_all_nodes():
         sudo('rm -rf /usr/local/lib/python3.4/dist-packages/BigchainDB-* 2>/dev/null')
         sudo('rm -rf ~/unichain_cash 2>/dev/null')
         sudo('rm -rf /data/rethinkdb/* 2>/dev/null')
-        sudo('rm -rf /data/localdb_order/{node_info,block,block_header,block_records,vote,vote_header}/* 2>/dev/null')
+        sudo('rm -rf /data/localdb_cash/{node_info,block,block_header,block_records,vote,vote_header}/* 2>/dev/null')
 
 
 @task
@@ -667,7 +667,7 @@ def destroy_all_nodes():
         sudo('killall -9 pip,pip3 2>/dev/null')
 
         sudo('rm -rf /data/rethinkdb/* 2>/dev/null')
-        sudo('rm -rf /data/localdb_order/{node_info,block,block_header,block_records,vote,vote_header}/* 2>/dev/null')
+        sudo('rm -rf /data/localdb_cash/{node_info,block,block_header,block_records,vote,vote_header}/* 2>/dev/null')
 
         sudo('rm -rf /usr/local/lib/python3.4/dist-packages/BigchainDB-* 2>/dev/null')
         sudo('rm /usr/local/bin/bigchaindb 2>/dev/null')
@@ -769,9 +769,9 @@ def clear_unichain_data(flag='rethinkdb'):
     with settings(warn_only=True):
         if flag == 'all':
             sudo('rm -rf /data/rethinkdb/*')
-            sudo('rm -rf /data/localdb_order/*')
+            sudo('rm -rf /data/localdb_cash/*')
         elif flag == 'localdb':
-            sudo('rm -rf /data/localdb_order/{node_info,block,block_header,block_records,vote,vote_header}/*')
+            sudo('rm -rf /data/localdb_cash/{node_info,block,block_header,block_records,vote,vote_header}/*')
         elif flag == 'rethinkdb':
             sudo('rm -rf /data/rethinkdb/*')
         if flag in ('all','localdb','rethinkdb'):

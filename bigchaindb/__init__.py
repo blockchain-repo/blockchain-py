@@ -8,14 +8,14 @@ config = {
     'server': {
         # Note: this section supports all the Gunicorn settings:
         #       - http://docs.gunicorn.org/en/stable/settings.html
-        'bind': os.environ.get('BIGCHAINDB_SERVER_BIND') or 'localhost:9984',
+        'bind': os.environ.get('BIGCHAINDB_SERVER_BIND') or 'localhost:9884',
         'workers': None,  # if none, the value will be cpu_count * 2 + 1
         'threads': None,  # if none, the value will be cpu_count * 2 + 1
     },
     'database': {
         'host': os.environ.get('BIGCHAINDB_DATABASE_HOST', 'localhost'),
         'port': 28015,
-        'name': 'bigchain_order',
+        'name': 'bigchain_cash',
     },
     'keypair': {
         'public': None,
@@ -27,15 +27,15 @@ config = {
         'port': 8125,
         'rate': 0.01,
     },
-    'api_endpoint': os.environ.get('BIGCHAINDB_API_ENDPOINT') or 'http://localhost:9984/api/v1',
+    'api_endpoint': os.environ.get('BIGCHAINDB_API_ENDPOINT') or 'http://localhost:9884/api/v1',
     'backlog_reassign_delay': 30,
     'restore_server': {
-        'bind': os.environ.get('BIGCHAINDB_RESTORE_SERVER_BIND') or 'localhost:9986',
+        'bind': os.environ.get('BIGCHAINDB_RESTORE_SERVER_BIND') or 'localhost:9886',
         'compress': True, # if compress, compress the response data
         'workers': None,  # if none, the value will be int(cpu_count/2) + 2
         'threads': None,  # if none, the value will be int(cpu_count/2) + 2
     },
-    'restore_endpoint': os.environ.get('BIGCHAINDB_RESTORE_ENDPOINT') or 'http://localhost:9986/api/v1/collect',
+    'restore_endpoint': os.environ.get('BIGCHAINDB_RESTORE_ENDPOINT') or 'http://localhost:9886/api/v1/collect',
 }
 
 

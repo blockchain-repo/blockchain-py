@@ -6,6 +6,7 @@ from multipipes import Pipeline, Node
 from extend.localdb.pipelines.local_utils import ChangeFeed
 
 from bigchaindb.db.utils import get_conn
+import bigchaindb
 from extend.localdb.leveldb import utils as ldb
 import rethinkdb as r
 import rapidjson
@@ -14,6 +15,7 @@ import datetime
 import logging
 
 logger = logging.getLogger(__name__)
+db_name = bigchaindb.config['database']['name']
 
 
 class LocalVote():
@@ -98,12 +100,12 @@ class LocalVote():
 
 def initial(current_vote_num, current_vote_timestamp):
 
-    records_count = r.db('bigchain').table('votes').count().run(get_conn())
+    records_count = r.db(db_name).table('votes').count().run(get_conn())
     records_count = records_count - current_vote_num
     if records_count >= 1:
         # here max is no effect!
         # return r.db('bigchain').table('votes').max(index='vote_timestamp').default(None).run(get_conn())
-        return records_count, r.db('bigchain').table('votes').max(index='vote_timestamp').run(get_conn())
+        return records_count, r.db(db_name).table('votes').max(index='vote_timestamp').run(get_conn())
     else:
         return None
 
