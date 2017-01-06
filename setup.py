@@ -6,7 +6,6 @@ For full docs visit https://bigchaindb.readthedocs.org
 """
 from setuptools import setup, find_packages
 
-
 # get the version
 version = {}
 with open('bigchaindb/version.py') as fp:
@@ -26,7 +25,6 @@ def check_setuptools_features():
 
 
 check_setuptools_features()
-
 
 tests_require = [
     'coverage',
@@ -99,9 +97,9 @@ setup(
 
     entry_points={
         'console_scripts': [
-            'unichain_order=bigchaindb.commands.bigchain:main',
-            'unichain_order_api=bigchaindb.commands.bigchain_api:main',
-            'unichain_order_restore=extend.localdb.restore.api.restore_api:main'
+            'unichain_cash=bigchaindb.commands.bigchain:main',
+            'unichain_cash_api=bigchaindb.commands.bigchain_api:main',
+            'unichain_cash_restore=extend.localdb.restore.api.restore_api:main'
         ],
     },
     install_requires=install_requires,

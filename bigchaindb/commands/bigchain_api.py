@@ -33,7 +33,7 @@ import time
 import random
 from bigchaindb.logger_api import *
 #import logging
-logger = logging.getLogger("unichain_order_api")
+logger = logging.getLogger("unichain_cash_api")
 # We need this because `input` always prints on stdout, while it should print
 # to stderr. It's a very old bug, check it out here:
 # - https://bugs.python.org/issue1927
@@ -68,7 +68,7 @@ def create_parser():
                                        dest='command')
     # parser for starting BigchainDB
     subparsers.add_parser('start',
-                          help='Start unichain_order API service')
+                          help='Start unichain_cash API service')
     return parser
 
 def main():

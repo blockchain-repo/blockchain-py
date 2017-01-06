@@ -82,15 +82,15 @@ fab install_localdb
 fab init_localdb
 
 #unichain install&configure&init&shards&replicas
-echo -e "[INFO]==========install unichain_order=========="
+echo -e "[INFO]==========install unichain_cash=========="
 ./install_unichain_archive.sh "local"
-echo -e "[INFO]=========configure unichain_order========="
+echo -e "[INFO]=========configure unichain_cash========="
 ./configure_unichain.sh ${CLUSTER_BIGCHAIN_COUNT}
-echo -e "[INFO]=========init unichain_order========="
+echo -e "[INFO]=========init unichain_cash========="
 fab init_unichain
-echo -e "[INFO]==========set shards unichain_order=========="
+echo -e "[INFO]==========set shards unichain_cash=========="
 fab set_shards:${CLUSTER_BIGCHAIN_COUNT}
-echo -e "[INFO]==========set replicas unichain_order=========="
+echo -e "[INFO]==========set replicas unichain_cash=========="
 REPLICAS_NUM=`gen_replicas_num ${CLUSTER_BIGCHAIN_COUNT}`
 fab set_replicas:${REPLICAS_NUM}
 
@@ -100,7 +100,7 @@ echo -e "[INFO]==========bak current conf=========="
 
 if [[ -z $AUTO_START_FLAG || $AUTO_START_FLAG -eq 1 ]];then
     #start unichain nodes
-    echo -e "[INFO]==========start unichain_order nodes=========="
+    echo -e "[INFO]==========start unichain_cash nodes=========="
     ./clustercontrol.sh start
     ./run_server_check.sh
 fi

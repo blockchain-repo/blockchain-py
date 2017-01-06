@@ -7,10 +7,10 @@ import logging.config
 
 ####log configure####
 BASE_DIR = os.path.expandvars('$HOME')
-LOG_DIR = os.path.join(BASE_DIR, "unichain_order_log")
+LOG_DIR = os.path.join(BASE_DIR, "unichain_cash_log")
 if not os.path.exists(LOG_DIR):
     os.makedirs(LOG_DIR) 
-PRO_LOG_FILE = "unichain_order.log." + datetime.datetime.now().strftime("%Y%m%d%H%M%S")
+PRO_LOG_FILE = "unichain_cash.log." + datetime.datetime.now().strftime("%Y%m%d%H%M%S")
 
 LOG_CONF = {
     "version": 1,

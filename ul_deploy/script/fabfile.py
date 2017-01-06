@@ -66,12 +66,12 @@ def check_localdb():
 @task
 def check_unichain():
     with settings(warn_only=True):
-        print("[INFO]==========check unichain_order_order pro begin==========")
-        process_num=run('ps -aux|grep -E "/usr/local/bin/unichain_order -y start|SCREEN -d -m unichain_order -y start"|grep -v grep|wc -l')
+        print("[INFO]==========check unichain_cash_order pro begin==========")
+        process_num=run('ps -aux|grep -E "/usr/local/bin/unichain_cash -y start|SCREEN -d -m unichain_cash -y start"|grep -v grep|wc -l')
         if process_num == 0:
-            print("[INFO]=====process[unichain_order] num check result: is 0")
+            print("[INFO]=====process[unichain_cash] num check result: is 0")
         else:
-            print("[ERROR]=====process[unichain_order_order_order] num check result: is %s" % (str(process_num)))
+            print("[ERROR]=====process[unichain_cash_order_order] num check result: is %s" % (str(process_num)))
         ##TODO:confirm port in conf
         api_port=9984
         check_api_port=sudo('netstat -nlap|grep "LISTEN"|awk -v v_port=":%s" \'{if(v_port==$4) print $0}\'' % (api_port))
@@ -84,12 +84,12 @@ def check_unichain():
 @task
 def check_unichain_api():
     with settings(warn_only=True):
-        print("[INFO]==========check unichain_order api begin==========")
-        process_num=run('ps -aux|grep -E "/usr/local/bin/unichain_order_api start|SCREEN -d -m unichain_order_api start"|grep -v grep|wc -l')
+        print("[INFO]==========check unichain_cash api begin==========")
+        process_num=run('ps -aux|grep -E "/usr/local/bin/unichain_cash_api start|SCREEN -d -m unichain_cash_api start"|grep -v grep|wc -l')
         if process_num == 0:
-            print("[INFO]=====process[unichain_order_api] num check result: is 0")
+            print("[INFO]=====process[unichain_cash_api] num check result: is 0")
         else:
-            print("[ERROR]=====process[unichain_order_api] num check result: is %s" % (str(process_num)))
+            print("[ERROR]=====process[unichain_cash_api] num check result: is %s" % (str(process_num)))
 ################################ First Install  ######################################
 # DON'T PUT @parallel
 @task
@@ -205,39 +205,39 @@ def configure_rethinkdb():
 
 # Send the specified configuration file to
 # the remote host and save it there in
-# ~/.unichain_order
+# ~/.unichain_cash
 # Use in conjunction with set_host()
 # No @parallel
 @task
 def send_confile(confile):
     put('../conf/unichain_confiles/' + confile, 'tempfile')
-    run('mv tempfile ~/.unichain_order')
-    print('For this node, unichain_order show-config says:')
-    run('unichain_order show-config')
+    run('mv tempfile ~/.unichain_cash')
+    print('For this node, unichain_cash show-config says:')
+    run('unichain_cash show-config')
 
 
 # Install BigchainDB from a Git archive file
-# named unichain_order-archive.tar.gz
+# named unichain_cash-archive.tar.gz
 @task
 @parallel
 def install_unichain_from_git_archive():
-    put('unichain_order-archive.tar.gz')
+    put('unichain_cash-archive.tar.gz')
     user_group = env.user
     with settings(warn_only=True):
-        if run("test -d ./unichain_order").failed:
-            run("echo 'create unichain_order directory' ")
-            sudo("mkdir -p ./unichain_order",user=env.user,group=env.user)
+        if run("test -d ./unichain_cash").failed:
+            run("echo 'create unichain_cash directory' ")
+            sudo("mkdir -p ./unichain_cash",user=env.user,group=env.user)
             #sudo("chown -R " + user_group + ':' + user_group + ' ~/')
         else:
-            run("echo 'remove old unichain_order directory' ")
-            sudo("rm -rf ./unichain_order/*")
-    run('tar xvfz unichain_order-archive.tar.gz -C ./unichain_order >/dev/null 2>&1')
+            run("echo 'remove old unichain_cash directory' ")
+            sudo("rm -rf ./unichain_cash/*")
+    run('tar xvfz unichain_cash-archive.tar.gz -C ./unichain_cash >/dev/null 2>&1')
     sudo('pip3 install -i http://pypi.douban.com/simple --upgrade setuptools')
-    with cd('./unichain_order'):
+    with cd('./unichain_cash'):
         sudo('python3 setup.py install')
         # sudo('pip3 install .')
-    sudo('rm -f ../unichain_order-archive.tar.gz')
-    run('echo install_unichain_order_from_git_archive done!')
+    sudo('rm -f ../unichain_cash-archive.tar.gz')
+    run('echo install_unichain_cash_from_git_archive done!')
 
 
 # install localdb
@@ -278,19 +278,19 @@ def init_localdb():
 
 
 ################################### Base OP  ######################################
-# unichain_order
-# uninstall old unichain_order
+# unichain_cash
+# uninstall old unichain_cash
 @task
 @parallel
 def uninstall_unichain():
     with settings(warn_only=True):
-        run('echo "[INFO]==========uninstall unichain_order-pro=========="')
-        sudo('killall -9 unichain_order 2>/dev/null')
-        sudo('killall -9 unichain_order_api 2>/dev/null')
+        run('echo "[INFO]==========uninstall unichain_cash-pro=========="')
+        sudo('killall -9 unichain_cash 2>/dev/null')
+        sudo('killall -9 unichain_cash_api 2>/dev/null')
         sudo('killall -9 pip,pip3 2>/dev/null')
-        sudo('rm /usr/local/bin/unichain_order 2>/dev/null')
+        sudo('rm /usr/local/bin/unichain_cash 2>/dev/null')
         sudo('rm -rf /usr/local/lib/python3.4/dist-packages/BigchainDB-* 2>/dev/null')
-        sudo('rm -rf ~/unichain_order 2>/dev/null')
+        sudo('rm -rf ~/unichain_cash 2>/dev/null')
 
 
 # Initialize BigchainDB
@@ -302,8 +302,8 @@ def uninstall_unichain():
 @hosts(public_dns_names[0])
 def init_unichain():
     with settings(warn_only=True):
-        run('unichain_order -y drop',pty=False)
-        run('unichain_order init', pty=False)
+        run('unichain_cash -y drop',pty=False)
+        run('unichain_cash init', pty=False)
         set_shards()
         set_replicas()
 
@@ -312,14 +312,14 @@ def init_unichain():
 @task
 @parallel
 def configure_unichain():
-    run('unichain_order -y configure', pty=False)
+    run('unichain_cash -y configure', pty=False)
 
 
 @task
 @hosts(public_dns_names[0])
 def drop_unichain():
     with settings(warn_only=True):
-        run('unichain_order -y drop', pty=False)
+        run('unichain_cash -y drop', pty=False)
 
 
 # Set the number of shards (tables[bigchain,votes,backlog])
@@ -327,7 +327,7 @@ def drop_unichain():
 @hosts(public_dns_names[0])
 def set_shards(num_shards=len(public_dns_names)):
     # num_shards = len(public_hosts)
-    run('unichain_order set-shards {}'.format(num_shards))
+    run('unichain_cash set-shards {}'.format(num_shards))
     run("echo set shards = {}".format(num_shards))
 
 
@@ -335,26 +335,26 @@ def set_shards(num_shards=len(public_dns_names)):
 @task
 @hosts(public_dns_names[0])
 def set_replicas(num_replicas=(int(len(public_dns_names)/2)+1)):
-    run('unichain_order set-replicas {}'.format(num_replicas))
+    run('unichain_cash set-replicas {}'.format(num_replicas))
     run("echo set replicas = {}".format(num_replicas))
 
-# unichain_order_restore_app
+# unichain_cash_restore_app
 @task
 @parallel
 def start_unichain_restore():
     with settings(warn_only=True):
-        sudo('screen -d -m unichain_order_restore -y start &', pty=False, user=env.user)
+        sudo('screen -d -m unichain_cash_restore -y start &', pty=False, user=env.user)
 
 @task
 @parallel
 def stop_unichain_restore(port=9986):
     with settings(warn_only=True):
-        sudo("killall -9 unichain_order_restore 2>/dev/null")
+        sudo("killall -9 unichain_cash_restore 2>/dev/null")
         try:
             sudo("kill -9 `netstat -nlp | grep :{} | awk '{print $7}' | awk -F'/' '{ print $1 }'`".format(port))
         except:
             pass
-        run("echo stop unichain_order_restore and kill the port {}".format(port))
+        run("echo stop unichain_cash_restore and kill the port {}".format(port))
 
 # unichain
 @task
@@ -362,33 +362,33 @@ def stop_unichain_restore(port=9986):
 def start_unichain():
     with settings(warn_only=True):
         stop_unichain_restore()
-        sudo('screen -d -m unichain_order -y start &', pty=False, user=env.user)
-        sudo('screen -d -m unichain_order_api start &', pty=False, user=env.user)
+        sudo('screen -d -m unichain_cash -y start &', pty=False, user=env.user)
+        sudo('screen -d -m unichain_cash_api start &', pty=False, user=env.user)
 
 
 @task
 @parallel
 def stop_unichain():
     with settings(warn_only=True):
-        # sudo("kill `ps -ef|grep unichain_order | grep -v grep|awk '{print $2}'` ")
-        sudo("killall -9 unichain_order_api 2>/dev/null")
-        sudo("killall -9 unichain_order 2>/dev/null")
+        # sudo("kill `ps -ef|grep unichain_cash | grep -v grep|awk '{print $2}'` ")
+        sudo("killall -9 unichain_cash_api 2>/dev/null")
+        sudo("killall -9 unichain_cash 2>/dev/null")
 
 
 @task
 @parallel
 def restart_unichain():
     with settings(warn_only=True):
-        sudo("killall -9 unichain_order_api 2>/dev/null")
-        sudo("killall -9 unichain_order 2>/dev/null")
-        sudo('screen -d -m unichain_order -y start &', pty=False, user=env.user)
-        sudo('screen -d -m unichain_order_api start &', pty=False, user=env.user)
+        sudo("killall -9 unichain_cash_api 2>/dev/null")
+        sudo("killall -9 unichain_cash 2>/dev/null")
+        sudo('screen -d -m unichain_cash -y start &', pty=False, user=env.user)
+        sudo('screen -d -m unichain_cash_api start &', pty=False, user=env.user)
 
 
 @task
 @parallel
 def start_unichain_load():
-    sudo('screen -d -m unichain_order load &', pty=False)
+    sudo('screen -d -m unichain_cash load &', pty=False)
 
 
 # rethinkdb
@@ -505,13 +505,13 @@ def count_process_by_name(name):
 @parallel
 def init_all_nodes():
     with settings(warn_only=True):
-        sudo('killall -9 unichain_order 2>/dev/null')
-        sudo('killall -9 unichain_order_api 2>/dev/null')
+        sudo('killall -9 unichain_cash 2>/dev/null')
+        sudo('killall -9 unichain_cash_api 2>/dev/null')
         sudo('killall -9 rethinkdb 2>/dev/null')
         sudo('killall -9 pip3,pip 2>/dev/null')
-        sudo('rm /usr/local/bin/unichain_order 2>/dev/null')
+        sudo('rm /usr/local/bin/unichain_cash 2>/dev/null')
         sudo('rm -rf /usr/local/lib/python3.4/dist-packages/BigchainDB-* 2>/dev/null')
-        sudo('rm -rf ~/unichain_order 2>/dev/null')
+        sudo('rm -rf ~/unichain_cash 2>/dev/null')
         sudo('rm -rf /data/rethinkdb/* 2>/dev/null')
         sudo('rm -rf /data/localdb_order/{node_info,block,block_header,block_records,vote,vote_header}/* 2>/dev/null')
 
@@ -520,8 +520,8 @@ def init_all_nodes():
 @parallel
 def kill_all_nodes():
     with settings(warn_only=True):
-        sudo('killall -9 unichain_order 2>/dev/null')
-        sudo('killall -9 unichain_order_api 2>/dev/null')
+        sudo('killall -9 unichain_cash 2>/dev/null')
+        sudo('killall -9 unichain_cash_api 2>/dev/null')
         sudo('killall -9 rethinkdb 2>/dev/null')
         sudo('killall -9 pip3,pip 2>/dev/null')
 
@@ -611,7 +611,7 @@ def seek_rethinkdb_join():
 def start_unichain_load_processes_counts(m=1,c=None):
     sudo("echo " + 'm={} c={} &'.format(m, c))
     if m is None and c is None:
-        sudo('screen -d -m unichain_order load &', pty=False,user=env.user)
+        sudo('screen -d -m unichain_cash load &', pty=False,user=env.user)
     flag = ''
     v = None
     if m :
@@ -621,12 +621,12 @@ def start_unichain_load_processes_counts(m=1,c=None):
         flag=flag+'c'
         v = c
     if len(flag) == 1:
-        cmd = 'screen -d -m unichain_order load -{} {} &'.format(flag, v)
+        cmd = 'screen -d -m unichain_cash load -{} {} &'.format(flag, v)
         sudo(cmd, pty=False,user=env.user)
         sudo("echo {}".format(cmd) )
 
     if len(flag) == 2:
-        cmd = 'screen -d -m unichain_order load -m {} -c {} &'.format(m, c)
+        cmd = 'screen -d -m unichain_cash load -m {} -c {} &'.format(m, c)
         sudo(cmd, pty=False,user=env.user)
         sudo("echo {}".format(cmd))
 
@@ -661,8 +661,8 @@ def destroy_all_nodes():
     with settings(warn_only=True):
         sudo('killall -9 bigchaindb 2>/dev/null')
         sudo('killall -9 simplechaindb 2>/dev/null')
-        sudo('killall -9 unichain_order 2>/dev/null')
-        sudo('killall -9 unichain_order_api 2>/dev/null')
+        sudo('killall -9 unichain_cash 2>/dev/null')
+        sudo('killall -9 unichain_cash_api 2>/dev/null')
         sudo('killall -9 rethinkdb 2>/dev/null')
         sudo('killall -9 pip,pip3 2>/dev/null')
 
@@ -674,8 +674,8 @@ def destroy_all_nodes():
         sudo('rm -rf ~/bigchaindb 2>/dev/null')
         sudo('rm /usr/local/bin/simplechaindb 2>/dev/null')
         sudo('rm -rf ~/simplechaindb 2>/dev/null')
-        sudo('rm /usr/local/bin/unichain_order 2>/dev/null')
-        sudo('rm -rf ~/unichain_order 2>/dev/null')
+        sudo('rm /usr/local/bin/unichain_cash 2>/dev/null')
+        sudo('rm -rf ~/unichain_cash 2>/dev/null')
         # sudo('apt-get purge rabbitmq-server')
 
 ################################ Detect server ######################################
@@ -727,26 +727,26 @@ def detect_localdb():
 @task
 def detect_unichain():
     with settings(warn_only=True):
-        print("[INFO]==========detect unichain_order pro begin==========")
-        process_num=run('ps -aux|grep -E "/usr/local/bin/unichain_order -y start|SCREEN -d -m unichain_order -y start"|grep -v grep|wc -l')
+        print("[INFO]==========detect unichain_cash pro begin==========")
+        process_num=run('ps -aux|grep -E "/usr/local/bin/unichain_cash -y start|SCREEN -d -m unichain_cash -y start"|grep -v grep|wc -l')
         if int(process_num) == 0:
-            print("[ERROR]=====process[unichain_order] num detect result: is 0")
+            print("[ERROR]=====process[unichain_cash] num detect result: is 0")
         else:
-            print("[INFO]=====process[unichain_order] num detect result: is %s" % (str(process_num)))
+            print("[INFO]=====process[unichain_cash] num detect result: is %s" % (str(process_num)))
 
 #step: get port & detect port & detect process
 @task
 def detect_unichain_api():
     with settings(warn_only=True):
-        print("[INFO]==========detect unichain_order api begin==========")
-        process_num=run('ps -aux|grep -E "/usr/local/bin/unichain_order_api start|SCREEN -d -m unichain_order_api start"|grep -v grep|wc -l')
+        print("[INFO]==========detect unichain_cash api begin==========")
+        process_num=run('ps -aux|grep -E "/usr/local/bin/unichain_cash_api start|SCREEN -d -m unichain_cash_api start"|grep -v grep|wc -l')
         if int(process_num) == 0:
-            print("[ERROR]=====process[unichain_order_api] num detect result: is 0")
+            print("[ERROR]=====process[unichain_cash_api] num detect result: is 0")
         else:
-            print("[INFO]=====process[unichain_order_api] num detect result: is %s" % (str(process_num)))
+            print("[INFO]=====process[unichain_cash_api] num detect result: is %s" % (str(process_num)))
 
-        unichain_conf = "/home/%s/.unichain_order" % (env.user)
-        unichain_conf_str=run('cat ~/.unichain_order')
+        unichain_conf = "/home/%s/.unichain_cash" % (env.user)
+        unichain_conf_str=run('cat ~/.unichain_cash')
         #with open(unichain_conf, "a") as r:
         #    unichain_conf_str=r.readline()
         unichain_conf_str.replace("null", "")
@@ -783,7 +783,7 @@ def clear_unichain_data(flag='rethinkdb'):
 def test_localdb_rethinkdb(args="-irbvt",filename="validate_localdb_format.py",datetimeformat="%Y%m%d%H"):
     with settings(warn_only=True):
         user = env.user
-        with cd("~/unichain_order/ul_tests/localdb"):
+        with cd("~/unichain_cash/ul_tests/localdb"):
             filename_prefix = filename.split(".")[0]
             if run("test -d test_result").failed:
                 sudo("mkdir test_result", user=env.user, group=env.user)
@@ -807,7 +807,7 @@ def bak_collected_conf(base):
 @parallel
 def bak_unichain_conf(base):
     with settings(warn_only=True):
-        get('~/.unichain_order', '%s/unichain_order/unichain_order_%s_%s' % (base, env.user, env.host), use_sudo=True)
+        get('~/.unichain_cash', '%s/unichain_cash/unichain_cash_%s_%s' % (base, env.user, env.host), use_sudo=True)
 
 ################################ Docker related ######################################
 # Install docker
