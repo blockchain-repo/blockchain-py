@@ -24,6 +24,10 @@ services:
       - "30:3000"
     environment:
       INFLUXDB_HOST: "influxdb"
+    volumes:
+      # - /grafana/grafana.ini:/etc/grafana/grafana.ini
+      - /grafana/defaults.ini:/usr/share/grafana/conf/defaults.ini
+      # - /grafana/custom.ini:/usr/share/grafana/conf/custom.ini
 
   statsd:
     image: bigchaindb/docker-telegraf-statsd
