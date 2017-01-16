@@ -44,4 +44,5 @@ if [ $unichain != false ]
 then
     echo -e "[INFO]=========start unichain[$hostandport]...=========="
     fab set_node:$hostandport,password=$password start_unichain
+    fab set_node:$hostandport,password=$password start_unichain_api
 fi

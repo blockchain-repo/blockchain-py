@@ -35,6 +35,7 @@ hostandport=${host}":22"
 if [ $unichain != false ]
 then
     echo -e "[INFO]==========stop unichain[$hostandport]...=========="
+    fab set_node:$hostandport,password=$password stop_unichain_api
     fab set_node:$hostandport,password=$password stop_unichain
 fi
 

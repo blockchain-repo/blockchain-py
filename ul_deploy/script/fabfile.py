@@ -247,8 +247,8 @@ def install_localdb():
     # leveldb & plyvel install
     with settings(warn_only=True):
         user_group = env.user
-        sudo("echo 'leveldb & plyvel install' ")
-        sudo('pip3 install leveldb==0.194')
+        sudo("echo 'plyvel install' ")
+        # sudo('pip3 install leveldb==0.194')
         sudo('apt-get install libleveldb1 libleveldb-dev libsnappy1 libsnappy-dev')
         sudo('apt-get -y -f install')
         sudo('pip3 install plyvel==0.9')
