@@ -12,6 +12,11 @@ unichain_conf_name=
 rethinkdb=false
 unichain=false
 
+if [ $# -lt 3 ] ; then
+    echo "host, password and conf_name_num should not be empty"
+    exit 1
+fi
+
 while getopts "h:p:n:ru" arg
 do
     case $arg in
@@ -43,6 +48,19 @@ do
     esac
 done
 
+# host, password and conf_name_num should not be empty
+if [ "x${host}" == "x" -o "x${password}" == "x" -o "x${conf_name_num}" == "x" ] ; then
+    echo "host, password and conf_name_num should not be empty"
+    exit 1
+fi
+
+# unichain_conf_name exist ?
+_unichain_conf_file="../conf/unichain_confiles/"${unichain_conf_name}
+if [ ! -f "${_unichain_conf_file}" ] ; then
+    echo "$_unichain_conf_file not eixst"
+    exit 1
+fi
+
 hostandport=${host}":22"
 
 # 2. install software
@@ -73,7 +91,7 @@ CUR_INSTALL_PATH=$(cd "$(dirname "$0")"; pwd)
 rm -f ${CUR_INSTALL_PATH}/unichain-archive.tar.gz 2>/dev/null
 
 echo -e "[INFO]==========install unichain=========="
-######################### install from local tar start #########################
+# install from local tar start
 cd ../../
 tar -cf unichain-archive.tar *
 gzip unichain-archive.tar
@@ -81,7 +99,7 @@ mv unichain-archive.tar.gz ul_deploy/script/
 cd -
 fab set_node:$hostandport,password=$password install_unichain_from_git_archive
 rm -f ${CUR_INSTALL_PATH}/unichain-archive.tar.gz 2>/dev/null
-######################### install from local tar end ############################
+# install from local tar end
 
 # configure unichain config
 fab set_node:$hostandport,password=$password send_confile:$unichain_conf_name
