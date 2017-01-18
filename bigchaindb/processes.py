@@ -6,25 +6,27 @@ from bigchaindb.pipelines import vote, block, election, stale
 from bigchaindb.web import server
 
 from extend.localdb.pipelines import local_block, local_vote
+app_setup_name = bigchaindb.config['app']['setup_name']
 
 logger = logging.getLogger(__name__)
 
 BANNER = """
 ****************************************************************************
 *                                                                          *
-*   Initialization complete. BigchainDB Server is ready and waiting.       *
-*   You can send HTTP requests via the HTTP API documented in the          *
-*   BigchainDB Server docs at:                                             *
-*    https://bigchaindb.com/http-api                                       *
-*                                                                          *
-*   Listening to client connections on: {:<15}                    *
+*   Initialization complete. {} Server is ready and waiting.
+*   Listening to client connections on: {:<15}
 *                                                                          *
 ****************************************************************************
 """
 
+# *   You can send HTTP requests via the HTTP API documented in the          *
+# *   BigchainDB Server docs at:                                             *
+# *    https://bigchaindb.com/http-api                                       *
+# *                                                                          *
+
 
 def start():
-    logger.info('Initializing BigchainDB...')
+    logger.info('Initializing {}...'.format(app_setup_name))
 
     # start the processes
     logger.info('Starting block')
@@ -50,7 +52,7 @@ def start():
     local_vote.start()
 
     # start message
-    logger.info(BANNER.format(bigchaindb.config['server']['bind']))
+    logger.info(BANNER.format(app_setup_name, bigchaindb.config['server']['bind']))
 
 def start_api():
     # start the web api
@@ -59,4 +61,4 @@ def start_api():
     p_webapi.start()
 
     # start message
-    logger.info(BANNER.format(bigchaindb.config['server']['bind']))
+    logger.info(BANNER.format(app_setup_name, bigchaindb.config['server']['bind']))

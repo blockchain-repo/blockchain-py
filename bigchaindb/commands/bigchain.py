@@ -17,26 +17,29 @@ from bigchaindb.common.exceptions import (StartupError,
                                           DatabaseAlreadyExists,
                                           KeypairNotFoundException)
 import rethinkdb as r
-
-import bigchaindb
 import bigchaindb.config_utils
+import time
+import random
+
 from bigchaindb.models import Transaction
 from bigchaindb.util import ProcessGroup
 from bigchaindb import db
 from bigchaindb.commands import utils
 from bigchaindb import processes
+from bigchaindb.logger import *
 
 from bigchaindb.monitor import Monitor
 monitor = Monitor()
 
-import time
-import random
-from bigchaindb.logger import *
-#import logging
-logger = logging.getLogger("unichain")
+app_service_name = bigchaindb.config['app']['service_name']
+app_setup_name = bigchaindb.config['app']['setup_name']
+
+logger = logging.getLogger(app_service_name)
 # We need this because `input` always prints on stdout, while it should print
 # to stderr. It's a very old bug, check it out here:
 # - https://bugs.python.org/issue1927
+
+
 def input(prompt):
     print(prompt, end='', file=sys.stderr)
     return builtins.input()
@@ -138,7 +141,7 @@ def run_configure(args, skip_if_exists=False):
 def run_export_my_pubkey(args):
     """Export this node's public key to standard output
     """
-    logger.debug('unichain args = {}'.format(args))
+    logger.debug('{} args = {}'.format(app_service_name, args))
     bigchaindb.config_utils.autoconfigure(filename=args.config, force=True)
     pubkey = bigchaindb.config['keypair']['public']
     if pubkey is not None:
@@ -154,7 +157,7 @@ def run_export_my_pubkey(args):
 def run_export_my_ip(args):
     """Export this node's api_endpoint ip to standard output
     """
-    logger.debug('unichain args = {}'.format(args))
+    logger.debug('{} args = {}'.format(app_service_name, args))
     bigchaindb.config_utils.autoconfigure(filename=args.config, force=True)
     from urllib.parse import urlparse
     api_endpoint = urlparse(bigchaindb.config['api_endpoint'])
@@ -190,7 +193,7 @@ def run_drop(args):
 
 def run_start(args):
     """Start the processes to run the node"""
-    logger.info('BigchainDB Version {}'.format(bigchaindb.__version__))
+    logger.info('{} Version {}'.format(app_setup_name, bigchaindb.__version__))
 
     bigchaindb.config_utils.autoconfigure(filename=args.config, force=True)
 
@@ -216,12 +219,12 @@ def run_start(args):
     except DatabaseAlreadyExists:
         pass
     except KeypairNotFoundException:
-        sys.exit("Can't start BigchainDB, no keypair found. "
-                 'Did you run `unichain configure`?')
+        sys.exit("Can't start {}, no keypair found. "
+                 'Did you run `{} configure`?'.format(app_setup_name, app_service_name))
 
     db.init_databaseData()
 
-    logger.info('Starting BigchainDB main process with public key %s',
+    logger.info('Starting {} main process with public key %s'.format(app_setup_name),
                 bigchaindb.config['keypair']['public'])
     processes.start()
 
@@ -283,7 +286,7 @@ def run_set_replicas(args):
 
 def create_parser():
     parser = argparse.ArgumentParser(
-        description='Control your BigchainDB node.',
+        description='Control your {} node.'.format(app_setup_name),
         parents=[utils.base_parser])
 
     parser.add_argument('--dev-start-rethinkdb',
@@ -327,7 +330,7 @@ def create_parser():
 
     # parser for starting BigchainDB
     subparsers.add_parser('start',
-                          help='Start BigchainDB')
+                          help='Start {}'.format(app_setup_name))
 
     # parser for configuring the number of shards
     sharding_parser = subparsers.add_parser('set-shards',

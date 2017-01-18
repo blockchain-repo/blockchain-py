@@ -1,26 +1,27 @@
 
 import os
-import sys
 import datetime
-import logging
 import logging.config
+import bigchaindb
+app_service_name = bigchaindb.config['app']['service_name']
+app_setup_name = bigchaindb.config['app']['setup_name']
 
 ####log configure####
 BASE_DIR = os.path.expandvars('$HOME')
-LOG_DIR = os.path.join(BASE_DIR, "unichain_log")
+LOG_DIR = os.path.join(BASE_DIR, "{}_log".format(app_service_name))
 if not os.path.exists(LOG_DIR):
     os.makedirs(LOG_DIR) 
-PRO_LOG_FILE = "unichain.log." + datetime.datetime.now().strftime("%Y%m%d%H%M%S")
+PRO_LOG_FILE = "{}.log.{}".format(app_service_name, datetime.datetime.now().strftime("%Y%m%d%H%M%S"))
 
 LOG_CONF = {
     "version": 1,
     "disable_existing_loggers": False,
     "formatters": {
         "simple": {
-            'format': '%(asctime)s [%(name)s:%(lineno)d] [%(levelname)s]- %(message)s'
+            'format': '%(asctime)s [%(name)s:%(lineno)d] [%(levelname)s] %(message)s'
         },
         'standard': {
-            'format': '%(asctime)s [%(threadName)s:%(thread)d] [%(name)s:%(lineno)d] [%(levelname)s]- %(message)s'
+            'format': '%(asctime)s [%(threadName)s:%(thread)d] [%(name)s:%(lineno)d] [%(levelname)s] %(message)s'
         },
     },
     "handlers": {

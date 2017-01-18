@@ -25,6 +25,7 @@ import os
 
 from hostlist import public_hosts
 from monitor_server import gMonitorServer
+from multi_apps_conf import app_config
 
 unichain_confiles = os.getcwd()
 
@@ -35,7 +36,7 @@ if os.path.isfile('keypairs.py'):
 os.chdir(unichain_confiles)
 
 # Parse the command-line arguments
-desc = 'Transform a directory of default BigchainDB config files '
+desc = 'Transform a directory of default {} config files '.format(app_config['setup_name'])
 desc += 'into config files for a cluster'
 parser = argparse.ArgumentParser(description=desc)
 parser.add_argument('dir',
@@ -111,18 +112,18 @@ for i, filename in enumerate(conf_files):
         conf_dict['keyring'] = keyring
         # Allow incoming server traffic from any IP address
         # to port 9984
-        conf_dict['server']['bind'] = '0.0.0.0:9984'
+        conf_dict['server']['bind'] = '0.0.0.0:{}'.format(app_config['server_port'])
         # Set the api_endpoint
         conf_dict['api_endpoint'] = 'http://' + public_hosts[i] + \
-                                    ':9984/api/v1'
+                                    ':{}/api/v1'.format(app_config['server_port'])
         # Set Statsd host
         conf_dict['statsd']['host'] = gMonitorServer
 
         # localdb restore app
-        conf_dict['restore_server']['bind'] = '0.0.0.0:9986'
+        conf_dict['restore_server']['bind'] = '0.0.0.0:{}'.format(app_config['restore_server_port'])
         conf_dict['restore_server']['compress'] = True
         conf_dict['restore_endpoint'] = 'http://' + public_hosts[i] +\
-                                        ':9986/api/v1/collect'
+                                        ':{}/api/v1/collect'.format(app_config['restore_server_port'])
 
     # Delete the config file
     # os.remove(file_path)

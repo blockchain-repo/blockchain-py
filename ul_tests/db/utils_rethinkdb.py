@@ -10,7 +10,7 @@ class RethinkdbUtils():
         self.read_mode = 'majority'
         self.durability = 'soft'
         self.bigchain = Bigchain()
-        self.db = 'bigchain'
+        self.db = bigchaindb.config['database']['name']
         self.tables = ['bigchain','votes','backlog']
         self.prefix_index = None
         self.index = "timestamp"

@@ -34,7 +34,7 @@ class LocalBlock(object):
             if not os.path.exists(parent_dir):
                 logging.error("localdb dirs is not exist!")
                 raise IOError("localdb dirs is not exist, you should create dirs {} for "
-                              "localdb grant acess for current user!".format(parent_dir))
+                              "localdb and grant acess for current user!".format(parent_dir))
             block_size = database['block_size']
             write_buffer_size = database['write_buffer_size']
             max_open_files = database['max_open_files']
@@ -87,7 +87,7 @@ class LocalVote(object):
             if not os.path.exists(parent_dir):
                 logging.error("localdb dirs is not exist!")
                 raise IOError("localdb dirs is not exist, you should create dirs {} for "
-                              "localdb grant acess for current user!".format(parent_dir))
+                              "localdb and grant acess for current user!".format(parent_dir))
             block_size = database['block_size']
             write_buffer_size = database['write_buffer_size']
             max_open_files = database['max_open_files']

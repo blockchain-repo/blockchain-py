@@ -8,6 +8,7 @@ from extend.localdb import config
 
 logger = logging.getLogger(__file__)
 
+
 class LocaldbUtils():
     """To test the localdb
     """
@@ -221,7 +222,6 @@ class LocaldbUtils():
         else:
             return None
 
-
     def __convert_to_obj(self,json_str_bytes):
         """Convert the input[must be (b`K,b`V) format]
 
@@ -244,7 +244,6 @@ class LocaldbUtils():
             except Exception as convet_ex:
                 is_obj = False
                 return key,bytes(val).decode('utf-8')
-
 
     def get_records_count(self,conn):
         """Get the localdb records count
@@ -274,7 +273,6 @@ class LocaldbUtils():
             raw_iterator.next()
 
         return count
-
 
     def get_all_records(self,conn,show_only=False,limit=None):
         if not conn:

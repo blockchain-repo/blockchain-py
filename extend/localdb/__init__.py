@@ -1,9 +1,15 @@
 
+
+from bigchaindb import config
 # localdb base config
+
+suffix = config['app']['service_name']
+local_db_root_path = '/data/localdb_{}/'.format(suffix)
 
 config = {
     'database': {
-        'path': '/data/localdb/',  # path should be exist,the root dir for localdb
+        # if have multi apps, you must ensure the root path unique
+        'path': local_db_root_path,  # path should be exist,the root dir for localdb
         'tables': ['node_info', 'block', 'block_header', 'block_records', 'vote', 'vote_header'],  # the localdb dirs
         'block_size': None,  # block size (in bytes)
         'write_buffer_size': 512 << 20,  # (int) – size of the write buffer (in bytes) 512MB

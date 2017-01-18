@@ -15,7 +15,7 @@ info_views = Blueprint('restore_info_views', __name__)
 @info_views.route('/')
 def home():
     return flask.jsonify({
-        'software': 'unichain restore',
+        'software': '{} restore'.format(bigchaindb.config['app']['service_name']),
         'public_key': bigchaindb.config['keypair']['public'],
         'keyring': bigchaindb.config['keyring'],
         'restore_endpoint': bigchaindb.config['restore_endpoint']

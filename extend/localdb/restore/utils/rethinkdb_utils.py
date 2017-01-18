@@ -1,5 +1,5 @@
 
-import time
+
 import logging
 
 import bigchaindb
@@ -7,7 +7,6 @@ import rethinkdb as r
 import bigchaindb.config_utils
 from bigchaindb import config_utils
 from extend.localdb.restore.rethinkdb_utils import utils as rethinkdb_utils
-from bigchaindb.common.exceptions import *
 
 logger = logging.getLogger(__name__)
 
@@ -67,20 +66,20 @@ class RethinkdbUtils():
             dbname = self.dbname
         return rethinkdb_utils.get_last_before_block_id(dbname)
 
-if __name__=="__main__":
-    rq = RethinkdbUtils()
-    dbname = rq.dbname
-    exists_db = rq.exists_database('bigchain')
-    print("exists db {} {}".format(dbname, exists_db))
-    records_count = rq.get_count(table='bigchain', dbname=dbname)
-    print("records_count={}".format(records_count))
-    last_before_block_id = rq.get_last_before_block_id(dbname=dbname)
-    print("last_before_block_id={}".format(last_before_block_id))
-    # rq.drop()
-    # print("host={},port={},dbname={}".format(rq.host, rq.port, rq.dbname))
-    # rq.clear(dbname=dbname)
-    exists_db = rethinkdb_utils.exists_database(dbname)
-    if not exists_db:
-        rq.create_database()
-
-    exit("init success")
+# if __name__=="__main__":
+#     rq = RethinkdbUtils()
+#     dbname = rq.dbname
+#     exists_db = rq.exists_database('bigchain')
+#     print("exists db {} {}".format(dbname, exists_db))
+#     records_count = rq.get_count(table='bigchain', dbname=dbname)
+#     print("records_count={}".format(records_count))
+#     last_before_block_id = rq.get_last_before_block_id(dbname=dbname)
+#     print("last_before_block_id={}".format(last_before_block_id))
+#     # rq.drop()
+#     # print("host={},port={},dbname={}".format(rq.host, rq.port, rq.dbname))
+#     # rq.clear(dbname=dbname)
+#     exists_db = rethinkdb_utils.exists_database(dbname)
+#     if not exists_db:
+#         rq.create_database()
+#
+#     exit("init success")

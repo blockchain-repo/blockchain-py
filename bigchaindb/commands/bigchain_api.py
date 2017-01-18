@@ -3,40 +3,29 @@ which is one of the commands in the BigchainDB
 command-line interface.
 """
 
-import os
-import sys
 import argparse
 import copy
 import json
 import builtins
 
-import logstats
-
-from bigchaindb.common import crypto
-from bigchaindb.common.exceptions import (StartupError,
-                                          DatabaseAlreadyExists,
-                                          KeypairNotFoundException)
-import rethinkdb as r
-
-import bigchaindb
 import bigchaindb.config_utils
-from bigchaindb.models import Transaction
-from bigchaindb.util import ProcessGroup
-from bigchaindb import db
 from bigchaindb.commands import utils
 from bigchaindb import processes
 
 from bigchaindb.monitor import Monitor
 monitor = Monitor()
-
-import time
-import random
 from bigchaindb.logger_api import *
-#import logging
-logger = logging.getLogger("unichain_api")
+
+app_service_name = bigchaindb.config['app']['service_name']
+app_setup_name = bigchaindb.config['app']['setup_name']
+
+logger = logging.getLogger("{}_api".format(app_service_name))
+
 # We need this because `input` always prints on stdout, while it should print
 # to stderr. It's a very old bug, check it out here:
 # - https://bugs.python.org/issue1927
+
+
 def input(prompt):
     print(prompt, end='', file=sys.stderr)
     return builtins.input()
@@ -56,19 +45,19 @@ def run_show_config(args):
 
 def run_start(args):
     """ start api server"""
-    logger.info('BigchainDB Version {}'.format(bigchaindb.__version__))
+    logger.info('{} Version {}'.format(app_setup_name, bigchaindb.__version__))
     logger.info('start api service....')
     processes.start_api()
 
 def create_parser():
     parser = argparse.ArgumentParser(
-        description='Control your BigchainDB node.',
+        description='Control your {} node.'.format(app_setup_name),
         parents=[utils.base_parser])
     subparsers = parser.add_subparsers(title='Commands',
                                        dest='command')
     # parser for starting BigchainDB
     subparsers.add_parser('start',
-                          help='Start Unichain API service')
+                          help='Start {} API service'.format(app_setup_name))
     return parser
 
 def main():

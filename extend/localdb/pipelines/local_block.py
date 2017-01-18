@@ -14,6 +14,8 @@ import datetime
 
 import logging
 
+db_name = bigchaindb.config['database']['name']
+
 logger = logging.getLogger(__name__)
 
 
@@ -128,7 +130,7 @@ def init_localdb(current_block_num, conn_block, conn_block_header, conn_block_re
     node_pubkey = bigchaindb.config['keypair']['public']
     node_prikey = bigchaindb.config['keypair']['private']
     node_prikey_encode = len(node_prikey) * '*'
-    logger.info('localdb/node_info init Node info: [host={},public_key={},private_key={}]'
+    logger.info('node_info init Node info: [host={},public_key={},private_key={}]'
                 .format(node_host,node_pubkey,node_prikey_encode))
 
     # insert or update this node info and close the conn after write
@@ -147,7 +149,7 @@ def init_localdb(current_block_num, conn_block, conn_block_header, conn_block_re
     # genesis block write
     genesis_block_id = ldb.get_withdefault(conn_block_header, 'genesis_block_id', '0')
     if current_block_num == 0:
-        genesis_block = r.db('bigchain').table('bigchain').order_by(r.asc(r.row['block']['timestamp'])).limit(1).run(
+        genesis_block = r.db(db_name).table('bigchain').order_by(r.asc(r.row['block']['timestamp'])).limit(1).run(
             get_conn())[0]
         current_block_txs_num = len(genesis_block['block']['transactions'])
         genesis_block_id = genesis_block['id']
@@ -178,9 +180,9 @@ def init_localdb(current_block_num, conn_block, conn_block_header, conn_block_re
 
 def initial(current_block_num, current_block_timestamp):
 
-    records_count = r.db('bigchain').table('bigchain').count().run(get_conn())
+    records_count = r.db(db_name).table('bigchain').count().run(get_conn())
     records_count = records_count - current_block_num
-    return records_count, r.db('bigchain').table('bigchain').max(index='block_timestamp').default(None).run(get_conn())
+    return records_count, r.db(db_name).table('bigchain').max(index='block_timestamp').default(None).run(get_conn())
 
 def get_changefeed(current_block_num, current_block_timestamp):
     """Create and return the changefeed for the table bigchain."""

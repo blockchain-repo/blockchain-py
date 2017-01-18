@@ -77,6 +77,8 @@ class ChangeFeed(Node):
             else:
                 self.round_recover_limit = 1000
 
+            self.pre_round = int(self.pre_round + 1)
+
             while True:
                 if records_count == 0:
                     break

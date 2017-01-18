@@ -5,7 +5,12 @@ For full docs visit https://bigchaindb.readthedocs.org
 
 """
 from setuptools import setup, find_packages
+import bigchaindb
+app_service_name = bigchaindb.config['app']['service_name']
+app_setup_name = bigchaindb.config['app']['setup_name']
 
+if not app_service_name or not app_setup_name:
+    exit('You must specify the app service name, and setup name first!')
 
 # get the version
 version = {}
@@ -70,7 +75,7 @@ install_requires = [
 ]
 
 setup(
-    name='BigchainDB',
+    name='{}'.format(app_setup_name),
     version=version['__version__'],
     description='BigchainDB: A Scalable Blockchain Database',
     long_description=__doc__,
@@ -99,9 +104,9 @@ setup(
 
     entry_points={
         'console_scripts': [
-            'unichain=bigchaindb.commands.bigchain:main',
-            'unichain_api=bigchaindb.commands.bigchain_api:main',
-            'unichain_restore=extend.localdb.restore.api.restore_api:main'
+            '{}=bigchaindb.commands.bigchain:main'.format(app_service_name),
+            '{}_api=bigchaindb.commands.bigchain_api:main'.format(app_service_name),
+            '{}_restore=extend.localdb.restore.api.restore_api:main'.format(app_service_name)
         ],
     },
     install_requires=install_requires,
