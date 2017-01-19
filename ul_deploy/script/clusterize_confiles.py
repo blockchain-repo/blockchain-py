@@ -125,6 +125,9 @@ for i, filename in enumerate(conf_files):
         conf_dict['restore_endpoint'] = 'http://' + public_hosts[i] +\
                                         ':{}/api/v1/collect'.format(app_config['restore_server_port'])
 
+        # multi apps configure
+        conf_dict['app']['service_name'] = '{}'.format(app_config['service_name'])
+        conf_dict['app']['setup_name'] = '{}'.format(app_config['setup_name'])
     # Delete the config file
     # os.remove(file_path)
 
