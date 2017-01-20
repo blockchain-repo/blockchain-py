@@ -2,7 +2,7 @@
 which is one of the commands in the BigchainDB
 command-line interface.
 """
-
+import sys
 import argparse
 import copy
 import json

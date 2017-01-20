@@ -10,7 +10,7 @@ from __future__ import with_statement, unicode_literals
 from os import environ  # a mapping (like a dict)
 import sys
 
-from fabric.api import sudo,cd, env, hosts
+from fabric.api import sudo,cd, env, hosts, local
 from fabric.api import task, parallel
 from fabric.contrib.files import sed
 from fabric.operations import run, put, get
@@ -23,6 +23,14 @@ from hostlist import public_dns_names,public_hosts,public_pwds,public_host_pwds
 
 env['passwords'] = public_host_pwds
 env['hosts']=env['passwords'].keys()
+
+from ul_deploy.script.multi_apps_conf import app_config
+
+_server_port = app_config['server_port']
+_restore_server_port = app_config['restore_server_port']
+_service_name = app_config['service_name']
+_setup_name = app_config['setup_name']
+
 
 ################################ Check envl  ######################################
 #step:check port&process&data,conf path
@@ -64,16 +72,21 @@ def check_localdb():
 
 #step:check port&process&data,conf path
 @task
-def check_unichain():
+def check_unichain(service_name=None, server_port=None):
+    if not service_name:
+        service_name = _service_name
     with settings(warn_only=True):
-        print("[INFO]==========check unichain pro begin==========")
-        process_num=run('ps -aux|grep -E "/usr/local/bin/unichain -y start|SCREEN -d -m unichain -y start"|grep -v grep|wc -l')
+        print("[INFO]==========check {} pro begin==========".format(service_name))
+        process_num=run('ps -aux|grep -E "/usr/local/bin/{} -y start|SCREEN -d -m {} -y start"|grep -v grep|wc -l'
+                        .format(service_name, service_name))
         if process_num == 0:
-            print("[INFO]=====process[unichain] num check result: is 0")
+            print("[INFO]=====process[{}] num check result: is 0".format(service_name))
         else:
-            print("[ERROR]=====process[unichain] num check result: is %s" % (str(process_num)))
+            print("[ERROR]=====process[{}] num check result: is {}".format(service_name, process_num))
         ##TODO:confirm port in conf
-        api_port=9984
+        if not server_port:
+            server_port = _server_port
+        api_port=server_port
         check_api_port=sudo('netstat -nlap|grep "LISTEN"|awk -v v_port=":%s" \'{if(v_port==$4) print $0}\'' % (api_port))
         if not check_api_port:
             print("[INFO]=====api_port[%s] detect result: is not used!" % (api_port))
@@ -82,14 +95,17 @@ def check_unichain():
 
 #step:check port&process&data,conf path
 @task
-def check_unichain_api():
+def check_unichain_api(service_name=None):
     with settings(warn_only=True):
-        print("[INFO]==========check unichain api begin==========")
-        process_num=run('ps -aux|grep -E "/usr/local/bin/unichain_api start|SCREEN -d -m unichain_api start"|grep -v grep|wc -l')
+        if not service_name:
+           service_name = _service_name
+        print("[INFO]==========check {} api begin==========".format(service_name))
+        process_num=run('ps -aux|grep -E "/usr/local/bin/{}_api start|SCREEN -d -m {}_api start"|grep -v grep|wc -l'
+                        .format(service_name, service_name))
         if process_num == 0:
-            print("[INFO]=====process[unichain_api] num check result: is 0")
+            print("[INFO]=====process[{}_api] num check result: is 0".format(service_name))
         else:
-            print("[ERROR]=====process[unichain_api] num check result: is %s" % (str(process_num)))
+            print("[ERROR]=====process[{}_api] num check result: is {}".format(service_name, process_num))
 ################################ First Install  ######################################
 # DON'T PUT @parallel
 @task
@@ -131,6 +147,12 @@ def install_collectd():
     with settings(warn_only=True):
         sudo("echo 'collectd install' ")
         sudo("echo 'deb http://http.debian.net/debian wheezy-backports-sloppy main contrib non-free' | sudo tee /etc/apt/sources.list.d/backports.list")
+        # fixed the GPG Error
+        sudo("gpg --keyserver pgpkeys.mit.edu --recv-key  8B48AD6246925553")
+        sudo("gpg -a --export 8B48AD6246925553 | sudo apt-key add -")
+        sudo("gpg --keyserver pgpkeys.mit.edu --recv-key  7638D0442B90D010")
+        sudo("gpg -a --export 7638D0442B90D010 | sudo apt-key add -")
+
         sudo("apt-get update")
         sudo("apt-get install -y --force-yes -t wheezy-backports-sloppy collectd")
 
@@ -200,7 +222,7 @@ def configure_rethinkdb():
             use_sudo=True)
         #update by  mayx, op at start_all
         # finally restart instance  
-        #sudo('/etc/init.d/rethinkdb restart')
+        sudo('/etc/init.d/rethinkdb restart')
 
 
 # Send the specified configuration file to
@@ -209,31 +231,35 @@ def configure_rethinkdb():
 # Use in conjunction with set_host()
 # No @parallel
 @task
-def send_confile(confile):
+def send_confile(confile, service_name=None):
+    if not service_name:
+        service_name = _service_name
     put('../conf/unichain_confiles/' + confile, 'tempfile')
-    run('mv tempfile ~/.unichain')
-    print('For this node, unichain show-config says:')
-    run('unichain show-config')
+    run('mv tempfile ~/.{}'.format(service_name))
+    print('For this node, {} show-config says:'.format(service_name))
+    run('{} show-config'.format(service_name))
 
 
 # Install BigchainDB from a Git archive file
 # named unichain-archive.tar.gz
 @task
 @parallel
-def install_unichain_from_git_archive():
+def install_unichain_from_git_archive(service_name=None):
+    if not service_name:
+        service_name = _service_name
     put('unichain-archive.tar.gz')
     user_group = env.user
     with settings(warn_only=True):
-        if run("test -d ./unichain").failed:
-            run("echo 'create unichain directory' ")
-            sudo("mkdir -p ./unichain",user=env.user,group=env.user)
+        if run("test -d ./{}".format(service_name)).failed:
+            run("echo 'create {} directory' ".format(service_name))
+            sudo("mkdir -p ./{}".format(service_name), user=env.user, group=env.user)
             #sudo("chown -R " + user_group + ':' + user_group + ' ~/')
         else:
-            run("echo 'remove old unichain directory' ")
-            sudo("rm -rf ./unichain/*")
-    run('tar xvfz unichain-archive.tar.gz -C ./unichain >/dev/null 2>&1')
-    sudo('pip3 install -i http://pypi.douban.com/simple --upgrade setuptools')
-    with cd('./unichain'):
+            run("echo 'remove old {} directory' ".format(service_name))
+            sudo("rm -rf ./{}/*".format(service_name))
+    run('tar xvfz unichain-archive.tar.gz -C ./{} >/dev/null 2>&1'.format(service_name))
+    sudo('pip3 install -i https://pypi.doubanio.com/simple --upgrade setuptools')
+    with cd('./{}'.format(service_name)):
         sudo('python3 setup.py install')
         # sudo('pip3 install .')
     sudo('rm -f ../unichain-archive.tar.gz')
@@ -256,13 +282,15 @@ def install_localdb():
 
 @task
 @parallel
-def init_localdb():
+def init_localdb(service_name=None):
+    if not service_name:
+        service_name = _service_name
     with settings(warn_only=True):
         user_group = env.user
-        sudo('rm -rf /data/localdb/*')
-        sudo("echo init localdb")
-        sudo("mkdir -p /data/localdb/{node_info,block,block_header,block_records,vote,vote_header}")
-        sudo("chown -R " + user_group + ':' + user_group + ' /data/localdb')
+        sudo('rm -rf /data/localdb_{}/*'.format(service_name))
+        sudo("echo init localdb dir")
+        sudo("mkdir -p /data/localdb_{}".format(service_name))
+        sudo("chown -R " + user_group + ':' + user_group + ' /data/localdb_{}'.format(service_name))
 
 
 # @task
@@ -282,15 +310,23 @@ def init_localdb():
 # uninstall old unichain
 @task
 @parallel
-def uninstall_unichain():
+def uninstall_unichain(service_name=None, setup_name=None):
     with settings(warn_only=True):
-        run('echo "[INFO]==========uninstall unichain-pro=========="')
-        sudo('killall -9 unichain 2>/dev/null')
-        sudo('killall -9 unichain_api 2>/dev/null')
+        if not service_name:
+            service_name = _service_name
+            setup_name = _setup_name
+        run('echo "[INFO]==========uninstall {}-pro=========="'.format(service_name))
+        sudo('rm ~/.{}'.format(service_name))
+        sudo('killall -9 {} 2>/dev/null'.format(service_name))
+        sudo('killall -9 {}_api 2>/dev/null'.format(service_name))
         sudo('killall -9 pip,pip3 2>/dev/null')
-        sudo('rm /usr/local/bin/unichain 2>/dev/null')
-        sudo('rm -rf /usr/local/lib/python3.4/dist-packages/BigchainDB-* 2>/dev/null')
-        sudo('rm -rf ~/unichain 2>/dev/null')
+        sudo('rm /usr/local/bin/{} 2>/dev/null'.format(service_name))
+        sudo('rm -rf /usr/local/lib/python3.4/dist-packages/{}* 2>/dev/null'.format(setup_name))
+        sudo('rm -rf ~/{} 2>/dev/null'.format(service_name))
+        sudo('pip3 uninstall plyvel')
+        sudo('apt-get remove --purge libleveldb1 libleveldb-dev')
+        sudo('apt-get remove --purge rethinkdb')
+        sudo('apt-get remove --purge collectd')
 
 
 # Initialize BigchainDB
@@ -300,95 +336,125 @@ def uninstall_unichain():
 # task run on only one node. See http://tinyurl.com/h9qqf3t )
 @task
 @hosts(public_dns_names[0])
-def init_unichain():
+def init_unichain(service_name=None):
     with settings(warn_only=True):
-        run('unichain -y drop',pty=False)
-        run('unichain init', pty=False)
-        set_shards()
-        set_replicas()
+        if not service_name:
+            service_name = _service_name
+        run('{} -y drop'.format(service_name),pty=False)
+        run('{} init'.format(service_name), pty=False)
+        # set_shards()
+        # set_replicas()
 
 
 # Configure BigchainDB
 @task
 @parallel
-def configure_unichain():
-    run('unichain -y configure', pty=False)
+def configure_unichain(service_name=None):
+    if not service_name:
+        service_name = _service_name
+    run('{} -y configure'.format(service_name), pty=False)
+
+
+@task
+def local_configure_unichain(conpath, service_name=None):
+    if not service_name:
+        service_name = _service_name
+    local('{} -y -c {} configure'.format(service_name, conpath))
 
 
 @task
 @hosts(public_dns_names[0])
-def drop_unichain():
+def drop_unichain(service_name=None):
     with settings(warn_only=True):
-        run('unichain -y drop', pty=False)
+        if not service_name:
+            service_name = _service_name
+        run('{} -y drop'.format(service_name), pty=False)
 
 
 # Set the number of shards (tables[bigchain,votes,backlog])
 @task
 @hosts(public_dns_names[0])
-def set_shards(num_shards=len(public_dns_names)):
+def set_shards(num_shards=len(public_dns_names), service_name=None):
     # num_shards = len(public_hosts)
-    run('unichain set-shards {}'.format(num_shards))
+    if not service_name:
+        service_name = _service_name
+    run('{} set-shards {}'.format(service_name, num_shards))
     run("echo set shards = {}".format(num_shards))
 
 
 # Set the number of replicas (tables[bigchain,votes,backlog])
 @task
 @hosts(public_dns_names[0])
-def set_replicas(num_replicas=(int(len(public_dns_names)/2)+1)):
-    run('unichain set-replicas {}'.format(num_replicas))
+def set_replicas(num_replicas=(int(len(public_dns_names)/2)+1), service_name=None):
+    if not service_name:
+        service_name = _service_name
+    run('{} set-replicas {}'.format(service_name, num_replicas))
     run("echo set replicas = {}".format(num_replicas))
 
 # unichain_restore_app
 @task
 @parallel
-def start_unichain_restore():
+def start_unichain_restore(service_name=None):
     with settings(warn_only=True):
-        sudo('screen -d -m unichain_restore -y start &', pty=False, user=env.user)
+        if not service_name:
+            service_name = _service_name
+        sudo('screen -d -m {}_restore -y start &'.format(service_name), pty=False, user=env.user)
 
 @task
 @parallel
-def stop_unichain_restore(port=9986):
+def stop_unichain_restore(service_name=None, service_port=None):
     with settings(warn_only=True):
-        sudo("killall -9 unichain_restore 2>/dev/null")
+        if not service_name:
+            service_name = _service_name
+            service_port = _server_port
+        sudo("killall -9 {}_restore 2>/dev/null".format(service_name))
         try:
-            sudo("kill -9 `netstat -nlp | grep :{} | awk '{print $7}' | awk -F'/' '{ print $1 }'`".format(port))
+            sudo("kill -9 `netstat -nlp | grep :{} | awk '{print $7}' | awk -F'/' '{ print $1 }'`".format(service_port))
         except:
             pass
-        run("echo stop unichain_restore and kill the port {}".format(port))
+        run("echo stop {}_restore and kill the port {}".format(service_name, service_port))
 
 # unichain
 @task
 @parallel
-def start_unichain():
+def start_unichain(service_name=None):
     with settings(warn_only=True):
+        if not service_name:
+            service_name = _service_name
         stop_unichain_restore()
-        sudo('screen -d -m unichain -y start &', pty=False, user=env.user)
-        sudo('screen -d -m unichain_api start &', pty=False, user=env.user)
+        sudo('screen -d -m {} -y start &'.format(service_name), pty=False, user=env.user)
+        sudo('screen -d -m {}_api start &'.format(service_name), pty=False, user=env.user)
 
 
 @task
 @parallel
-def stop_unichain():
+def stop_unichain(service_name=None):
     with settings(warn_only=True):
+        if not service_name:
+            service_name = _service_name
         # sudo("kill `ps -ef|grep unichain | grep -v grep|awk '{print $2}'` ")
-        sudo("killall -9 unichain_api 2>/dev/null")
-        sudo("killall -9 unichain 2>/dev/null")
+        sudo("killall -9 {}_api 2>/dev/null".format(service_name))
+        sudo("killall -9 {} 2>/dev/null".format(service_name))
 
 
 @task
 @parallel
-def restart_unichain():
+def restart_unichain(service_name=None):
     with settings(warn_only=True):
-        sudo("killall -9 unichain_api 2>/dev/null")
-        sudo("killall -9 unichain 2>/dev/null")
-        sudo('screen -d -m unichain -y start &', pty=False, user=env.user)
-        sudo('screen -d -m unichain_api start &', pty=False, user=env.user)
+        if not service_name:
+            service_name = _service_name
+        sudo("killall -9 {}_api 2>/dev/null".format(service_name))
+        sudo("killall -9 {} 2>/dev/null".format(service_name))
+        sudo('screen -d -m {} -y start &'.format(service_name), pty=False, user=env.user)
+        sudo('screen -d -m {}_api start &'.format(service_name), pty=False, user=env.user)
 
 
 @task
 @parallel
-def start_unichain_load():
-    sudo('screen -d -m unichain load &', pty=False)
+def start_unichain_load(service_name=None):
+    if not service_name:
+        service_name = _service_name
+    sudo('screen -d -m {} load &'.format(service_name), pty=False)
 
 
 # rethinkdb
@@ -503,25 +569,30 @@ def count_process_by_name(name):
 
 @task
 @parallel
-def init_all_nodes():
+def init_all_nodes(service_name=None, setup_name=None):
     with settings(warn_only=True):
-        sudo('killall -9 unichain 2>/dev/null')
-        sudo('killall -9 unichain_api 2>/dev/null')
+        if not service_name:
+            service_name = _service_name
+            setup_name = _setup_name
+        sudo('killall -9 {} 2>/dev/null'.format(service_name))
+        sudo('killall -9 {}_api 2>/dev/null'.format(service_name))
         sudo('killall -9 rethinkdb 2>/dev/null')
         sudo('killall -9 pip3,pip 2>/dev/null')
-        sudo('rm /usr/local/bin/unichain 2>/dev/null')
-        sudo('rm -rf /usr/local/lib/python3.4/dist-packages/BigchainDB-* 2>/dev/null')
-        sudo('rm -rf ~/unichain 2>/dev/null')
+        sudo('rm /usr/local/bin/{} 2>/dev/null'.format(service_name))
+        sudo('rm -rf /usr/local/lib/python3.4/dist-packages/{}-* 2>/dev/null'.format(setup_name))
+        sudo('rm -rf ~/{} 2>/dev/null'.format(service_name))
         sudo('rm -rf /data/rethinkdb/* 2>/dev/null')
-        sudo('rm -rf /data/localdb/{node_info,block,block_header,block_records,vote,vote_header}/* 2>/dev/null')
+        sudo('rm -rf /data/localdb_{}/* 2>/dev/null'.format(service_name))
 
 
 @task
 @parallel
-def kill_all_nodes():
+def kill_all_nodes(service_name=None):
     with settings(warn_only=True):
-        sudo('killall -9 unichain 2>/dev/null')
-        sudo('killall -9 unichain_api 2>/dev/null')
+        if not service_name:
+            service_name = _service_name
+        sudo('killall -9 {} 2>/dev/null'.format(service_name))
+        sudo('killall -9 {}_api 2>/dev/null'.format(service_name))
         sudo('killall -9 rethinkdb 2>/dev/null')
         sudo('killall -9 pip3,pip 2>/dev/null')
 
@@ -608,10 +679,12 @@ def seek_rethinkdb_join():
 
 @task
 @parallel
-def start_unichain_load_processes_counts(m=1,c=None):
+def start_unichain_load_processes_counts(m=1,c=None, service_name=None):
     sudo("echo " + 'm={} c={} &'.format(m, c))
+    if not service_name:
+        service_name = _service_name
     if m is None and c is None:
-        sudo('screen -d -m unichain load &', pty=False,user=env.user)
+        sudo('screen -d -m {} load &'.format(service_name), pty=False,user=env.user)
     flag = ''
     v = None
     if m :
@@ -621,24 +694,26 @@ def start_unichain_load_processes_counts(m=1,c=None):
         flag=flag+'c'
         v = c
     if len(flag) == 1:
-        cmd = 'screen -d -m unichain load -{} {} &'.format(flag, v)
+        cmd = 'screen -d -m {} load -{} {} &'.format(service_name, flag, v)
         sudo(cmd, pty=False,user=env.user)
         sudo("echo {}".format(cmd) )
 
     if len(flag) == 2:
-        cmd = 'screen -d -m unichain load -m {} -c {} &'.format(m, c)
+        cmd = 'screen -d -m {} load -m {} -c {} &'.format(service_name, m, c)
         sudo(cmd, pty=False,user=env.user)
         sudo("echo {}".format(cmd))
 
 
 @task
 @parallel
-def test_nodes_rethinkdb(file=1,num=1,blank=False):
+def test_nodes_rethinkdb(file=1,num=1,blank=False, service_name=None):
     with settings(warn_only=True):
+       if not service_name:
+           service_name = _service_name
        user = env.user
-       py_path1 = '/home/' + user + '/simplechaindb/clusterdeploy/rethinkdb-tests/rethindbTest01.py' #multi process
-       py_path2 = '/home/' + user + '/simplechaindb/clusterdeploy/rethinkdb-tests/rethindbTest02.py' #single 1.4M
-       py_path3 = '/home/' + user + '/simplechaindb/clusterdeploy/rethinkdb-tests/rethindbTest03.py' #single 2.8M
+       py_path1 = '/home/' + user + '/{}/clusterdeploy/rethinkdb-tests/rethindbTest01.py'.format(service_name) #multi process
+       py_path2 = '/home/' + user + '/{}/clusterdeploy/rethinkdb-tests/rethindbTest02.py'.format(service_name) #single 1.4M
+       py_path3 = '/home/' + user + '/{}/clusterdeploy/rethinkdb-tests/rethindbTest03.py'.format(service_name) #single 2.8M
        if file == '1':
            cmd = 'python3 {} {} {}'.format( py_path1,num,blank)
            sudo('echo execu {}'.format(cmd))
@@ -657,26 +732,23 @@ def test_nodes_rethinkdb(file=1,num=1,blank=False):
 # clean the old install & data
 @task
 @parallel
-def destroy_all_nodes():
+def destroy_all_nodes(service_name=None):
     with settings(warn_only=True):
-        sudo('killall -9 bigchaindb 2>/dev/null')
-        sudo('killall -9 simplechaindb 2>/dev/null')
-        sudo('killall -9 unichain 2>/dev/null')
-        sudo('killall -9 unichain_api 2>/dev/null')
+        if not service_name:
+            service_name = _service_name
+            setup_name = _setup_name
+        sudo('killall -9 {} 2>/dev/null'.format(service_name))
+        sudo('killall -9 {}_api 2>/dev/null'.format(service_name))
         sudo('killall -9 rethinkdb 2>/dev/null')
         sudo('killall -9 pip,pip3 2>/dev/null')
 
         sudo('rm -rf /data/rethinkdb/* 2>/dev/null')
-        sudo('rm -rf /data/localdb/{node_info,block,block_header,block_records,vote,vote_header}/* 2>/dev/null')
+        sudo('rm -rf /data/localdb_{}/* 2>/dev/null'.format(service_name))
 
-        sudo('rm -rf /usr/local/lib/python3.4/dist-packages/BigchainDB-* 2>/dev/null')
-        sudo('rm /usr/local/bin/bigchaindb 2>/dev/null')
-        sudo('rm -rf ~/bigchaindb 2>/dev/null')
-        sudo('rm /usr/local/bin/simplechaindb 2>/dev/null')
-        sudo('rm -rf ~/simplechaindb 2>/dev/null')
-        sudo('rm /usr/local/bin/unichain 2>/dev/null')
-        sudo('rm -rf ~/unichain 2>/dev/null')
-        # sudo('apt-get purge rabbitmq-server')
+        sudo('rm -rf /usr/local/lib/python3.4/dist-packages/{}-* 2>/dev/null'.format(setup_name))
+        sudo('rm /usr/local/bin/{} 2>/dev/null'.format(service_name))
+        sudo('rm -rf ~/{} 2>/dev/null'.format(service_name))
+
 
 ################################ Detect server ######################################
 #step: get port & detect port
@@ -725,28 +797,34 @@ def detect_localdb():
 
 #step: get port & detect port & detect process
 @task
-def detect_unichain():
+def detect_unichain(service_name=None):
     with settings(warn_only=True):
-        print("[INFO]==========detect unichain pro begin==========")
-        process_num=run('ps -aux|grep -E "/usr/local/bin/unichain -y start|SCREEN -d -m unichain -y start"|grep -v grep|wc -l')
+        if not service_name:
+            service_name = _service_name
+        print("[INFO]==========detect {} pro begin==========".format(service_name))
+        process_num=run('ps -aux|grep -E "/usr/local/bin/{} -y start|SCREEN -d -m {} -y start"|grep -v grep|wc -l'
+                        .format(service_name, service_name))
         if int(process_num) == 0:
-            print("[ERROR]=====process[unichain] num detect result: is 0")
+            print("[ERROR]=====process[{}] num detect result: is 0".format(service_name))
         else:
-            print("[INFO]=====process[unichain] num detect result: is %s" % (str(process_num)))
+            print("[INFO]=====process[{}] num detect result: is {}".format(service_name, process_num))
 
 #step: get port & detect port & detect process
 @task
-def detect_unichain_api():
+def detect_unichain_api(service_name=None):
     with settings(warn_only=True):
-        print("[INFO]==========detect unichain api begin==========")
-        process_num=run('ps -aux|grep -E "/usr/local/bin/unichain_api start|SCREEN -d -m unichain_api start"|grep -v grep|wc -l')
+        if not service_name:
+            service_name = _service_name
+        print("[INFO]==========detect {} api begin==========".format(service_name))
+        process_num=run('ps -aux|grep -E "/usr/local/bin/{}_api start|SCREEN -d -m {}_api start"|grep -v grep|wc -l'
+                        .format(service_name, service_name))
         if int(process_num) == 0:
-            print("[ERROR]=====process[unichain_api] num detect result: is 0")
+            print("[ERROR]=====process[{}_api] num detect result: is 0".format(service_name))
         else:
-            print("[INFO]=====process[unichain_api] num detect result: is %s" % (str(process_num)))
+            print("[INFO]=====process[{}] num detect result: is {}".format(service_name, process_num))
 
-        unichain_conf = "/home/%s/.unichain" % (env.user)
-        unichain_conf_str=run('cat ~/.unichain')
+        unichain_conf = "/home/{}/.{}".format(env.user, service_name)
+        unichain_conf_str=run('cat ~/.{}'.format(service_name))
         #with open(unichain_conf, "a") as r:
         #    unichain_conf_str=r.readline()
         unichain_conf_str.replace("null", "")
@@ -765,13 +843,15 @@ def detect_unichain_api():
 
 @task
 @parallel
-def clear_unichain_data(flag='rethinkdb'):
+def clear_unichain_data(flag='rethinkdb', service_name=None):
     with settings(warn_only=True):
+        if not service_name:
+            service_name = _service_name
         if flag == 'all':
             sudo('rm -rf /data/rethinkdb/*')
-            sudo('rm -rf /data/localdb/*')
+            sudo('rm -rf /data/localdb_{}/*'.format(service_name))
         elif flag == 'localdb':
-            sudo('rm -rf /data/localdb/{node_info,block,block_header,block_records,vote,vote_header}/*')
+            sudo('rm -rf /data/localdb_{}/*'.format(service_name))
         elif flag == 'rethinkdb':
             sudo('rm -rf /data/rethinkdb/*')
         if flag in ('all','localdb','rethinkdb'):
@@ -780,14 +860,18 @@ def clear_unichain_data(flag='rethinkdb'):
 
 @task
 @parallel
-def test_localdb_rethinkdb(args="-irbvt",filename="validate_localdb_format.py",datetimeformat="%Y%m%d%H"):
+def test_localdb_rethinkdb(args="-irbvt", filename="validate_localdb_format.py", datetimeformat="%Y%m%d%H",
+                           service_name=None):
     with settings(warn_only=True):
+        if not service_name:
+            service_name = _service_name
         user = env.user
-        with cd("~/unichain/ul_tests/localdb"):
+        with cd("~/{}/ul_tests/localdb".format(service_name)):
             filename_prefix = filename.split(".")[0]
             if run("test -d test_result").failed:
                 sudo("mkdir test_result", user=env.user, group=env.user)
-            sudo("python3 {} {} | tee test_result/{}_{}_$(date +{}).txt".format(filename,args,user,filename_prefix,datetimeformat))
+            sudo("python3 {} {} | tee test_result/{}_{}_$(date +{}).txt".format(filename, args, user,filename_prefix,
+                                                                                datetimeformat))
         sudo("echo 'test_localdb_rethinkdb over'")
 
 #########################bak conf task#########################
@@ -805,9 +889,11 @@ def bak_collected_conf(base):
 
 @task
 @parallel
-def bak_unichain_conf(base):
+def bak_unichain_conf(base, service_name=None):
     with settings(warn_only=True):
-        get('~/.unichain', '%s/unichain/unichain_%s_%s' % (base, env.user, env.host), use_sudo=True)
+        if not service_name:
+            service_name = _service_name
+        get('~/.{}'.format(service_name), '{}/unichain/unichain_{}_{}'.format(base, env.user, env.host), use_sudo=True)
 
 ################################ Docker related ######################################
 # Install docker

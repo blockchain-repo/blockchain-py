@@ -13,6 +13,8 @@ import bigchaindb
 from bigchaindb import db
 from bigchaindb.version import __version__
 
+app_service_name = bigchaindb.config['app']['service_name']
+app_setup_name = bigchaindb.config['app']['setup_name']
 
 def start_rethinkdb():
     """Start RethinkDB as a child process and wait for it to be
@@ -94,7 +96,7 @@ def start(parser, argv, scope):
     return func(args)
 
 
-base_parser = argparse.ArgumentParser(add_help=False, prog='unichain')
+base_parser = argparse.ArgumentParser(add_help=False, prog='{}'.format(app_service_name))
 
 base_parser.add_argument('-c', '--config',
                          help='Specify the location of the configuration file '

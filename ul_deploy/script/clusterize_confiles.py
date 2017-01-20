@@ -65,22 +65,12 @@ if num_files != num_files_expected:
 # If the -k option was included, check to make sure there are enough keypairs
 # in keypairs_list
 num_keypairs = len(keypairs_list)
+
 if use_keypairs:
     if num_keypairs < num_files:
         raise ValueError('There are {} config files in {} but '
                          'there are only {} keypairs in keypairs.py'.
                          format(num_files, conf_dir, num_keypairs))
-
-# Make a list containing all the public keys
-keypairs_list_real = []
-for keypairs in keypairs_list:
-    for key, value in keypairs.items():
-        keypairs_list_real.append(value)
-
-# overwrite the deafult keypairs_list ,use real value
-keypairs_list = keypairs_list_real
-
-if use_keypairs:
     print('Using keypairs from keypairs.py')
     pubkeys = [keypair[1] for keypair in keypairs_list[:num_files]]
 else:

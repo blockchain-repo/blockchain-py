@@ -78,7 +78,7 @@ echo -e "[INFO]==========configure  rethinkdb=========="
 echo -e "[INFO]==========install localdb=========="
 #fab install localdb
 fab install_localdb
-#init localdb ,init the data store dirs /data/localdb/{bigchain,votes,backlog}
+#init localdb ,init the data store dirs /data/localdb_service_name/*
 fab init_localdb
 
 #unichain install&configure&init&shards&replicas
@@ -103,6 +103,8 @@ if [[ -z $AUTO_START_FLAG || $AUTO_START_FLAG -eq 1 ]];then
     echo -e "[INFO]==========start unichain nodes=========="
     ./clustercontrol.sh start
     ./run_server_check.sh
+else
+    fab stop_rethinkdb
 fi
 
 exit 0
