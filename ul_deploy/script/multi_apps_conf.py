@@ -1,9 +1,10 @@
 
+from bigchaindb import _app_config
 
 app_config = {
-    'server_port': 9984,
-    'restore_server_port': 9986,
-    'service_name': 'unichain',
-    'setup_name': 'BigChainDB',
+    'server_port': _app_config['server_port'],
+    'restore_server_port': _app_config['restore_server_port'],
+    'service_name': _app_config['service_name'],
+    'setup_name': _app_config['setup_name'],
 }
 
