@@ -204,6 +204,7 @@ def install_rethinkdb():
         sudo("wget -qO- http://download.rethinkdb.com/apt/pubkey.gpg | sudo apt-key add -")
         sudo("apt-get update")
         sudo("apt-get -y install rethinkdb")
+        sudo('chown -R rethinkdb:rethinkdb /data/rethinkdb')
         # initialize rethinkdb data-dir
         sudo('rm -rf /data/rethinkdb/*')
 
@@ -274,7 +275,7 @@ def install_localdb():
         user_group = env.user
         sudo("echo 'plyvel install' ")
         # sudo('pip3 install leveldb==0.194')
-        sudo('apt-get install libleveldb1 libleveldb-dev libsnappy1 libsnappy-dev')
+        sudo('apt-get install -y libleveldb1 libleveldb-dev libsnappy1 libsnappy-dev')
         sudo('apt-get -y -f install')
         sudo('pip3 install plyvel==0.9')
 
@@ -315,21 +316,22 @@ def uninstall_unichain(service_name=None, setup_name=None):
             service_name = _service_name
             setup_name = _setup_name
         run('echo "[INFO]==========uninstall {}-pro=========="'.format(service_name))
+        stop_unichain()
+        stop_rethinkdb()
+        sudo('apt-get remove --purge -y rethinkdb')
+        try:
+            sudo('apt-get remove --purge -y collectd')
+        except:
+            fixed_dpkg_error()
+        sudo('pip3 uninstall -y plyvel')
+        sudo('apt-get remove --purge -y libleveldb1')
+        sudo('apt-get remove --purge -y libleveldb-dev')
         sudo('rm ~/.{}'.format(service_name))
         sudo('killall -9 {} 2>/dev/null'.format(service_name))
         sudo('killall -9 {}_api 2>/dev/null'.format(service_name))
         sudo('killall -9 pip,pip3 2>/dev/null')
         sudo('rm /usr/local/bin/{} 2>/dev/null'.format(service_name))
         sudo('rm -rf /usr/local/lib/python3.4/dist-packages/{}* 2>/dev/null'.format(setup_name))
-        sudo('rm -rf ~/{} 2>/dev/null'.format(service_name))
-        sudo('pip3 uninstall -y plyvel')
-        sudo('apt-get remove --purge -y libleveldb1')
-        sudo('apt-get remove --purge -y libleveldb-dev')
-        sudo('apt-get remove --purge -y rethinkdb')
-        try:
-            sudo('apt-get remove --purge -y collectd')
-        except:
-            fixed_dpkg_error()
         sudo("echo 'uninstall unichain over'")
 
 
