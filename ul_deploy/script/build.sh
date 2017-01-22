@@ -39,7 +39,7 @@ Options:
     stop_all     stop  sll cluster nodes
     start_node   start signal cluster node 
     stop_node    stop  signal cluster node
-    single_setup reinstall single cluster node
+    install_node install or reinstall single cluster node
     uninstall    uninstall unichain
     "
     return 0
@@ -82,9 +82,9 @@ case $1 in
         str_param=`echo $@|awk '{for(i=2;i<=NF;i++){if(i!=NF)print $i" ";else print $i}}'`
         ./stopnode.sh $str_param | tee ../log/stopnode.log
     ;;
-    single_setup)
+    install_node)
         str_param=`echo $@|awk '{for(i=3;i<=NF;i++){if(i!=NF)print $i" ";else print $i}}'`
-        ./single_setup.sh $str_param | tee ../log/single_setup.log
+        ./install_node.sh $str_param | tee ../log/install_node.log
     ;;
     uninstall)
         ./run_uninstall.sh | tee ../log/uninstall.log

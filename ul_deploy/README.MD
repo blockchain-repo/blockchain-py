@@ -17,6 +17,8 @@ Options:
     stop_all        stop  sll cluster nodes
     start_node      start signal cluster node, params same as start_node.sh
     stop_node       stop  signal cluster node, params same as stop_node.sh
+    install_node    install single cluster node
+    uninstall       uninstall cluster node
 ```
 
 ## 文件说明
@@ -69,10 +71,10 @@ startnode.sh & stopnode.sh                      单节点控制
 ```
 
 ### 单节点重装
-script/single_setup.sh                          节点重装
+script/install_node.sh                          节点重装
 ```
 # usage:
-single_setup -h user@host -p password -n num [-r] [-u]
+install_node -h user@host -p password -n num [-r] [-u]
 ```
 
 `-n`表示需要重装节点的`unichain`原配置文件后缀序号，如：
@@ -82,7 +84,7 @@ single_setup -h user@host -p password -n num [-r] [-u]
 
 example:
 ```
-./single_setup.sh -h bc2@10.2.1.31 -p bc2_pwd -n 0 -ru
+./install_node.sh -h bc2@10.2.1.31 -p bc2_pwd -n 0 -ru
 ```
 
 ### 测试环境-修改配置文件引起错误解决
