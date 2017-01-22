@@ -152,7 +152,6 @@ def install_collectd():
         sudo("gpg -a --export 8B48AD6246925553 | sudo apt-key add -")
         sudo("gpg --keyserver pgpkeys.mit.edu --recv-key  7638D0442B90D010")
         sudo("gpg -a --export 7638D0442B90D010 | sudo apt-key add -")
-
         sudo("apt-get update")
         sudo("apt-get install -y --force-yes -t wheezy-backports-sloppy collectd")
 
@@ -323,10 +322,19 @@ def uninstall_unichain(service_name=None, setup_name=None):
         sudo('rm /usr/local/bin/{} 2>/dev/null'.format(service_name))
         sudo('rm -rf /usr/local/lib/python3.4/dist-packages/{}* 2>/dev/null'.format(setup_name))
         sudo('rm -rf ~/{} 2>/dev/null'.format(service_name))
-        sudo('pip3 uninstall plyvel')
-        sudo('apt-get remove --purge libleveldb1 libleveldb-dev')
-        sudo('apt-get remove --purge rethinkdb')
-        sudo('apt-get remove --purge collectd')
+        sudo('pip3 uninstall -y plyvel')
+        sudo('apt-get remove --purge -y libleveldb1')
+        sudo('apt-get remove --purge -y libleveldb-dev')
+        sudo('apt-get remove --purge -y rethinkdb')
+        try:
+            sudo('apt-get remove --purge -y collectd')
+        except:
+            fixed_dpkg_error()
+        sudo("echo 'uninstall unichain over'")
+
+
+
+
 
 
 # Initialize BigchainDB
@@ -994,3 +1002,13 @@ def start_docker_bdb_init(num_shards=len(public_dns_names), num_replicas=(int(le
     with settings(warn_only=True):
         with cd('~/docker'):
             sudo("NUM_SHARDS={} NUM_REPLICAS={} docker-compose up -d bdb_init".format(num_shards, num_replicas))
+
+@task
+@parallel
+def fixed_dpkg_error():
+    with settings(warn_only=True):
+        sudo("dpkg --configure -a")
+        sudo("rm /var/lib/dpkg/updates/*")
+        sudo("rm /var/cache/apt/archives/lock")
+        sudo("rm /var/lib/dpkg/lock")
+        sudo("fixed dpkg error over!")
