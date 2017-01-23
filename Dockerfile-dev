@@ -5,8 +5,16 @@ RUN apt-get update
 RUN mkdir -p /usr/src/app
 WORKDIR /usr/src/app
 
-RUN pip install --upgrade pip -i https://pypi.douban.com/simple
+RUN pip install --upgrade pip
 COPY . /usr/src/app/
+
+
+RUN pip3 install leveldb==0.194
+RUN apt-get install libleveldb1 libleveldb-dev libsnappy1 libsnappy-dev
+RUN apt-get -y -f install
+RUN pip3 install plyvel==0.9
+
 
 RUN python3 setup.py install
 RUN unichain -y configure
+RUN unichain show-config

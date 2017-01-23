@@ -4,16 +4,11 @@ services:
   rdb:
     image: rethinkdb
     ports:
-      - "58080:8080"
+      - "58081:8080"
       - "28015"
-    volumes_from:
-      - rdb-data
-
-  rdb-data:
-    image: rethinkdb
     volumes:
-      - /data
-    command: "true"
+      - /data/rethinkdb58081:/data
+      - /etc/rethinkdb/instances.d/default.conf:/etc/rethinkdb/instances.d/default.conf
 
   bdb:
     build:
@@ -27,10 +22,13 @@ services:
       - ./setup.py:/usr/src/app/setup.py
       - ./setup.cfg:/usr/src/app/setup.cfg
       - ./pytest.ini:/usr/src/app/pytest.ini
+      - ./wait-for-it.sh:/usr/src/app/wait-for-it.sh
+      - /data/localdb/:/data/localdb/
     environment:
       BIGCHAINDB_DATABASE_HOST: rdb
       BIGCHAINDB_API_ENDPOINT: http://bdb:9984/api/v1
       BIGCHAINDB_SERVER_BIND: 0.0.0.0:9984
     ports:
       - "9984"
-    command: bigchaindb start
+    # command: bash -c "./wait-for-it.sh  && unichain start"
+    command: ["./wait-for-it.sh", "127.0.0.1:58080", "--", "unichain start"]

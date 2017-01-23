@@ -1,0 +1,38 @@
+version: '2'
+services:
+  influxdb:
+    image: tutum/influxdb:0.9
+    ports:
+        - "33:8083"
+        - "36:8086"
+        - "8090"
+        - "8099"
+        - "25826:25826/udp"
+    environment:
+      PRE_CREATE_DB: "telegraf"
+      COLLECTD_DB: "collectdb"
+      COLLECTD_BINDING: ':25826'
+    volumes:
+      - $INFLUXDB_DATA:/data
+      - $INIT_SCRIPT:/init_script.influxql:ro
+
+  grafana:
+    # image: bigchaindb/grafana-bigchaindb-docker
+    # tty: true
+    image: unichain_grafana
+    container_name: unichain_grafana
+    ports:
+      - "30:3000"
+    environment:
+      INFLUXDB_HOST: "influxdb"
+    volumes:
+      # - /grafana/grafana.ini:/etc/grafana/grafana.ini
+      - /grafana/defaults.ini:/usr/share/grafana/conf/defaults.ini
+      # - /grafana/custom.ini:/usr/share/grafana/conf/custom.ini
+
+  statsd:
+    image: bigchaindb/docker-telegraf-statsd
+    ports:
+      - "8125:8125/udp"
+    environment:
+      INFLUXDB_HOST: "influxdb"
