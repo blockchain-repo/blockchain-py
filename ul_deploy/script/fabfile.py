@@ -130,10 +130,28 @@ def set_host(host_index):
 def install_base_software():
     # python pip3 :
     with settings(warn_only=True):
+        # This deletes the dir where "apt-get update" stores the list of packages
+        sudo('rm -rf /var/lib/apt/lists/')
+        # Re-create that directory, and its subdirectory named "partial"
+        sudo('mkdir -p /var/lib/apt/lists/partial/')
+        # Repopulate the list of packages in /var/lib/apt/lists/
+        # See https://tinyurl.com/zjvj9g3
+        sudo('apt-get -y update')
+        # Configure all unpacked but unconfigured packages.
+        # See https://tinyurl.com/zf24hm5
+        sudo('dpkg --configure -a')
+        # Attempt to correct a system with broken dependencies in place.
+        # See https://tinyurl.com/zpktd7l
+        sudo('apt-get -y -f install')
+        # For some reason, repeating the last three things makes this
+        # installation process more reliable...
         sudo('apt-get -y update')
         sudo('dpkg --configure -a')
         sudo('apt-get -y -f install')
+        # Install the base dependencies not already installed.
         sudo('apt-get -y install git gcc g++ python3-dev libffi-dev python3-setuptools python3-pip ntp screen')
+        sudo('apt-get -y -f install')
+
         sudo('pip3 install --upgrade pip')
         sudo('pip3 install --upgrade setuptools')
         sudo('pip3 --version')
@@ -153,7 +171,12 @@ def install_collectd():
         sudo("gpg --keyserver pgpkeys.mit.edu --recv-key  7638D0442B90D010")
         sudo("gpg -a --export 7638D0442B90D010 | sudo apt-key add -")
         sudo("apt-get update")
-        sudo("apt-get install -y --force-yes -t wheezy-backports-sloppy collectd")
+        try:
+            sudo("apt-get install -y --force-yes -t wheezy-backports-sloppy collectd")
+        except:
+            sudo("rm /var/cache/apt/archives/lock")
+            sudo("rm /var/lib/dpkg/lock")
+            sudo("apt-get install -y --force-yes -t wheezy-backports-sloppy collectd")
 
 
 # Configure Collectd
@@ -258,6 +281,7 @@ def install_unichain_from_git_archive(service_name=None):
             sudo("rm -rf ./{}/*".format(service_name))
     run('tar xvfz unichain-archive.tar.gz -C ./{} >/dev/null 2>&1'.format(service_name))
     sudo('pip3 install -i https://pypi.doubanio.com/simple --upgrade setuptools')
+    sudo('pip3 install pysha3==1.0.0')
     with cd('./{}'.format(service_name)):
         sudo('python3 setup.py install')
         # sudo('pip3 install .')
@@ -274,7 +298,7 @@ def install_localdb():
         user_group = env.user
         sudo("echo 'plyvel install' ")
         # sudo('pip3 install leveldb==0.194')
-        sudo('apt-get install libleveldb1 libleveldb-dev libsnappy1 libsnappy-dev')
+        sudo('apt-get install -y libleveldb1 libleveldb-dev libsnappy1 libsnappy-dev')
         sudo('apt-get -y -f install')
         sudo('pip3 install plyvel==0.9')
 
@@ -327,10 +351,12 @@ def uninstall_unichain(service_name=None, setup_name=None):
         sudo('apt-get remove --purge -y libleveldb-dev')
         sudo('apt-get remove --purge -y rethinkdb')
         try:
-            sudo('apt-get remove --purge -y collectd')
+            sudo('dpkg --purge collectd')
         except:
             fixed_dpkg_error()
-        sudo("echo 'uninstall unichain over'")
+            sudo('dpkg --purge collectd')
+        sudo("echo 'uninstall ls"
+             " over'")
 
 
 
@@ -1007,8 +1033,9 @@ def start_docker_bdb_init(num_shards=len(public_dns_names), num_replicas=(int(le
 @parallel
 def fixed_dpkg_error():
     with settings(warn_only=True):
+        sudo("rm /var/lib/dpkg/lock")
         sudo("dpkg --configure -a")
+        sudo("dpkg --purge collectd")
         sudo("rm /var/lib/dpkg/updates/*")
         sudo("rm /var/cache/apt/archives/lock")
-        sudo("rm /var/lib/dpkg/lock")
         sudo("fixed dpkg error over!")
