@@ -355,8 +355,8 @@ def uninstall_unichain(service_name=None, setup_name=None):
         except:
             fixed_dpkg_error()
             sudo('dpkg --purge collectd')
-        sudo("echo 'uninstall ls"
-             " over'")
+        sudo("echo 'uninstall ls over'")
+
 
 
 
