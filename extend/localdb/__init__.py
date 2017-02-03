@@ -19,5 +19,6 @@ config = {
         'compression': 'snappy',  # whether to use Snappy compression (enabled by default)
 
     },
+    'backup_path':'/data/backup_localdb/',
     'encoding': 'utf-8',  # the encoding for bytes
 }

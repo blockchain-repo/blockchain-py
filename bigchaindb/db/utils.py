@@ -211,6 +211,7 @@ def drop(assume_yes=False):
     if response == 'y':
         try:
             logger.info('Drop database `%s`', dbname)
+            drop_localdb()
             r.db_drop(dbname).run(conn)
             logger.info('Done.')
         except r.ReqlOpFailedError:
@@ -218,3 +219,24 @@ def drop(assume_yes=False):
 
     else:
         logger.info('Drop aborted')
+
+
+def drop_localdb():
+    drop_localdb_flag = input("Before you drop the db data, you should drop the local "
+                              "db data first!\nInput (Y/y) drop it, and others will remain it."
+                              "\n")
+    if drop_localdb_flag and (drop_localdb_flag == 'y' or drop_localdb_flag == 'Y'):
+        # init local db and backup
+        import shutil
+        from extend.localdb import config as leveldb_config
+        leveldb_root_path = leveldb_config['database']['path']
+        backup_path = leveldb_config['backup_path']
+        current_datetime = time.localtime(time.time())
+        backup_path += time.strftime('%Y%m%d_%H%M', current_datetime)
+        try:
+            shutil.copytree(leveldb_root_path, backup_path)
+            shutil.rmtree(leveldb_root_path+".")
+        except:
+            raise
+    else:
+        print("You should clear the local db data, before you run it again!")
