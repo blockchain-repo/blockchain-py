@@ -45,7 +45,7 @@ python3 clusterize_confiles.py -k $CONFDIR $NUM_NODES
 for (( HOST=0 ; HOST<$NUM_NODES ; HOST++ )); do
     CONFILE="bcdb_conf"$HOST
     echo "Sending "$CONFILE
-    fab set_host:$HOST send_confile_for_docker:$CONFILE
+    fab set_host:$HOST send_unichain_confile_for_docker:$CONFILE
 done
 
 

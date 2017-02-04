@@ -2,10 +2,10 @@ version: '2'
 
 services:
   rdb:
-    image: hub.c.163.com/library/rethinkdb
+    image: rethinkdb
     volumes:
       - /uni_docker/rethinkdb_data:/data
-      - /uni_docker/default.conf:/etc/rethinkdb/instances.d/default.conf
+      - /uni_docker/rethinkdb/default.conf:/etc/rethinkdb/instances.d/default.conf
     command: rethinkdb --bind all --config-file /etc/rethinkdb/instances.d/default.conf
     network_mode: "host"
 
