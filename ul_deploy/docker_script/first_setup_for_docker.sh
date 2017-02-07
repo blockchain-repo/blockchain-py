@@ -76,7 +76,7 @@ echo -e "[INFO]=========down  clear data========="
 
 # install base software: docker
 echo -e "[INFO]=======start install docker======="
-#fab install_docker
+fab install_docker2
 echo -e "[INFO]=======down  install docker======="
 
 #TODO test docker install sucess
@@ -99,24 +99,22 @@ echo -e "[INFO]==========down collected=========="
 echo -e "[INFO]============down all nodes env============"
 
 echo -e "[INFO]============init docker images============"
-# send and load unichain_bdb.rar
+# send and load rethinkdb unichain_bdb.rar
 fab load_images
-# send and load rethinkdb.rar
 
 echo -e "[INFO]============down docker images============"
 
 
-
 echo -e "[INFO]============start rethinkdb============"
-# start rethinkdb
-
+#start rethinkdb
+fab start_docker_rdb
 
 echo -e "[INFO]============init rethinkdb & unichain============"
-# start unichain_init  shard & replicas
-
+#start unichain_init  shard & replicas
+fab start_docker_bdb_init
 
 echo -e "[INFO]============start unichain and unichain_api============"
 # start unichain & unichain_api
-
+fab start_docker_bdb
 
 echo -e "[INFO]=========down  first_setup=========="

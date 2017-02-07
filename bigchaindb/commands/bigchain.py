@@ -263,7 +263,7 @@ def run_load(args):
 
 
 def run_set_shards(args):
-    for table in ['bigchain', 'backlog', 'votes']:
+    for table in ['bigchain', 'backlog', 'votes','heartbeat', 'reassignnode', 'rewrite']:
         # See https://www.rethinkdb.com/api/python/config/
         table_config = r.table(table).config().run(db.get_conn())
         num_replicas = len(table_config['shards'][0]['replicas'])
@@ -274,7 +274,7 @@ def run_set_shards(args):
 
 
 def run_set_replicas(args):
-    for table in ['bigchain', 'backlog', 'votes']:
+    for table in ['bigchain', 'backlog', 'votes','heartbeat', 'reassignnode', 'rewrite']:
         # See https://www.rethinkdb.com/api/python/config/
         table_config = r.table(table).config().run(db.get_conn())
         num_shards = len(table_config['shards'])

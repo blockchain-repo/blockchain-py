@@ -48,10 +48,10 @@ echo -e ""
 echo -e "[WARNING]please confirm cluster nodes info: [y/n]"
 read cluster_str
 if [ "`echo "$cluster_str"|tr A-Z  a-z`" == "y" -o "`echo "$cluster_str"|tr A-Z  a-z`" == "yes" ];then
-     echo -e "[INFO]=========begin update unichain=========="
+     echo -e "[INFO]=========begin first_setup=========="
 else
     echo -e "[ERROR]input invalid or cluster nodes info invalid"
-    echo -e "[ERROR]=========update unichain aborted==========="
+    echo -e "[ERROR]=========first_setup aborted==========="
     exit 1
 fi
 
@@ -61,24 +61,26 @@ CLUSTER_BIGCHAIN_COUNT=`get_cluster_nodes_num`
     exit 1
 }
 
-#init env:python3 fabric3
-echo -e "[INFO]=============init control machine env============="
-./run_init_env.sh
+#bak old conf
+echo -e "[INFO]==========bak old conf=========="
+./bak_conf.sh "old"
+
+# init unichain directory and configuration file
+echo -e "[INFO]========init unichain conf========"
+./configure_unichain_for_docker.sh ${CLUSTER_BIGCHAIN_COUNT}
+echo -e "[INFO]========down unichain conf========"
+
+# init rethinkdb directory and configuration file
+echo -e "[INFO]==========init rethinkdb=========="
+./configure_rethinkdb_for_docker.sh
+echo -e "[INFO]==========down rethinkdb=========="
+
+# send collectd configuration file
+echo -e "[INFO]==========init collected=========="
+./configure_collectd_for_docker.sh
+echo -e "[INFO]==========down collected=========="
 
 
-echo -e "[INFO]============update unichain docker images============"
-# clear old docker images and container
-fab clear_unichain_docker_images
-# send and load unichain_bdb.rar
-fab update_unichain_images
-
-echo -e "[INFO]============down docker images============"
-
-
-echo -e "[INFO]============start rethinkdb============"
-fab start_docker_rdb
-
-echo -e "[INFO]============start unichain and unichain_api============"
-fab start_docker_bdb
-
-echo -e "[INFO]=========down  first_setup=========="
+#bak current conf
+echo -e "[INFO]==========bak new conf=========="
+./bak_conf.sh "new"

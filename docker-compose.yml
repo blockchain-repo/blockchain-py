@@ -14,6 +14,8 @@ services:
     container_name: docker-bigchaindb
     volumes:
       - /uni_docker/.unichain:/etc/unichain/.unichain
+      - /uni_docker/localdb/:/data/localdb/
+      # - /uni_docker/unichain_log/:$HOME/unichain_log
     environment:
       BIGCHAINDB_CONFIG_PATH: /etc/unichain/.unichain
     command: bash -c "unichain start & unichain_api start"
@@ -23,6 +25,7 @@ services:
     image: unichain_bdb
     volumes:
       - /uni_docker/.unichain:/etc/unichain/.unichain
+      - /uni_docker/localdb/:/data/localdb/
     environment:
       BIGCHAINDB_CONFIG_PATH: /etc/unichain/.unichain
     command: bash -c "unichain init && unichain set-shards $NUM_SHARDS && unichain set-replicas $NUM_REPLICAS"
