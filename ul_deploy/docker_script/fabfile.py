@@ -99,8 +99,7 @@ def install_docker():
 def install_docker2():
     with settings(warn_only=True):
         sudo("apt-get update")
-        sudo("sudo apt-get install -y docker.io ")
-        sudo("sudo ln -sf /usr/bin/docker.io /usr/local/bin/docker ")
+        sudo("sudo apt-get install -y docker-engine")
         sudo("wget -O /usr/local/bin/docker-compose https://github.com/docker/compose/releases/download/1.8.0/docker-compose-`uname -s`-`uname -m`")
         sudo('chmod +x /usr/local/bin/docker-compose')
 # DON'T PUT @parallel
