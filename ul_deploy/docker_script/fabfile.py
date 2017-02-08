@@ -200,7 +200,7 @@ def load_images():
             sudo("mkdir /uni_docker/docker_images_bak")
 
         sudo("rm -rf /uni_docker/docker_images_bak/*")
-        sudo("mv /uni_docker/docker_images /uni_docker/docker_images_bak")
+        sudo("mv /uni_docker/docker_images/* /uni_docker/docker_images_bak")
         sudo("rm -rf /uni_docker/docker_images/*")
 
         put('../docker_images/rethinkdb.tar', '/uni_docker/docker_images/rethinkdb.tar', mode=0x0600, use_sudo=True)

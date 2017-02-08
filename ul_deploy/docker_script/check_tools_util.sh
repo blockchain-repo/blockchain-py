@@ -53,9 +53,9 @@ function check_fabric_3
 
 function check_docker
 {
-    local fab_version=`sudo docker --version|grep -i "docker"`
-    if [ ! -z "$fab_version" ];then
-        echo = $fab_version
+    local docker_version=`sudo docker --version|grep -i "docker"`
+    if [ ! -z "docker_version" ];then
+        echo = docker_version
         return 0
     fi
     return 0
@@ -64,8 +64,8 @@ function check_docker
 function check_docker_compose
 {
     local fab_version=`sudo docker-compose --version|grep -i "docker"`
-    if [ ! -z "$fab_version" ];then
-        echo = $fab_version
+    if [ ! -z "$docker_compose_version" ];then
+        echo = $docker_compose_version
         return 0
     fi
     return 0
