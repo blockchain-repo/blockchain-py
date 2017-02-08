@@ -72,7 +72,7 @@ function check_docker_compose
 }
 
 
-check_python_3
-echo $?
-check_fabric_3
-echo $?
+#check_python_3
+#echo $?
+#check_fabric_3
+#echo $?
