@@ -77,7 +77,8 @@ echo -e "[INFO]=========down  clear data========="
 
 # install base software: docker
 echo -e "[INFO]=======start install docker======="
-./run_init_docker_env.sh
+#./run_init_docker_env.sh
+fab run_init_docker_env
 echo -e "[INFO]=======down  install docker======="
 
 #TODO test docker install sucess

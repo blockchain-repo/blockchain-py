@@ -9,7 +9,7 @@ from __future__ import with_statement, unicode_literals
 
 from os import environ  # a mapping (like a dict)
 import sys
-
+import os
 from fabric.api import sudo,cd, env, hosts, local
 from fabric.api import task, parallel
 from fabric.contrib.files import sed
@@ -39,6 +39,8 @@ def clear_all_nodes():
         sudo('mkdir -p /uni_docker/docker_images')
         sudo('mkdir -p /uni_docker/docker_images_bak')
         sudo("chown -R " + env.user + ':' + env.user + ' /uni_docker')
+        sudo("chown -R " + env.user + ':' + env.user + ' /uni_docker/docker_images')
+        sudo("chown -R " + env.user + ':' + env.user + ' /uni_docker/docker_images_bak')
 
 @task
 @parallel
@@ -80,6 +82,13 @@ def clear_rethinkdb_docker_images():
         sudo('docker rmi rethinkdb')
 
 ############################### Docker related ######################################
+
+@task
+@parallel
+def run_init_docker_env():
+    with settings(warn_only=True):
+        status = os.system('./run_init_docker_env.sh')
+
 # Install docker
 @task
 @parallel
