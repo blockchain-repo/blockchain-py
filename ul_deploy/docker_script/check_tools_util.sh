@@ -50,7 +50,29 @@ function check_fabric_3
     return 0
 }
 
-#check_python_3
-#echo $?
-#check_fabric_3
-#echo $?
+
+function check_docker
+{
+    local fab_version=`sudo docker --version|grep -i "docker"`
+    if [ ! -z "$fab_version" ];then
+        echo = $fab_version
+        return 0
+    fi
+    return 0
+}
+
+function check_docker_compose
+{
+    local fab_version=`sudo docker-compose --version|grep -i "docker"`
+    if [ ! -z "$fab_version" ];then
+        echo = $fab_version
+        return 0
+    fi
+    return 0
+}
+
+
+check_python_3
+echo $?
+check_fabric_3
+echo $?

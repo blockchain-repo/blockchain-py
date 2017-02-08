@@ -85,7 +85,7 @@ def clear_rethinkdb_docker_images():
 @parallel
 def install_docker():
     with settings(warn_only=True):
-        sudo("echo deb https://apt.dockerproject.org/repo ubuntu-trusty main > /etc/apt/sources.list.d/docker.list")
+        sudo("echo deb http://mirrors.aliyun.com/docker-engine/apt/repo ubuntu-trusty main > /etc/apt/sources.list.d/docker.list")
         sudo("apt-key adv --keyserver hkp://p80.pool.sks-keyservers.net:80 --recv-keys 58118E89F3A912897C070ADBF76221572C52609D")
         sudo("apt-get update")
         sudo("apt-get install -y")
@@ -99,9 +99,21 @@ def install_docker():
 def install_docker2():
     with settings(warn_only=True):
         sudo("apt-get update")
-        sudo("sudo apt-get install -y docker-engine")
+        sudo("curl -sSL http://acs-public-mirror.oss-cn-hangzhou.aliyuncs.com/docker-engine/internet | sh -")
         sudo("wget -O /usr/local/bin/docker-compose https://github.com/docker/compose/releases/download/1.8.0/docker-compose-`uname -s`-`uname -m`")
         sudo('chmod +x /usr/local/bin/docker-compose')
+
+@task
+def check_docker():
+    with settings(warn_only=True):
+        version = sudo('docker --version|grep -i "docker"',shell=True)
+        print(version)
+        print(version)
+        if version==None:
+            print("00000")
+        else:
+            print("1111")
+
 # DON'T PUT @parallel
 @task
 def set_host(host_index):

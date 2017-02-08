@@ -6,6 +6,7 @@ set -e
 
 source ./blockchain_nodes_conf_util.sh
 source ./common_lib.sh
+source ./check_tools_util.sh
 
 CLUSTER_BIGCHAIN_COUNT=`get_cluster_nodes_num`
 [ $CLUSTER_BIGCHAIN_COUNT -eq 0 ] && {
@@ -76,7 +77,7 @@ echo -e "[INFO]=========down  clear data========="
 
 # install base software: docker
 echo -e "[INFO]=======start install docker======="
-fab install_docker2
+./run_init_docker_env.sh
 echo -e "[INFO]=======down  install docker======="
 
 #TODO test docker install sucess
