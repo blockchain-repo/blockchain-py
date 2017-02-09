@@ -41,7 +41,6 @@ def clear_all_nodes():
         sudo("chown -R " + env.user + ':' + env.user + ' /uni_docker')
         sudo("chown -R " + env.user + ':' + env.user + ' /uni_docker/docker_images')
         sudo("chown -R " + env.user + ':' + env.user + ' /uni_docker/docker_images_bak')
-
 @task
 @parallel
 def init_all_nodes():
@@ -83,15 +82,9 @@ def clear_rethinkdb_docker_images():
 
 ############################### Docker related ######################################
 
-@task
-@parallel
-def run_init_docker_env():
-    with settings(warn_only=True):
-        status = os.system('./run_init_docker_env.sh')
-
 # Install docker
 @task
-@parallel
+
 def install_docker():
     with settings(warn_only=True):
         sudo("echo deb http://mirrors.aliyun.com/docker-engine/apt/repo ubuntu-trusty main > /etc/apt/sources.list.d/docker.list")
@@ -102,26 +95,21 @@ def install_docker():
         sudo("wget -O /usr/local/bin/docker-compose https://github.com/docker/compose/releases/download/1.8.0/docker-compose-`uname -s`-`uname -m`")
         sudo('chmod +x /usr/local/bin/docker-compose')
 
-# Install docker
 @task
 @parallel
-def install_docker2():
-    with settings(warn_only=True):
-        sudo("apt-get update")
-        sudo("curl -sSL http://acs-public-mirror.oss-cn-hangzhou.aliyuncs.com/docker-engine/internet | sh -")
-        sudo("wget -O /usr/local/bin/docker-compose https://github.com/docker/compose/releases/download/1.8.0/docker-compose-`uname -s`-`uname -m`")
-        sudo('chmod +x /usr/local/bin/docker-compose')
-
-@task
 def check_docker():
     with settings(warn_only=True):
-        version = sudo('docker --version|grep -i "docker"',shell=True)
-        print(version)
-        print(version)
-        if version==None:
-            print("00000")
-        else:
-            print("1111")
+
+        result = sudo('docker --version|grep -i "version"').find("version")
+        if(result==-1):
+            #install
+            sudo("curl -sSL http://acs-public-mirror.oss-cn-hangzhou.aliyuncs.com/docker-engine/internet | sh -")
+
+        result = sudo('docker-compose --version|grep -i "version"').find("version")
+        if (result == -1):
+            # install
+            sudo("wget -O /usr/local/bin/docker-compose https://github.com/docker/compose/releases/download/1.8.0/docker-compose-`uname -s`-`uname -m`")
+            sudo('chmod +x /usr/local/bin/docker-compose')
 
 # DON'T PUT @parallel
 @task
