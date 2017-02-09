@@ -32,6 +32,8 @@ def clear_all_nodes():
         #sudo('docker stop $(sudo docker ps -q)')
         #sudo('docker rm $(sudo docker ps -a -q)')
         #sudo('docker rmi $(sudo docker images -q)')
+        sudo('rm -rf /var/cache/apt/archives/*')
+        sudo('rm /var/lib/dpkg/lock')
         sudo('rm -rf /uni_docker/* 2>/dev/null')
         sudo('mkdir -p /uni_docker/rethinkdb')
         sudo('mkdir -p /uni_docker/localdb')
@@ -96,7 +98,6 @@ def install_docker():
         sudo('chmod +x /usr/local/bin/docker-compose')
 
 @task
-@parallel
 def check_docker():
     with settings(warn_only=True):
 
