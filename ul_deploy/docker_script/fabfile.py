@@ -10,7 +10,7 @@ from __future__ import with_statement, unicode_literals
 from os import environ  # a mapping (like a dict)
 import sys
 import os
-from fabric.api import sudo,cd, env, hosts, local
+from fabric.api import sudo,cd, env, hosts, local, runs_once
 from fabric.api import task, parallel
 from fabric.contrib.files import sed
 from fabric.operations import run, put, get
@@ -29,34 +29,17 @@ env['hosts']=env['passwords'].keys()
 @parallel
 def clear_all_nodes():
     with settings(warn_only=True):
-        #sudo('docker stop $(sudo docker ps -q)')
-        #sudo('docker rm $(sudo docker ps -a -q)')
-        #sudo('docker rmi $(sudo docker images -q)')
         sudo('rm -rf /var/cache/apt/archives/*')
         sudo('rm /var/lib/dpkg/lock')
         sudo('rm -rf /uni_docker/* 2>/dev/null')
+
         sudo('mkdir -p /uni_docker/rethinkdb')
         sudo('mkdir -p /uni_docker/localdb')
         sudo('mkdir -p /uni_docker/collectd')
         sudo('mkdir -p /uni_docker/docker_images')
-        sudo('mkdir -p /uni_docker/docker_images_bak')
+
         sudo("chown -R " + env.user + ':' + env.user + ' /uni_docker')
         sudo("chown -R " + env.user + ':' + env.user + ' /uni_docker/docker_images')
-        sudo("chown -R " + env.user + ':' + env.user + ' /uni_docker/docker_images_bak')
-@task
-@parallel
-def init_all_nodes():
-    with settings(warn_only=True):
-        #sudo('docker stop $(sudo docker ps -q)')
-        #sudo('docker rm $(sudo docker ps -a -q)')
-        #sudo('docker rmi $(sudo docker images -q)')
-        sudo('mkdir -p /uni_docker/rethinkdb')
-        sudo('mkdir -p /uni_docker/localdb')
-        sudo('mkdir -p /uni_docker/collectd')
-        sudo('mkdir -p /uni_docker/docker_images')
-        sudo('mkdir -p /uni_docker/docker_images_bak')
-        sudo("chown -R " + env.user + ':' + env.user + ' /uni_docker')
-
 
 @task
 @parallel
@@ -86,29 +69,14 @@ def clear_rethinkdb_docker_images():
 
 # Install docker
 @task
-
-def install_docker():
-    with settings(warn_only=True):
-        sudo("echo deb http://mirrors.aliyun.com/docker-engine/apt/repo ubuntu-trusty main > /etc/apt/sources.list.d/docker.list")
-        sudo("apt-key adv --keyserver hkp://p80.pool.sks-keyservers.net:80 --recv-keys 58118E89F3A912897C070ADBF76221572C52609D")
-        sudo("apt-get update")
-        sudo("apt-get install -y")
-        sudo("apt-get install -y docker-engine")
-        sudo("wget -O /usr/local/bin/docker-compose https://github.com/docker/compose/releases/download/1.8.0/docker-compose-`uname -s`-`uname -m`")
-        sudo('chmod +x /usr/local/bin/docker-compose')
-
-@task
+@parallel
 def check_docker():
     with settings(warn_only=True):
 
-        result = sudo('docker --version|grep -i "version"').find("version")
-        if(result==-1):
-            #install
+        while(sudo('docker --version|grep -i "version"').find("version")==-1):
             sudo("curl -sSL http://acs-public-mirror.oss-cn-hangzhou.aliyuncs.com/docker-engine/internet | sh -")
 
-        result = sudo('docker-compose --version|grep -i "version"').find("version")
-        if (result == -1):
-            # install
+        while (sudo('docker-compose --version|grep -i "version"').find("version") == -1):
             sudo("wget -O /usr/local/bin/docker-compose https://github.com/docker/compose/releases/download/1.8.0/docker-compose-`uname -s`-`uname -m`")
             sudo('chmod +x /usr/local/bin/docker-compose')
 
@@ -194,21 +162,14 @@ def load_images():
     with settings(warn_only=True):
         if run("test -d /uni_docker/docker_images").failed:
             sudo("mkdir /uni_docker/docker_images")
-        if run("test -d /uni_docker/docker_images_bak").failed:
-            sudo("mkdir /uni_docker/docker_images_bak")
-
-        sudo("rm -rf /uni_docker/docker_images_bak/*")
-        sudo("mv /uni_docker/docker_images/* /uni_docker/docker_images_bak")
         sudo("rm -rf /uni_docker/docker_images/*")
 
         put('../docker_images/rethinkdb.tar', '/uni_docker/docker_images/rethinkdb.tar', mode=0x0600, use_sudo=True)
         put('../docker_images/unichain.tar', '/uni_docker/docker_images/unichain.tar', mode=0x0600, use_sudo=True)
         with cd('/uni_docker/docker_images'):
-            # todo: remove existed file
-            # sudo("wget http://ofbwpkkls.bkt.clouddn.com/unichain.tar.gz")
             sudo('docker load < /uni_docker/docker_images/rethinkdb.tar')
             sudo('docker load < /uni_docker/docker_images/unichain.tar')
-            #sudo("wget http://ofbwpkkls.bkt.clouddn.com/docker-compose.yml")
+
             sudo('rm -f docker-compose.yml')
         put('../../docker-compose.yml', '/uni_docker/docker_images/docker-compose.yml', mode=0x0600, use_sudo=True)
 
@@ -289,10 +250,6 @@ def start_docker_bdb_init(num_shards=len(public_dns_names), num_replicas=(int(le
             sudo("NUM_SHARDS={} NUM_REPLICAS={} docker-compose up -d bdb_init".format(num_shards, num_replicas))
 
 
-
-
-
-
 #########################bak conf task#########################
 @task
 @parallel
@@ -312,3 +269,14 @@ def bak_unichain_conf(base):
     with settings(warn_only=True):
         get('/uni_docker/.unichain', '%s/unichain/unichain_%s_%s' % (base, env.user, env.host), use_sudo=True)
 
+@task
+@runs_once
+def bak_unichain_docker_images(base):
+    with settings(warn_only=True):
+        local("sudo cp ../docker_images/unichain.tar "+ base )
+
+@task
+@runs_once
+def bak_rethinkdb_docker_images(base):
+    with settings(warn_only=True):
+        local("sudo cp ../docker_images/rethinkdb.tar "+ base )

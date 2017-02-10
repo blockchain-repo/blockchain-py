@@ -51,27 +51,6 @@ function check_fabric_3
 }
 
 
-function check_docker
-{
-    local docker_version=`sudo docker --version|grep -i "docker"`
-    if [ ! -z "docker_version" ];then
-        echo = $docker_version
-        return 0
-    fi
-    return 0
-}
-
-function check_docker_compose
-{
-    local docker_compose_version=`sudo docker-compose --version|grep -i "docker-compose"`
-    if [ ! -z "$docker_compose_version" ];then
-        echo = $docker_compose_version
-        return 0
-    fi
-    return 0
-}
-
-
 #check_python_3
 #echo $?
 #check_fabric_3
