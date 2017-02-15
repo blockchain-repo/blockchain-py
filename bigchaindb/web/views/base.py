@@ -1,14 +1,22 @@
+import constant
 from flask import jsonify
 
+def check_request(request, key=None):
+    if not request.json:
+        return False
+    if key and not key in request.json:
+        return False
+    return True
 
-def make_error(status_code, message=None):
-
-    if status_code == 404 and message is None:
-        message = 'Not found'
-
+def make_response(res_status, res_code, res_message=None, res_data=None):
+    if not res_status or not res_code:
+        res_status = constant.RESPONSE_STATUS_FAIL
+        res_code = constant.RESPONSE_CODE_FAIL
     response = jsonify({
-        'status': status_code,
-        'message': message
+        'status':res_status,
+        'code':res_code,
+        'message':res_message,
+        'data':res_data
     })
-    response.status_code = status_code
     return response
+

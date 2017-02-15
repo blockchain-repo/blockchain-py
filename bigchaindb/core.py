@@ -723,3 +723,49 @@ class Bigchain(object):
 
     def selectFromWrite(self,id):
         return self.backend.isBlockRewrited(id)
+
+    ##############################
+    ####  for unichian api   #####
+    ##############################
+    def get_txCreateAvgTimeByRange(self, begintime, endtime):
+        status = True
+        if long(endtime) > gen_timestamp() or  long(endtime) <= long(begintime):
+            status = False
+            return 0,status
+        avgtime,ret = self.backend.get_transaction_createavgtime_by_range(begintime, endtime)
+        if not ret:
+            status = False
+            return 0,status
+        return avgtime,status
+
+    def get_blockCreateAvgTimeByRange(self, begintime, endtime):
+        status = True
+        if long(endtime) > gen_timestamp() or long(endtime) <= long(begintime):
+            status = False
+            return 0,status
+        avgtime,ret = self.backend.get_block_createavgtime_by_range(begintime, endtime)
+        if not ret:
+            status = False
+            return 0,status
+        return avgtime,status
+
+    def get_voteTimeByBlockID(self, block_id):
+        status = True
+        if not self.backend.get_block_by_id(block_id):
+            return 0,status
+        avgtime,ret = self.backend.get_vote_time_by_blockid(block_id)
+        if not ret:
+            status = False
+            return 0,status
+        return avgtime,status
+
+    def get_voteAvgTimeByRange(self, begintime, endtime):
+        status = True
+        if long(endtime) > gen_timestamp() or  long(endtime) <= long(begintime):
+            status = False
+            return 0,status
+        avgtime,ret = self.backend.get_vote_avgtime_by_range(begintime, endtime)
+        if not ret:
+            status = False
+            return 0,status
+        return avgtime,status

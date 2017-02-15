@@ -63,10 +63,17 @@ def create_app(settings):
 
     app.config['bigchain_pool'] = util.pool(Bigchain, size=settings.get('threads', 4))
     app.config['monitor'] = Monitor()
-
+    #welcome view
     app.register_blueprint(info_views, url_prefix='/')
-    app.register_blueprint(transaction_views, url_prefix='/api/v1')
-    app.register_blueprint(testVeracity_api, url_prefix='/testVeracity_api/v1')
+    #transaction operate view
+    app.register_blueprint(transaction_views, url_prefix='/uniledger/v1/transaction')
+    #block operate view
+    app.register_blueprint(block_views, url_prefix='/uniledger/v1/block')
+    #vote operate view
+    app.register_blueprint(vote_views, url_prefix='/uniledger/v1/vote')
+    #timestat operate view
+    app.register_blueprint(timestat_views, url_prefix='/uniledger/v1/timestat')
+    
     return app
 
 
