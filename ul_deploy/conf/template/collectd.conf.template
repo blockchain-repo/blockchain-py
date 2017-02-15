@@ -104,7 +104,7 @@ LoadPlugin cpu
 #LoadPlugin curl_json
 #LoadPlugin curl_xml
 #LoadPlugin dbi
-#LoadPlugin df
+LoadPlugin df
 LoadPlugin disk
 #LoadPlugin dns
 #LoadPlugin drbd
@@ -112,7 +112,7 @@ LoadPlugin disk
 #LoadPlugin entropy
 #LoadPlugin ethstat
 #LoadPlugin exec
-#LoadPlugin fhcount
+LoadPlugin fhcount
 #LoadPlugin filecount
 #LoadPlugin fscache
 #LoadPlugin gmond
@@ -153,7 +153,7 @@ LoadPlugin network
 #LoadPlugin ping
 #LoadPlugin postgresql
 #LoadPlugin powerdns
-#LoadPlugin processes
+LoadPlugin processes
 #LoadPlugin protocols
 #LoadPlugin python
 #LoadPlugin redis
@@ -895,6 +895,12 @@ LoadPlugin network
 #	</Recursor>
 #	LocalSocket "/opt/collectd/var/run/collectd-powerdns"
 #</Plugin>
+
+
+<Plugin processes>
+	Process "unichain"
+	Process "unichain_api"
+</Plugin>
 
 #<Plugin processes>
 #	Process "name"

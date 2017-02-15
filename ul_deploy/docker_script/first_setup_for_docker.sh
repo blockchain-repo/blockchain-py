@@ -6,6 +6,7 @@ set -e
 
 source ./blockchain_nodes_conf_util.sh
 source ./common_lib.sh
+source ./check_tools_util.sh
 
 CLUSTER_BIGCHAIN_COUNT=`get_cluster_nodes_num`
 [ $CLUSTER_BIGCHAIN_COUNT -eq 0 ] && {
@@ -64,59 +65,54 @@ CLUSTER_BIGCHAIN_COUNT=`get_cluster_nodes_num`
 #init env:python3 fabric3
 echo -e "[INFO]=============init control machine env============="
 ./run_init_env.sh
-echo -e "[INFO]=============down control machine env============="
-
 
 echo -e "[INFO]============init all nodes env============"
 
 # init all node env: clear old data
-echo -e "[INFO]=========start clear data========="
+echo -e "[INFO]=========clear data========="
 fab clear_all_nodes
-echo -e "[INFO]=========down  clear data========="
 
 # install base software: docker
-echo -e "[INFO]=======start install docker======="
-#fab install_docker
-echo -e "[INFO]=======down  install docker======="
+echo -e "[INFO]=======check docker======="
+fab check_docker
 
-#TODO test docker install sucess
+echo -e "[INFO]=======clear docker======="
+fab clear_all_docker_images
+
+echo -e "[INFO]=======back docker images======="
+./bak_docker_images_tar.sh
 
 # init unichain directory and configuration file
 echo -e "[INFO]========init unichain conf========"
 ./configure_unichain_for_docker.sh ${CLUSTER_BIGCHAIN_COUNT}
-echo -e "[INFO]========down unichain conf========"
 
 # init rethinkdb directory and configuration file
 echo -e "[INFO]==========init rethinkdb=========="
 ./configure_rethinkdb_for_docker.sh
-echo -e "[INFO]==========down rethinkdb=========="
 
 # send collectd configuration file
 echo -e "[INFO]==========init collected=========="
 ./configure_collectd_for_docker.sh
-echo -e "[INFO]==========down collected=========="
 
 echo -e "[INFO]============down all nodes env============"
 
 echo -e "[INFO]============init docker images============"
-# send and load unichain_bdb.rar
+# send and load rethinkdb unichain_bdb.rar
 fab load_images
-# send and load rethinkdb.rar
 
 echo -e "[INFO]============down docker images============"
 
 
-
 echo -e "[INFO]============start rethinkdb============"
-# start rethinkdb
-
+#start rethinkdb
+fab start_docker_rdb
 
 echo -e "[INFO]============init rethinkdb & unichain============"
-# start unichain_init  shard & replicas
-
+#start unichain_init  shard & replicas
+fab start_docker_bdb_init
 
 echo -e "[INFO]============start unichain and unichain_api============"
 # start unichain & unichain_api
+fab start_docker_bdb
 
-
-echo -e "[INFO]=========down  first_setup=========="
+echo -e "[INFO]=========down first_setup=========="

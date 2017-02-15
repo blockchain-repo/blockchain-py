@@ -50,6 +50,7 @@ function check_fabric_3
     return 0
 }
 
+
 #check_python_3
 #echo $?
 #check_fabric_3

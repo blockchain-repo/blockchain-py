@@ -55,6 +55,7 @@ class StaleTransactionMonitor:
             for tx in self.bigchain.get_stale_transactions():
                 yield tx
         else:
+            monitor.gauge('tx_queue_gauge', value=0)
             # 如果当前节点没有reassignee权限，则需要判断有reassignee权限的节点是否down掉
             isalive = self.bigchain.is_assignee_alive(assigneekey, 10)
             if not isalive:
