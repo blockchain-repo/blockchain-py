@@ -427,3 +427,56 @@ class RethinkDBBackend:
 
     def isBlockRewrited(self,id):
         return self.connection.run(r.table('rewrite').filter({'id': id}).count())
+
+    ##############################################
+    ####    unichain api query method     ########
+    ##############################################
+    def get_block_by_id(self, block_id):
+        #return self.connection.run(r.table('bigchain', read_mode=self.read_mode).filter({'id':block_id}))
+        return self.connection.run(
+            r.table('bigchain', read_mode=self.read_mode)
+             .get(blcok_id))
+
+    def get_transaction_createavgtime_by_range(self, begintime, endtime):
+        time_range = long(endtime) - long(begintime)
+        if time_range <= 0:
+            return 0,False
+        transaction_count =  self.connection.run(
+            r.table('bigchain', read_mode=self.read_mode)
+             .between(begintime, endtime, index='transaction_timestamp').count())
+        if not transaction_count:
+            return 0,False
+        return time_range/transaction_count,True
+   
+    def get_block_createavgtime_by_range(self, begintime, endtime):
+        time_range = long(endtime) - long(begintime)
+        if time_range <= 0:
+            return 0,False
+        block_count =  self.connection.run(
+            r.table('bigchain', read_mode=self.read_mode)
+             .between(begintime, endtime, index='block_timestamp').count())
+        if not block_count:
+            return 0,False
+        return time_range/block_count,True
+
+    def get_vote_time_by_blockid(self, block_id):
+        vote_begin_time = self.connection.run(
+                r.table('bigchain', read_mode=self.read_mode).get(block_id)('block')('timestamp'))   
+        vote_end_time = self.connection.run(
+                r.table('bigchain', read_mode=self.read_mode).filter(
+                    lambda block_vote:block_vote["vote"]["voting_for_block"] == block_id)('vote')('timestamp').max())
+        vote_time = vote_end_time - vote_begin_time
+        if not vote_time:
+            vote_time = 1
+        return vote_time,True
+
+    def get_vote_avgtime_by_range(self, begintime, endtime):     
+        time_range = long(endtime) - long(begintime)
+        if time_range <= 0:
+            return 0,False
+        vote_count =  self.connection.run(
+            r.table('votes', read_mode=self.read_mode)
+             .between(begintime, endtime, index='block_and_voter')('vote')('voting_for_block').distinct().count())
+        if not vote_count:
+            return 0,False
+        return time_range/vote_count,True
