@@ -19,11 +19,6 @@ BANNER = """
 ****************************************************************************
 """
 
-# *   You can send HTTP requests via the HTTP API documented in the          *
-# *   BigchainDB Server docs at:                                             *
-# *    https://bigchaindb.com/http-api                                       *
-# *                                                                          *
-
 
 def start():
     logger.info('Initializing {}...'.format(app_setup_name))
