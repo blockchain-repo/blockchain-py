@@ -16,7 +16,7 @@ from bigchaindb.web.views.api_transations import transaction_views
 from bigchaindb.web.views.api_block import block_views
 from bigchaindb.web.views.api_vote import vote_views
 from bigchaindb.web.views.api_timestat import timestat_views
-from bigchaindb.web.apiForVeracity.apiForVeracity import testVeracity_api
+# from bigchaindb.web.apiForVeracity.apiForVeracity import testVeracity_api
 from bigchaindb.monitor import Monitor
 
 

@@ -19,6 +19,7 @@ timestat_api = Api(timestat_views)
 
 class ApiTxCreateAvgTimeByRange(Resource):
     def post(self):
+        print("txCreateAvgTime")
         if not check_request(request, "begintime"):
             return make_response(constant.RESPONSE_STATUS_FAIL,
                                  constant.RESPONSE_CODE_FAIL,

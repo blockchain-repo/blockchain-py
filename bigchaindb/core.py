@@ -729,7 +729,7 @@ class Bigchain(object):
     ##############################
     def get_txCreateAvgTimeByRange(self, begintime, endtime):
         status = True
-        if long(endtime) > gen_timestamp() or  long(endtime) <= long(begintime):
+        if endtime > gen_timestamp() or  endtime <= begintime:
             status = False
             return 0,status
         avgtime,ret = self.backend.get_transaction_createavgtime_by_range(begintime, endtime)
@@ -740,7 +740,7 @@ class Bigchain(object):
 
     def get_blockCreateAvgTimeByRange(self, begintime, endtime):
         status = True
-        if long(endtime) > gen_timestamp() or long(endtime) <= long(begintime):
+        if endtime > gen_timestamp() or endtime <= begintime:
             status = False
             return 0,status
         avgtime,ret = self.backend.get_block_createavgtime_by_range(begintime, endtime)
@@ -761,7 +761,7 @@ class Bigchain(object):
 
     def get_voteAvgTimeByRange(self, begintime, endtime):
         status = True
-        if long(endtime) > gen_timestamp() or  long(endtime) <= long(begintime):
+        if endtime > gen_timestamp() or  endtime <= begintime:
             status = False
             return 0,status
         avgtime,ret = self.backend.get_vote_avgtime_by_range(begintime, endtime)
@@ -783,31 +783,31 @@ class Bigchain(object):
         return self.backend.get_BlockNumber()
 
 
-    def get_invalidBlockIdList(self, startTime=None, endtime=None):
-        if startTime == None & endtime == None:
+    def get_invalidBlockIdList(self, startTime=None, endTime=None):
+        if startTime is None and endTime is None:
             return self.backend.get_allInvalidBlock()
         else:
-            return self.backend.get_invalidBlockByTime(startTime, endtime)
+            return self.backend.get_invalidBlockByTime(startTime, endTime)
 
 
-    def get_BlockIdList(self, startTime, endtime):
-        if startTime == None & endtime == None:
+    def get_BlockIdList(self, startTime, endTime):
+        if startTime is None and endTime is None:
             blockCount = self.backend.get_BlockNumber()
             if blockCount > 1000:
                 return self.backend.get_BlockIdList(limit=1000)
             return self.backend.get_BlockIdList()
         else:
-            blockCount = self.backend.get_BlockNumber(startTime=startTime, endtime=endtime)
+            blockCount = self.backend.get_BlockNumber(startTime=startTime, endTime=endTime)
             if blockCount > 1000:
-                return self.backend.get_BlockIdList(startTime=startTime, endtime=endtime, limit=1000)
-            return self.backend.get_BlockIdList(startTime=startTime, endtime=endtime)
+                return self.backend.get_BlockIdList(startTime=startTime, endTime=endTime, limit=1000)
+            return self.backend.get_BlockIdList(startTime=startTime, endTime=endTime)
 
 
-    def get_TxIdByTime(self, startTime, endtime):
-        txCount = self.backend.get_txNumber(startTime=startTime, endtime=endtime)
+    def get_TxIdByTime(self, startTime, endTime):
+        txCount = self.backend.get_txNumber(startTime=startTime, endTime=endTime)
         if txCount > 2000:
-            return self.backend.get_txIdList(startTime=startTime, endtime=endtime, limit=2000)
-        return self.backend.get_txIdList(startTime=startTime, endtime=endtime)
+            return self.backend.get_txIdList(startTime=startTime, endTime=endTime, limit=2000)
+        return self.backend.get_txIdList(startTime=startTime, endTime=endTime)
 
 
     def get_txNumberOfAllBlock(self):
@@ -821,7 +821,9 @@ class Bigchain(object):
             # 全部输出
 
     def get_allPublicKey(self):
-        return self.nodes_except_me + self.me
+        self.nodelist = self.nodes_except_me.copy()
+        self.nodelist.append(self.me)
+        return self.nodelist
 
 
     def get_block(self, block_id, include_status=False):

@@ -21,13 +21,7 @@ block_api = Api(block_views)
 class ApiQueryByID(Resource):
     def post(self):
     # 根据区块ID获取区块
-    # @common_api.route('/getBlockById/', methods=['POST'])
-    # def getBlockById():
-        print("in------")
-        # block_id = request.args.get('block_id')
-        print(request.get_json(force=True))
-
-        block_id = ""
+        block_id = request.get_json()["block_id"]
         pool = current_app.config['bigchain_pool']
         with pool() as b:
             try:
@@ -35,8 +29,7 @@ class ApiQueryByID(Resource):
             except:
                 return make_response(constant.RESPONSE_STATUS_ERROR,
                                      constant.RESPONSE_CODE_ERROR,
-                                     "query success",
-                                     block)
+                                     "None")
         return make_response(constant.RESPONSE_STATUS_SUCCESS,
                              constant.RESPONSE_CODE_SUCCESS,
                              "query success",
@@ -45,9 +38,7 @@ class ApiQueryByID(Resource):
 class ApiQueryTxsByID(Resource):
     def post(self):
     # 根据区块ID获取区块中的交易
-    # @common_api.route('/getAllTxsFromBlock/', methods=['POST'])
-    # def getAllTxsFromBlock(block_id):
-        block_id = request.args.get('block_id')
+        block_id = request.get_json()["block_id"]
         pool = current_app.config['bigchain_pool']
         with pool() as b:
             try:
@@ -55,23 +46,26 @@ class ApiQueryTxsByID(Resource):
             except:
                 return make_response(constant.RESPONSE_STATUS_ERROR,
                                      constant.RESPONSE_CODE_ERROR,
-                                     "query success",
-                                     "")
-        txList = block['transactions']
+                                     "None")
+        print(block)
+        txList = block["block"]['transactions']
         return make_response(constant.RESPONSE_STATUS_SUCCESS,
                              constant.RESPONSE_CODE_SUCCESS,
                              "query success",
-                             txList.to_dict())
+                             txList)
 
 class ApiQueryTxsCountByID(Resource):
     def post(self):
     # 根据区块ID获取区块中的交易条数
-    # @common_api.route('/getTxNumberInBlock/', methodget_publickeySets=['POST'])
-    # def getTxNumberInBlock():
-        block_id = request.args.get('block_id')
+        block_id = request.get_json()["block_id"]
         pool = current_app.config['bigchain_pool']
         with pool() as b:
-            number = b.get_txNumber(block_id)
+            try:
+                number = b.get_txNumber(block_id)
+            except:
+                return make_response(constant.RESPONSE_STATUS_ERROR,
+                                 constant.RESPONSE_CODE_ERROR,
+                                 "None")
         return make_response(constant.RESPONSE_STATUS_SUCCESS,
                              constant.RESPONSE_CODE_SUCCESS,
                              "query success",
@@ -80,11 +74,14 @@ class ApiQueryTxsCountByID(Resource):
 class ApiQueryBlockCount(Resource):
     def post(self):
     # 获取区块链中的总区块数
-    # @common_api.route('/getBlockNumberInUnichain/', methods=['POST'])
-    # def getBlockNumberInUnichain():
         pool = current_app.config['bigchain_pool']
         with pool() as b:
-            number = b.get_BlockNumber()
+            try:
+                number = b.get_BlockNumber()
+            except:
+                return make_response(constant.RESPONSE_STATUS_ERROR,
+                                 constant.RESPONSE_CODE_ERROR,
+                                 "None")
         return make_response(constant.RESPONSE_STATUS_SUCCESS,
                              constant.RESPONSE_CODE_SUCCESS,
                              "query success",
@@ -93,26 +90,33 @@ class ApiQueryBlockCount(Resource):
 class ApiQueryBlocksByRange(Resource):
     def post(self):
     # 根据指定时间区间获取区块集
-    # @common_api.route('/getBlocksByTime/', methods=['POST'])
-    # def getBlocksByTime():
-        startTime = request.args.get('startTime')
-        endtime = request.args.get('endtime')
+        startTime = request.json.get("startTime")
+        endTime = request.json.get("endTime")
+
         pool = current_app.config['bigchain_pool']
         with pool() as b:
-            blockIdList = b.get_BlockIdList(startTime=startTime, endtime=endtime)
+            try:
+                blockIdList = b.get_BlockIdList(startTime, endTime)
+            except:
+                return make_response(constant.RESPONSE_STATUS_ERROR,
+                                     constant.RESPONSE_CODE_ERROR,
+                                     "None")
         return make_response(constant.RESPONSE_STATUS_SUCCESS,
                              constant.RESPONSE_CODE_SUCCESS,
                              "query success",
-                             blockIdList)
+                             list(blockIdList))
 
 class ApiQueryInvalidBlockTotal(Resource):
     def post(self):
     # 获取所有无效区块集
-    # @common_api.route('/getInvalidBlcok/', methods=['POST'])
-    # def getInvalidBlcok():
         pool = current_app.config['bigchain_pool']
         with pool() as b:
-            invalidBlockIdList = b.get_invalidBlockIdList()
+            try:
+                invalidBlockIdList = b.get_invalidBlockIdList()
+            except:
+                return make_response(constant.RESPONSE_STATUS_ERROR,
+                                     constant.RESPONSE_CODE_ERROR,
+                                     "None")
         return make_response(constant.RESPONSE_STATUS_SUCCESS,
                              constant.RESPONSE_CODE_SUCCESS,
                              "query success",
@@ -121,13 +125,16 @@ class ApiQueryInvalidBlockTotal(Resource):
 class ApiQueryInvalidBlockByRange(Resource):
     def post(self):
     # 获取指定时间区间内的无效区块集
-    # @common_api.route('/getInvalidBlcokByTime/', methods=['POST'])
-    # def getInvalidBlcokByTime():
-        startTime = request.args.get('startTime')
-        endtime = request.args.get('endtime')
+        startTime = request.json.get("startTime")
+        endTime = request.json.get("endTime")
         pool = current_app.config['bigchain_pool']
         with pool() as b:
-            invalidBlockIdList = b.get_invalidBlockIdList(startTime, endtime)
+            try:
+                invalidBlockIdList = b.get_invalidBlockIdList(startTime, endTime)
+            except:
+                return make_response(constant.RESPONSE_STATUS_ERROR,
+                                     constant.RESPONSE_CODE_ERROR,
+                                     "None")
         return make_response(constant.RESPONSE_STATUS_SUCCESS,
                              constant.RESPONSE_CODE_SUCCESS,
                              "query success",

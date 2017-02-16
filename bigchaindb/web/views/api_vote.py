@@ -19,11 +19,14 @@ vote_api = Api(vote_views)
 
 class ApiPublickeySet(Resource):
     def post(self):
-    # @common_api.route('/getAllPublicKey/', methods=['POST'])
-    # def getAllPublicKey():
         pool = current_app.config['bigchain_pool']
         with pool() as b:
-            pubkeyList = b.get_allPublicKey()
+            try:
+                pubkeyList = b.get_allPublicKey()
+            except:
+                return make_response(constant.RESPONSE_STATUS_ERROR,
+                                     constant.RESPONSE_CODE_ERROR,
+                                     "None")
         return make_response(constant.RESPONSE_STATUS_SUCCESS,
                              constant.RESPONSE_CODE_SUCCESS,
                              "query success",
