@@ -4,7 +4,7 @@ Date:  2017-02-14
 """
 import rapidjson
 import uuid
-from flask import current_app, request, Blueprint
+from flask import current_app, request, Blueprint, jsonify
 from flask_restful import Resource, Api
 
 import bigchaindb
@@ -38,11 +38,11 @@ class ApiTxCreateAvgTimeByRange(Resource):
             return make_response(constant.RESPONSE_STATUS_FAIL,
                                  constant.RESPONSE_CODE_FAIL,
                                  "response is none")
-        avgtime_json = jsonify({'avgtime':avgtime})
+        avgtime_dict= {'avgtime':avgtime}
         return make_response(constant.RESPONSE_STATUS_SUCCESS,
                              constant.RESPONSE_CODE_SUCCESS,
                              "query success",
-                             avgtime_json)
+                             avgtime_dict)
 
 class ApiBlockCreateAvgTimeByRange(Resource):
     def post(self):
@@ -64,11 +64,11 @@ class ApiBlockCreateAvgTimeByRange(Resource):
             return make_response(constant.RESPONSE_STATUS_FAIL,
                                  constant.RESPONSE_CODE_FAIL,
                                  "response is none")
-        avgtime_json = jsonify({'avgtime':avgtime})
+        avgtime_dict = {'avgtime':avgtime}
         return make_response(constant.RESPONSE_STATUS_SUCCESS,
                              constant.RESPONSE_CODE_SUCCESS,
                              "query success",
-                             avgtime_json)
+                             avgtime_dict)
 
 class ApiVoteTimeByBlockID(Resource):
     def post(self):
@@ -85,11 +85,11 @@ class ApiVoteTimeByBlockID(Resource):
             return make_response(constant.RESPONSE_STATUS_FAIL,
                                  constant.RESPONSE_CODE_FAIL,
                                  "response is none")
-        avgtime_json = jsonify({'avgtime':avgtime})
+        avgtime_dict = {'avgtime':avgtime}
         return make_response(constant.RESPONSE_STATUS_SUCCESS,
                              constant.RESPONSE_CODE_SUCCESS,
                              "query success",
-                             avgtime_json)
+                             avgtime_dict)
 
 class ApiVoteAvgTimeByRange(Resource):
     def post(self):
@@ -111,11 +111,11 @@ class ApiVoteAvgTimeByRange(Resource):
             return make_response(constant.RESPONSE_STATUS_FAIL,
                                  constant.RESPONSE_CODE_FAIL,
                                  "response is none")
-        avgtime_json = jsonify({'avgtime':avgtime})
+        avgtime_dict = {'avgtime':avgtime}
         return make_response(constant.RESPONSE_STATUS_SUCCESS,
                              constant.RESPONSE_CODE_SUCCESS,
                              "query success",
-                             avgtime_json)
+                             avgtime_dict)
 
 ##Router display
 timestat_api.add_resource(ApiTxCreateAvgTimeByRange,

@@ -441,9 +441,10 @@ class RethinkDBBackend:
         time_range = int(endtime) - int(begintime)
         if time_range <= 0:
             return 0,False
-        transaction_count =  self.connection.run(
-            r.table('bigchain', read_mode=self.read_mode)
-             .between(begintime, endtime, index='transaction_timestamp').count())
+        # transaction_count =  self.connection.run(
+        #     r.table('bigchain', read_mode=self.read_mode)
+        #      .between(begintime, endtime, index='tx_timestamp').count())  # tx time
+        transaction_count = self.connection.run(r.table("bigchain").concat_map(lambda block: block['block']['transactions']).filter((r.row["transaction"]['timestamp'] > begintime) & (r.row["transaction"]['timestamp'] < endtime)).count())
         if not transaction_count:
             return 0,False
         return time_range/transaction_count,True
@@ -452,20 +453,17 @@ class RethinkDBBackend:
         time_range = int(endtime) - int(begintime)
         if time_range <= 0:
             return 0,False
-        block_count =  self.connection.run(
-            r.table('bigchain', read_mode=self.read_mode)
-             .between(begintime, endtime, index='block_timestamp').count())
+        block_count =  self.connection.run(r.table('bigchain', read_mode=self.read_mode).between(begintime, endtime, index='block_timestamp').count())  # block time
         if not block_count:
             return 0,False
         return time_range/block_count,True
 
     def get_vote_time_by_blockid(self, block_id):
-        vote_begin_time = self.connection.run(
-                r.table('bigchain', read_mode=self.read_mode).get(block_id)('block')('timestamp'))   
-        vote_end_time = self.connection.run(
-                r.table('bigchain', read_mode=self.read_mode).filter(
-                    lambda block_vote:block_vote["vote"]["voting_for_block"] == block_id)('vote')('timestamp').max())
-        vote_time = vote_end_time - vote_begin_time
+        vote_begin_time = self.connection.run(r.table('bigchain', read_mode=self.read_mode).get(block_id).get_field('block').get_field('timestamp'))
+        vote_end_time = self.connection.run(r.table('votes').filter(r.row['vote']['voting_for_block'] == block_id).max(r.row['vote']['timestamp']).get_field('vote').get_field('timestamp'))
+        print(vote_begin_time)
+        print(vote_end_time)
+        vote_time = int(vote_end_time) - int(vote_begin_time)
         if not vote_time:
             vote_time = 1
         return vote_time,True
@@ -474,9 +472,7 @@ class RethinkDBBackend:
         time_range = int(endtime) - int(begintime)
         if time_range <= 0:
             return 0,False
-        vote_count =  self.connection.run(
-            r.table('votes', read_mode=self.read_mode)
-             .between(begintime, endtime, index='block_and_voter')('vote')('voting_for_block').distinct().count())
+        vote_count =  self.connection.run(r.table('votes', read_mode=self.read_mode).between(begintime, endtime, index='block_and_voter').get_field('vote').get_field('voting_for_block').distinct().count())
         if not vote_count:
             return 0,False
         return time_range/vote_count,True
