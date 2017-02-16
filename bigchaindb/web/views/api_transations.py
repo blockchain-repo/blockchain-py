@@ -46,7 +46,8 @@ class ApiQueryByID(Resource):
     # 根据交易ID获取交易
     #@common_api.route('/getTxById/', methods=['POST'])
     #def getTxById():
-        tx_id = request.args.get('tx_id')
+
+        tx_id = request.get_json()["tx_id"]
         pool = current_app.config['bigchain_pool']
         with pool() as b:
             tx = b.get_transaction(tx_id)
@@ -74,11 +75,11 @@ class ApiQueryTxsByRange(Resource):
     # 根据指定时间区间获取交易集
     # @common_api.route('/getTxsByTime/', methods=['POST'])
     # def getTxsByTime():
-        startTime = request.args.get('startTime')
-        endtime = request.args.get('endtime')
+        startTime = request.get_json()['startTime']
+        endTime = request.get_json()['endTime']
         pool = current_app.config['bigchain_pool']
         with pool() as b:
-            txIdList = b.get_TxIdByTime(startTime, endtime)
+            txIdList = b.get_TxIdByTime(startTime, endTime)
 
         return make_response(constant.RESPONSE_STATUS_SUCCESS,
                              constant.RESPONSE_CODE_SUCCESS,
@@ -94,6 +95,7 @@ class ApiQueryGroupByBlock(Resource):
         with pool() as b:
             blockIdTxList = b.get_txNumberOfAllBlock()
 
+        blockIdTxList = list(blockIdTxList)
         return make_response(constant.RESPONSE_STATUS_SUCCESS,
                              constant.RESPONSE_CODE_SUCCESS,
                              "query success",
