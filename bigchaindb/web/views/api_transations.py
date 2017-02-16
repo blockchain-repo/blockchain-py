@@ -36,10 +36,11 @@ class ApiCreateByPayload(Resource):
 
         # tx = tx.to_dict()
         # return rapidjson.dumps(tx)
+        tx_result = tx.to_dict() if tx else None
         return make_response(constant.RESPONSE_STATUS_SUCCESS,
                              constant.RESPONSE_CODE_SUCCESS,
                              "query success",
-                             tx.to_dict())
+                             tx_result)
 
 class ApiQueryByID(Resource):
     def post(self):
@@ -48,14 +49,20 @@ class ApiQueryByID(Resource):
     #def getTxById():
 
         tx_id = request.get_json()["tx_id"]
+        if not check_request(request, "tx_id"):
+            return make_response(constant.RESPONSE_STATUS_FAIL,
+                             constant.RESPONSE_CODE_FAIL,
+                             "param tx_id not exist")
+
         pool = current_app.config['bigchain_pool']
         with pool() as b:
             tx = b.get_transaction(tx_id)
 
+        tx_result = tx.to_dict() if tx else None
         return make_response(constant.RESPONSE_STATUS_SUCCESS,
                              constant.RESPONSE_CODE_SUCCESS,
                              "query success",
-                             tx.to_dict())
+                             tx_result)
 
 class ApiQueryTxsTotal(Resource):
     def post(self):
@@ -76,7 +83,17 @@ class ApiQueryTxsByRange(Resource):
     # @common_api.route('/getTxsByTime/', methods=['POST'])
     # def getTxsByTime():
         startTime = request.get_json()['startTime']
+        if not check_request(request, "startTime"):
+            return make_response(constant.RESPONSE_STATUS_FAIL,
+                             constant.RESPONSE_CODE_FAIL,
+                             "param startTime not exist")
+
         endTime = request.get_json()['endTime']
+        if not check_request(request, "endTime"):
+            return make_response(constant.RESPONSE_STATUS_FAIL,
+                                 constant.RESPONSE_CODE_FAIL,
+                                 "param endTime not exist")
+
         pool = current_app.config['bigchain_pool']
         with pool() as b:
             txIdList = b.get_TxIdByTime(startTime, endTime)

@@ -20,16 +20,16 @@ timestat_api = Api(timestat_views)
 class ApiTxCreateAvgTimeByRange(Resource):
     def post(self):
         print("txCreateAvgTime")
-        if not check_request(request, "begintime"):
+        if not check_request(request, "beginTime"):
             return make_response(constant.RESPONSE_STATUS_FAIL,
                                  constant.RESPONSE_CODE_FAIL,
-                                 "param begintime not exist")
-        if not check_request(request, "endtime"):
+                                 "param beginTime not exist")
+        if not check_request(request, "endTime"):
             return make_response(constant.RESPONSE_STATUS_FAIL,
                                  constant.RESPONSE_CODE_FAIL,
-                                 "param endtime not exist")
-        begintime = request.json.get("begintime")
-        endtime = request.json.get("endtime")
+                                 "param endTime not exist")
+        begintime = request.json.get("beginTime")
+        endtime = request.json.get("endTime")
 
         pool = current_app.config['bigchain_pool']
         with pool() as unichain:
@@ -38,7 +38,7 @@ class ApiTxCreateAvgTimeByRange(Resource):
             return make_response(constant.RESPONSE_STATUS_FAIL,
                                  constant.RESPONSE_CODE_FAIL,
                                  "response is none")
-        avgtime_dict= {'avgtime':avgtime}
+        avgtime_dict= {'avgTime':avgtime}
         return make_response(constant.RESPONSE_STATUS_SUCCESS,
                              constant.RESPONSE_CODE_SUCCESS,
                              "query success",
@@ -46,16 +46,16 @@ class ApiTxCreateAvgTimeByRange(Resource):
 
 class ApiBlockCreateAvgTimeByRange(Resource):
     def post(self):
-        if not check_request(request, "begintime"):
+        if not check_request(request, "beginTime"):
             return make_response(constant.RESPONSE_STATUS_FAIL,
                                  constant.RESPONSE_CODE_FAIL,
-                                 "param begintime not exist")
-        if not check_request(request, "endtime"):
+                                 "param beginTime not exist")
+        if not check_request(request, "endTime"):
             return make_response(constant.RESPONSE_STATUS_FAIL,
                                  constant.RESPONSE_CODE_FAIL,
-                                 "param endtime not exist")
-        begintime = request.json.get("begintime")
-        endtime = request.json.get("endtime")
+                                 "param endTime not exist")
+        begintime = request.json.get("beginTime")
+        endtime = request.json.get("endTime")
 
         pool = current_app.config['bigchain_pool']
         with pool() as unichain:
@@ -64,7 +64,7 @@ class ApiBlockCreateAvgTimeByRange(Resource):
             return make_response(constant.RESPONSE_STATUS_FAIL,
                                  constant.RESPONSE_CODE_FAIL,
                                  "response is none")
-        avgtime_dict = {'avgtime':avgtime}
+        avgtime_dict = {'avgTime':avgtime}
         return make_response(constant.RESPONSE_STATUS_SUCCESS,
                              constant.RESPONSE_CODE_SUCCESS,
                              "query success",
@@ -85,7 +85,7 @@ class ApiVoteTimeByBlockID(Resource):
             return make_response(constant.RESPONSE_STATUS_FAIL,
                                  constant.RESPONSE_CODE_FAIL,
                                  "response is none")
-        avgtime_dict = {'avgtime':avgtime}
+        avgtime_dict = {'avgTime':avgtime}
         return make_response(constant.RESPONSE_STATUS_SUCCESS,
                              constant.RESPONSE_CODE_SUCCESS,
                              "query success",
@@ -93,16 +93,16 @@ class ApiVoteTimeByBlockID(Resource):
 
 class ApiVoteAvgTimeByRange(Resource):
     def post(self):
-        if not check_request(request, "begintime"):
+        if not check_request(request, "beginTime"):
             return make_response(constant.RESPONSE_STATUS_FAIL,
                                  constant.RESPONSE_CODE_FAIL,
-                                 "param begintime not exist")
-        if not check_request(request, "endtime"):
+                                 "param beginTime not exist")
+        if not check_request(request, "endTime"):
             return make_response(constant.RESPONSE_STATUS_FAIL,
                                  constant.RESPONSE_CODE_FAIL,
-                                 "param endtime not exist")
-        begintime = request.json.get("begintime")
-        endtime = request.json.get("endtime")
+                                 "param endTime not exist")
+        begintime = request.json.get("beginTime")
+        endtime = request.json.get("endTime")
 
         pool = current_app.config['bigchain_pool']
         with pool() as unichain:
@@ -111,7 +111,7 @@ class ApiVoteAvgTimeByRange(Resource):
             return make_response(constant.RESPONSE_STATUS_FAIL,
                                  constant.RESPONSE_CODE_FAIL,
                                  "response is none")
-        avgtime_dict = {'avgtime':avgtime}
+        avgtime_dict = {'avgTime':avgtime}
         return make_response(constant.RESPONSE_STATUS_SUCCESS,
                              constant.RESPONSE_CODE_SUCCESS,
                              "query success",
