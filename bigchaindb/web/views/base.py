@@ -1,4 +1,4 @@
-import constant
+from bigchaindb.web.views import constant
 from flask import jsonify
 
 def check_request(request, key=None):
@@ -19,4 +19,6 @@ def make_response(res_status, res_code, res_message=None, res_data=None):
         'data':res_data
     })
     return response
+
+print(constant.RESPONSE_STATUS_FAIL)
 

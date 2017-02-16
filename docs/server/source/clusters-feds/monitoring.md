@@ -24,7 +24,7 @@ $ INFLUXDB_DATA=/data docker-compose -f docker-compose-monitor.yml up
 
 You can view the Grafana dashboard in your web browser at:
 
-[http://localhost:3000/dashboard/script/bigchaindb_dashboard.js](http://localhost:3000/dashboard/script/bigchaindb_dashboard.js)
+[http://localhost:30/dashboard/script/bigchaindb_dashboard.js](http://localhost:30/dashboard/script/bigchaindb_dashboard.js)
 
 (You may want to replace `localhost` with another hostname in that URL, e.g. the hostname of a remote monitoring server.)
 

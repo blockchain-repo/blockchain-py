@@ -48,7 +48,7 @@ class Election:
         isHandled = self.bigchain.selectFromWrite(invalid_block.id)
         if self.bigchain.me == invalid_block.node_pubkey and isHandled ==False:
             logger.info('Rewriting %s transactions from invalid block %s', len(invalid_block.transactions), invalid_block.id)
-            data = {'id':invalid_block.id,'node_publickey': invalid_block.node_pubkey}
+            data = {'id':invalid_block.id,'node_publickey': invalid_block.node_pubkey,'timestamp':invalid_block.timestamp}
             self.bigchain.insertRewrite(data)
             for tx in invalid_block.transactions:
                 self.bigchain.write_transaction(tx)
@@ -76,7 +76,7 @@ class Election:
             logger.info(' Rewriting %s transactions from invalid block %s --check_local_mem',
                         len(invalid_block.transactions),
                         invalid_block.id)
-            data = {'id': invalid_block.id, 'node_publickey': invalid_block.node_pubkey}
+            data = {'id': invalid_block.id, 'node_publickey': invalid_block.node_pubkey,'timestamp':invalid_block.timestamp}
             self.bigchain.insertRewrite(data)
             for tx in invalid_block.transactions:
                 self.bigchain.write_transaction(tx)

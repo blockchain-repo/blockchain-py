@@ -12,7 +12,10 @@ import gunicorn.app.base
 from bigchaindb import util
 from bigchaindb import Bigchain
 from bigchaindb.web.views.info import info_views
-from bigchaindb.web.views.transactions import transaction_views
+from bigchaindb.web.views.api_transations import transaction_views
+from bigchaindb.web.views.api_block import block_views
+from bigchaindb.web.views.api_vote import vote_views
+from bigchaindb.web.views.api_timestat import timestat_views
 from bigchaindb.web.apiForVeracity.apiForVeracity import testVeracity_api
 from bigchaindb.monitor import Monitor
 

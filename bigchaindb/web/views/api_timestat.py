@@ -4,14 +4,14 @@ Date:  2017-02-14
 """
 import rapidjson
 import uuid
-import base
 from flask import current_app, request, Blueprint
 from flask_restful import Resource, Api
 
 import bigchaindb
 from bigchaindb.common.exceptions import InvalidHash, InvalidSignature
 from bigchaindb.models import Transaction
-from bigchaindb.web.views.base import make_error
+from bigchaindb.web.views.base import make_response,check_request
+from bigchaindb.web.views import constant
 
 timestat_views = Blueprint('timestat_views', __name__)
 timestat_api = Api(timestat_views)
@@ -121,11 +121,11 @@ timestat_api.add_resource(ApiTxCreateAvgTimeByRange,
                           '/txCreateAvgTime',
                           strict_slashes=False)
 timestat_api.add_resource(ApiBlockCreateAvgTimeByRange,
-                          'blockCreateAvgTime',
+                          '/blockCreateAvgTime',
                           strict_slashes=False)
 timestat_api.add_resource(ApiVoteTimeByBlockID,
-                          'voteTimeByBlockID',
+                          '/voteTimeByBlockID',
                           strict_slashes=False)
 timestat_api.add_resource(ApiVoteAvgTimeByRange,
-                          'voteTimeAvgTime',
+                          '/voteTimeAvgTime',
                           strict_slashes=False)

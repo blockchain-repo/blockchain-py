@@ -964,7 +964,8 @@ class Transaction(object):
                 #              condition but a fulfillment
 
                 # TODO FOR CC: `get_subcondition` is singular. One would not
-                #              expect to get a list back.
+                #              e
+                #   xpect to get a list back.
                 ccffill = fulfillment.fulfillment
                 subffill = ccffill.get_subcondition_from_vk(owner_before)[0]
             except IndexError:

@@ -14,7 +14,6 @@ RUN echo "deb http://mirrors.163.com/ubuntu trusty main universe\n" > /etc/apt/s
 
 VOLUME ["/var/lib/grafana", "/var/log/grafana", "/etc/grafana" ]
 
-EXPOSE 3000
 
 COPY ./run.sh /run.sh
 

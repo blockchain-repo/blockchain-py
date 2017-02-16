@@ -83,5 +83,6 @@ ul_deploy/conf/keypairs.py
 #first push should commend and none after
 ul_deploy/conf/blockchain_nodes
 ul_deploy/conf/monitor_config
+ul_deploy/docker_images/
 
 #ul_tests/

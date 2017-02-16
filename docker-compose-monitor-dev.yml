@@ -22,7 +22,7 @@ services:
     image: unichain_grafana
     container_name: unichain_grafana
     ports:
-      - "30:3000"
+      - "30:30"
     environment:
       INFLUXDB_HOST: "influxdb"
     volumes:

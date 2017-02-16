@@ -5,3 +5,6 @@
 #example4: #username@host:port passwd
 
 #all nodes as follow:
+lizhen@192.168.159.101:22 lz921
+lizhen@192.168.159.102:22 lz921
+lizhen@192.168.159.103:22 lz921

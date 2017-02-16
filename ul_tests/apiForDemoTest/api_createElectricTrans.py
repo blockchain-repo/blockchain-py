@@ -1,18 +1,19 @@
 import json
 import requests
 
-url='http://127.0.0.1:9984/apifordemo/v1/electric_trans/'
-
+url='http://127.0.0.1:9984/uniledger/v1/block/queryByID/'
+url='http://127.0.0.1:9984/uniledger/v1/timestat/txCreateAvgTime'
 values = """{
-    "owners_before":"HmUyiGb5nS2Vh35gqTJaWsNyE74zh4PGfEuZ1EZSvRda",
-    "owners_after":"wreXXdHnbZmpyNxTCBscdtNMutF1VhL7v5n9zc9gyi2",
-    "msg":"create electric transcation!"
+    "block_id":"0163c975ef21cfdcd282f3dd9021800e7d2f17befc5f4a20aed91b22a04cb4e0",
 }"""
 
 
 headers = {
   'Content-Type': 'application/json'
 }
+value=json.dumps(values)
+r=requests.post(url,data=value,headers=headers)
+print(r.text)
 
-r=requests.post(url,data=values,headers=headers)
-# print(r.text)
+
+# curl -i -X POST -H 'Content-Type:application/json' -d '{}' http://127.0.0.1:9984/uniledger/v1/block/queryByID//

@@ -480,3 +480,77 @@ class RethinkDBBackend:
         if not vote_count:
             return 0,False
         return time_range/vote_count,True
+
+
+    # @author lz for api
+
+    def get_txNumberById(self,block_id):
+        return self.connection.run(r.table('bigchain').get_all(block_id, index='id').concat_map(lambda block: block['block']['transactions']).count())
+
+
+    def get_txNumber(self,startTime=r.minval,endtime=r.maxval):
+        return self.connection.run(r.table('bigchain').between(startTime, endtime, index='block_timestamp').concat_map(lambda block: block['block']['transactions']).count())
+
+
+    def get_BlockNumber(self,startTime=r.minval,endtime=r.maxval):
+        return self.connection.run(r.table('bigchain').between(startTime, endtime).count())
+
+    def get_allInvalidBlock(self,limit=None):
+        if limit==None:
+            return self.connection.run(r.table('rewrite').order_by(r.desc(r.row['timestamp'])).get_field('id'))
+        else:
+            return self.connection.run(r.table('rewrite').order_by(r.desc(r.row['timestamp'])).get_field('id').limit(1000))
+
+    # def get_invalidBlockByS(self,startTime):
+    #     return self.connection.run(r.table('rewrite').between(startTime, r.maxval, index='block_timestamp').get_field('id'))
+    #
+    # def get_invalidBlockByE(self,endtime):
+    #     return self.connection.run(r.table('rewrite').between(r.minval, endtime, index='block_timestamp').get_field('id'))
+
+    def get_invalidBlockByTime(self,startTime,endtime):
+        return self.connection.run(r.table('rewrite').between(startTime, endtime, index='block_timestamp').get_field('id'))
+
+    def get_BlockIdList(self,startTime=r.minval,endtime=r.maxval,limit=None):
+        if limit == None:
+            return self.connection.run(r.table('bigchain').between(startTime, endtime, index='block_timestamp').order_by(index=r.desc('block_timestamp')).get_field('id'))
+        else:
+            return self.connection.run(r.table('bigchain').between(startTime, endtime, index='block_timestamp').order_by(index=r.desc('block_timestamp')).get_field('id').limit(limit))
+
+    def get_txIdList(self,startTime=r.minval,endtime=r.maxval,limit=None):
+        if limit == None:
+            return self.connection.run(r.table("bigchain").concat_map(lambda block: block['block']['transactions']).order_by(r.desc(r.row['block']['transactions']['transaction']['timestamp'])).filter((r.row["transaction"]['timestamp'] < startTime) & (r.row["transaction"]['timestamp'] > endtime)))
+        else:
+            return self.connection.run(r.table("bigchain").concat_map(lambda block: block['block']['transactions']).order_by(r.desc(r.row['block']['transactions']['transaction']['timestamp'])).filter((r.row["transaction"]['timestamp'] < startTime) & (r.row["transaction"]['timestamp'] > endtime)).limit(limit))
+
+    def get_txNumberOfEachBlock(self,limit=None):
+        if limit == None:
+            return self.connection.run(r.table("bigchain").map({'id':r.row['id'],'count':r.row['block']['transactions'].count()}))
+        else:
+            return self.connection.run(r.table("bigchain").order_by(index=r.desc('block_timestamp')).map({'id':r.row['id'],'count':r.row['block']['transactions'].count()}).limit(limit))
+
+    def get_block(self,block_id):
+        return self.connection.run(r.table('bigchain').get(block_id))
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+

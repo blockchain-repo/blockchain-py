@@ -769,3 +769,66 @@ class Bigchain(object):
             status = False
             return 0,status
         return avgtime,status
+
+
+    # @author lz For commen-api
+    def get_txNumber(self, block_id=None):
+        if block_id == None:
+            return self.backend.get_txNumber()
+        else:
+            return self.backend.get_txNumberById(block_id)
+
+
+    def get_BlockNumber(self):
+        return self.backend.get_BlockNumber()
+
+
+    def get_invalidBlockIdList(self, startTime=None, endtime=None):
+        if startTime == None & endtime == None:
+            return self.backend.get_allInvalidBlock()
+        else:
+            return self.backend.get_invalidBlockByTime(startTime, endtime)
+
+
+    def get_BlockIdList(self, startTime, endtime):
+        if startTime == None & endtime == None:
+            blockCount = self.backend.get_BlockNumber()
+            if blockCount > 1000:
+                return self.backend.get_BlockIdList(limit=1000)
+            return self.backend.get_BlockIdList()
+        else:
+            blockCount = self.backend.get_BlockNumber(startTime=startTime, endtime=endtime)
+            if blockCount > 1000:
+                return self.backend.get_BlockIdList(startTime=startTime, endtime=endtime, limit=1000)
+            return self.backend.get_BlockIdList(startTime=startTime, endtime=endtime)
+
+
+    def get_TxIdByTime(self, startTime, endtime):
+        txCount = self.backend.get_txNumber(startTime=startTime, endtime=endtime)
+        if txCount > 2000:
+            return self.backend.get_txIdList(startTime=startTime, endtime=endtime, limit=2000)
+        return self.backend.get_txIdList(startTime=startTime, endtime=endtime)
+
+
+    def get_txNumberOfAllBlock(self):
+        blockCount = self.backend.get_BlockNumber()
+        if blockCount > 1000:
+            # 输出1000条数据
+            print("The resule is too big,onlg shows the recent 1000 records")
+            return self.backend.get_txNumberOfEachBlock(limit=1000)
+        else:
+            return self.backend.get_txNumberOfEachBlock()
+            # 全部输出
+
+    def get_allPublicKey(self):
+        return self.nodes_except_me + self.me
+
+
+    def get_block(self, block_id, include_status=False):
+        block = self.backend.get_block(block_id)
+        return block
+
+
+
+
+
