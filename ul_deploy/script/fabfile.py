@@ -1014,3 +1014,22 @@ def fixed_dpkg_error():
         sudo("rm /var/cache/apt/archives/lock")
         sudo("rm /var/lib/dpkg/lock")
         sudo("fixed dpkg error over!")
+
+@task
+@parallel
+def install_dependency(flag=True):
+    with settings(warn_only=True):
+        if flag:
+            sudo("pip3 install rethinkdb~=2.3")
+            # i.e. a version between 2.3 and 3.0
+            sudo("pip3 install pysha3==1.0.0")
+            sudo("pip3 install cryptoconditions~=0.5.0")
+            sudo("pip3 install statsd~=3.2.1")
+            sudo("pip3 install python-rapidjson~=0.0.8")
+            sudo("pip3 install logstats~=0.2.1")
+            sudo("pip3 install flask~=0.10.1")
+            sudo("pip3 install flask-restful~=0.3.0")
+            sudo("pip3 install requests~=2.9")
+            sudo("pip3 install gunicorn~=19.0")
+            sudo("pip3 install multipipes~=0.1.0")
+            sudo("echo install app dependency over!")
