@@ -125,6 +125,10 @@ def create_bigchain_secondary_index(conn, dbname):
         .index_create('asset_id',
                       r.row['block']['transactions']['transaction']['asset']['id'], multi=True) \
         .run(conn)
+    r.db(dbname).table('bigchain') \
+        .index_create('tx_timestamp',
+                      r.row['block']['transactions']['transaction']['timestamp']) \
+        .run(conn)
     r.db(dbname).table('rewrite').index_create('block_timestamp', r.row['timestamp']).run(conn)
 
     # wait for rethinkdb to finish creating secondary indexes

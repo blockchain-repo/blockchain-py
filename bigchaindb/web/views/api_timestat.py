@@ -72,11 +72,11 @@ class ApiBlockCreateAvgTimeByRange(Resource):
 
 class ApiVoteTimeByBlockID(Resource):
     def post(self):
-        if not check_request(request, "id"):
+        if not check_request(request, "block_id"):
             return make_response(constant.RESPONSE_STATUS_FAIL,
                                  constant.RESPONSE_CODE_FAIL,
                                  "param block id not exist")
-        block_id = request.json.get("id")
+        block_id = request.json.get("block_id")
 
         pool = current_app.config['bigchain_pool']
         with pool() as unichain:
@@ -119,14 +119,14 @@ class ApiVoteAvgTimeByRange(Resource):
 
 ##Router display
 timestat_api.add_resource(ApiTxCreateAvgTimeByRange,
-                          '/txCreateAvgTime',
+                          '/txCreateAvgTimeByRange',
                           strict_slashes=False)
 timestat_api.add_resource(ApiBlockCreateAvgTimeByRange,
-                          '/blockCreateAvgTime',
+                          '/blockCreateAvgTimeByRange',
                           strict_slashes=False)
 timestat_api.add_resource(ApiVoteTimeByBlockID,
                           '/voteTimeByBlockID',
                           strict_slashes=False)
 timestat_api.add_resource(ApiVoteAvgTimeByRange,
-                          '/voteTimeAvgTime',
+                          '/voteAvgTimeByRange',
                           strict_slashes=False)

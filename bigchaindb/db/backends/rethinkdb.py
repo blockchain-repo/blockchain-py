@@ -447,7 +447,7 @@ class RethinkDBBackend:
         transaction_count = self.connection.run(r.table("bigchain").concat_map(lambda block: block['block']['transactions']).filter((r.row["transaction"]['timestamp'] > begintime) & (r.row["transaction"]['timestamp'] < endtime)).count())
         if not transaction_count:
             return 0,False
-        return time_range/transaction_count,True
+        return round(time_range/transaction_count,3),True
    
     def get_block_createavgtime_by_range(self, begintime, endtime):
         time_range = int(endtime) - int(begintime)
@@ -456,7 +456,7 @@ class RethinkDBBackend:
         block_count =  self.connection.run(r.table('bigchain', read_mode=self.read_mode).between(begintime, endtime, index='block_timestamp').count())  # block time
         if not block_count:
             return 0,False
-        return time_range/block_count,True
+        return round(time_range/block_count,3),True
 
     def get_vote_time_by_blockid(self, block_id):
         vote_begin_time = self.connection.run(r.table('bigchain', read_mode=self.read_mode).get(block_id).get_field('block').get_field('timestamp'))
@@ -475,7 +475,7 @@ class RethinkDBBackend:
         vote_count =  self.connection.run(r.table('votes', read_mode=self.read_mode).between(begintime, endtime, index='vote_timestamp').get_field('vote').get_field('voting_for_block').distinct().count())
         if not vote_count:
             return 0,False
-        return time_range/vote_count,True
+        return round(time_range/vote_count,3),True
 
 
     # @author lz for api
