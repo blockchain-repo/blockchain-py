@@ -102,16 +102,16 @@ class ApiQueryBlockCount(Resource):
 class ApiQueryBlocksByRange(Resource):
     def post(self):
     # 根据指定时间区间获取区块集
-        if not check_request(request, "startTime"):
+        if not check_request(request, "beginTime"):
             return make_response(constant.RESPONSE_STATUS_FAIL,
                                  constant.RESPONSE_CODE_FAIL,
-                                 "param startTime not exist")
+                                 "param beginTime not exist")
         if not check_request(request, "endTime"):
             return make_response(constant.RESPONSE_STATUS_FAIL,
                                  constant.RESPONSE_CODE_FAIL,
-                                 "param endtime not exist")
+                                 "param endTime not exist")
 
-        startTime = request.json.get("startTime")
+        startTime = request.json.get("beginTime")
         endTime = request.json.get("endTime")
 
         pool = current_app.config['bigchain_pool']
@@ -146,16 +146,16 @@ class ApiQueryInvalidBlockTotal(Resource):
 class ApiQueryInvalidBlockByRange(Resource):
     def post(self):
     # 获取指定时间区间内的无效区块集
-        if not check_request(request, "startTime"):
+        if not check_request(request, "beginTime"):
             return make_response(constant.RESPONSE_STATUS_FAIL,
                                  constant.RESPONSE_CODE_FAIL,
-                                 "param startTime not exist")
+                                 "param beginTime not exist")
         if not check_request(request, "endTime"):
             return make_response(constant.RESPONSE_STATUS_FAIL,
                                  constant.RESPONSE_CODE_FAIL,
-                                 "param endtime not exist")
+                                 "param endTime not exist")
 
-        startTime = request.json.get("startTime")
+        startTime = request.json.get("beginTime")
         endTime = request.json.get("endTime")
         pool = current_app.config['bigchain_pool']
         with pool() as b:
