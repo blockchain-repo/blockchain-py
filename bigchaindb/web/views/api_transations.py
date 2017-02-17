@@ -36,10 +36,17 @@ class ApiCreateByPayload(Resource):
 
         # tx = tx.to_dict()
         # return rapidjson.dumps(tx)
-        tx_result = tx.to_dict() if tx else None
+
+        if not tx:
+            tx_result = {}
+            result_messages = "tx not exist!"
+        else:
+            tx_result = tx.to_dict()
+            result_messages = "query success"
+
         return make_response(constant.RESPONSE_STATUS_SUCCESS,
                              constant.RESPONSE_CODE_SUCCESS,
-                             "query success",
+                             result_messages,
                              tx_result)
 
 class ApiQueryByID(Resource):
@@ -58,10 +65,16 @@ class ApiQueryByID(Resource):
         with pool() as b:
             tx = b.get_transaction(tx_id)
 
-        tx_result = tx.to_dict() if tx else None
+        if not tx:
+            tx_result = {}
+            result_messages = "tx not exist!"
+        else:
+            tx_result = tx.to_dict()
+            result_messages = "query success"
+
         return make_response(constant.RESPONSE_STATUS_SUCCESS,
                              constant.RESPONSE_CODE_SUCCESS,
-                             "query success",
+                             result_messages,
                              tx_result)
 
 class ApiQueryTxsTotal(Resource):
