@@ -24,12 +24,11 @@ from hostlist import public_dns_names,public_hosts,public_pwds,public_host_pwds
 env['passwords'] = public_host_pwds
 env['hosts']=env['passwords'].keys()
 
-from ul_deploy.script.multi_apps_conf import app_config
 
-_server_port = app_config['server_port']
-_restore_server_port = app_config['restore_server_port']
-_service_name = app_config['service_name']
-_setup_name = app_config['setup_name']
+_server_port = 9984
+_restore_server_port = 9986
+_service_name = "unichain"
+_setup_name = "UnichainDB"
 
 
 ################################ unichain dependency sovle  ######################################
