@@ -141,7 +141,7 @@ class ApiQueryInvalidBlockTotal(Resource):
         return make_response(constant.RESPONSE_STATUS_SUCCESS,
                              constant.RESPONSE_CODE_SUCCESS,
                              "query success",
-                             invalidBlockIdList)
+                             list(invalidBlockIdList))
 
 class ApiQueryInvalidBlockByRange(Resource):
     def post(self):
@@ -168,7 +168,7 @@ class ApiQueryInvalidBlockByRange(Resource):
         return make_response(constant.RESPONSE_STATUS_SUCCESS,
                              constant.RESPONSE_CODE_SUCCESS,
                              "query success",
-                             invalidBlockIdList)
+                             list(invalidBlockIdList))
 
 ##Router display
 block_api.add_resource(ApiQueryByID,
