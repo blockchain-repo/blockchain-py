@@ -10,7 +10,7 @@ from __future__ import with_statement, unicode_literals
 from os import environ  # a mapping (like a dict)
 import sys
 
-from fabric.api import sudo,cd, env, hosts, local
+from fabric.api import sudo,cd, env, hosts, local, runs_once
 from fabric.api import task, parallel
 from fabric.contrib.files import sed
 from fabric.operations import run, put, get
@@ -24,13 +24,54 @@ from hostlist import public_dns_names,public_hosts,public_pwds,public_host_pwds
 env['passwords'] = public_host_pwds
 env['hosts']=env['passwords'].keys()
 
-from ul_deploy.script.multi_apps_conf import app_config
 
-_server_port = app_config['server_port']
-_restore_server_port = app_config['restore_server_port']
-_service_name = app_config['service_name']
-_setup_name = app_config['setup_name']
+_server_port = 9984
+_restore_server_port = 9986
+_service_name = "unichain"
+_setup_name = "UnichainDB"
 
+
+################################ unichain dependency sovle  ######################################
+@runs_once
+@task
+def install_dependency(flag=True):
+    with settings(warn_only=True):
+        if flag:
+            local("echo renew the apt sources.list")
+            local("pip3 install rethinkdb~=2.3")
+            # i.e. a version between 2.3 and 3.0
+            local("pip3 install pysha3==1.0.0")
+            local("pip3 install cryptoconditions~=0.5.0")
+            local("pip3 install statsd~=3.2.1")
+            local("pip3 install python-rapidjson~=0.0.8")
+            local("pip3 install logstats~=0.2.1")
+            local("pip3 install flask~=0.10.1")
+            local("pip3 install flask-restful~=0.3.0")
+            local("pip3 install requests~=2.9")
+            local("pip3 install gunicorn~=19.0")
+            local("pip3 install multipipes~=0.1.0")
+            local("echo install app dependency over!")
+
+@task
+@parallel
+def install_dependency(flag=True):
+    with settings(warn_only=True):
+        if flag:
+            put("../sources/sources.list", "/etc/apt/")
+            run("echo renew the apt sources.list")
+            sudo("pip3 install rethinkdb~=2.3")
+            # i.e. a version between 2.3 and 3.0
+            sudo("pip3 install pysha3==1.0.0")
+            sudo("pip3 install cryptoconditions~=0.5.0")
+            sudo("pip3 install statsd~=3.2.1")
+            sudo("pip3 install python-rapidjson~=0.0.8")
+            sudo("pip3 install logstats~=0.2.1")
+            sudo("pip3 install flask~=0.10.1")
+            sudo("pip3 install flask-restful~=0.3.0")
+            sudo("pip3 install requests~=2.9")
+            sudo("pip3 install gunicorn~=19.0")
+            sudo("pip3 install multipipes~=0.1.0")
+            sudo("echo install app dependency over!")
 
 ################################ Check envl  ######################################
 #step:check port&process&data,conf path
@@ -259,6 +300,9 @@ def install_unichain_from_git_archive(service_name=None):
             sudo("rm -rf ./{}/*".format(service_name))
     run('tar xvfz unichain-archive.tar.gz -C ./{} >/dev/null 2>&1'.format(service_name))
     sudo('pip3 install -i https://pypi.doubanio.com/simple --upgrade setuptools')
+    # must install dependency first!
+    install_dependency()
+
     with cd('./{}'.format(service_name)):
         sudo('python3 setup.py install')
         # sudo('pip3 install .')

@@ -5,12 +5,8 @@ For full docs visit https://bigchaindb.readthedocs.org
 
 """
 from setuptools import setup, find_packages
-import bigchaindb
-app_service_name = bigchaindb.config['app']['service_name']
-app_setup_name = bigchaindb.config['app']['setup_name']
-
-if not app_service_name or not app_setup_name:
-    exit('You must specify the app service name, and setup name first!')
+app_service_name = "unichain"
+app_setup_name = "UnichainDB"
 
 # get the version
 version = {}
