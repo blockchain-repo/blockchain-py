@@ -160,7 +160,7 @@ class ApiQueryInvalidBlockByRange(Resource):
         pool = current_app.config['bigchain_pool']
         with pool() as b:
             try:
-                invalidBlockIdList = b.get_invalidBlockIdList(startTime, endTime)
+                invalidBlockIdList = b.get_invalidBlockIdList(startTime=startTime, endTime=endTime)
             except:
                 return make_response(constant.RESPONSE_STATUS_ERROR,
                                      constant.RESPONSE_CODE_ERROR,

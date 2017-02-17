@@ -472,7 +472,7 @@ class RethinkDBBackend:
         time_range = int(endtime) - int(begintime)
         if time_range <= 0:
             return 0,False
-        vote_count =  self.connection.run(r.table('votes', read_mode=self.read_mode).between(begintime, endtime, index='block_and_voter').get_field('vote').get_field('voting_for_block').distinct().count())
+        vote_count =  self.connection.run(r.table('votes', read_mode=self.read_mode).between(begintime, endtime, index='vote_timestamp').get_field('vote').get_field('voting_for_block').distinct().count())
         if not vote_count:
             return 0,False
         return time_range/vote_count,True
@@ -488,7 +488,7 @@ class RethinkDBBackend:
         :return:
         """
 
-        return self.connection.run(r.table('bigchain').get(block_id)('block')('transactions').count().default(0))
+        return self.connection.run(r.table('bigchain').get_all(block_id, index='id').concat_map(lambda block: block['block']['transactions']).count())
 
     def get_txNumber(self, startTime=r.minval, endTime=r.maxval):
         """Get the numbers of the special block by the index block_timestamp.
