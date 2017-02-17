@@ -82,11 +82,11 @@ class ApiQueryTxsByRange(Resource):
     # 根据指定时间区间获取交易集
     # @common_api.route('/getTxsByTime/', methods=['POST'])
     # def getTxsByTime():
-        startTime = request.get_json()['startTime']
-        if not check_request(request, "startTime"):
+        startTime = request.get_json()['beginTime']
+        if not check_request(request, "beginTime"):
             return make_response(constant.RESPONSE_STATUS_FAIL,
                              constant.RESPONSE_CODE_FAIL,
-                             "param startTime not exist")
+                             "param beginTime not exist")
 
         endTime = request.get_json()['endTime']
         if not check_request(request, "endTime"):
