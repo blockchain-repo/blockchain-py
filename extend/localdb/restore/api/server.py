@@ -58,7 +58,7 @@ def create_app(settings):
     app.debug = settings.get('debug', False)
 
     app.register_blueprint(info_views, url_prefix='/collect')
-    app.register_blueprint(node_collect, url_prefix='/api/v1/collect')
+    app.register_blueprint(node_collect, url_prefix='/uniledger/v1/collect')
     return app
 
 

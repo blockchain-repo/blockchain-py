@@ -10,7 +10,7 @@ from __future__ import with_statement, unicode_literals
 from os import environ  # a mapping (like a dict)
 import sys
 
-from fabric.api import sudo,cd, env, hosts, local, runs_once
+from fabric.api import sudo, cd, env, hosts, local
 from fabric.api import task, parallel
 from fabric.contrib.files import sed
 from fabric.operations import run, put, get
@@ -18,61 +18,18 @@ from fabric.context_managers import settings
 
 import json
 from hostlist import public_dns_names,public_hosts,public_pwds,public_host_pwds
-
+from multi_apps_conf import app_config
 ################################ Fabric Initial Config Data  ######################################
 
 env['passwords'] = public_host_pwds
 env['hosts']=env['passwords'].keys()
 
+_service_name = app_config['service_name']
+_setup_name = app_config['setup_name']
+_server_port = app_config['server_port']
+_restore_server_port = app_config['restore_server_port']
 
-_server_port = 9984
-_restore_server_port = 9986
-_service_name = "unichain"
-_setup_name = "UnichainDB"
-
-
-################################ unichain dependency sovle  ######################################
-@runs_once
-@task
-def install_dependency(flag=True):
-    with settings(warn_only=True):
-        if flag:
-            local("echo renew the apt sources.list")
-            local("pip3 install rethinkdb~=2.3")
-            # i.e. a version between 2.3 and 3.0
-            local("pip3 install pysha3==1.0.0")
-            local("pip3 install cryptoconditions~=0.5.0")
-            local("pip3 install statsd~=3.2.1")
-            local("pip3 install python-rapidjson~=0.0.8")
-            local("pip3 install logstats~=0.2.1")
-            local("pip3 install flask~=0.10.1")
-            local("pip3 install flask-restful~=0.3.0")
-            local("pip3 install requests~=2.9")
-            local("pip3 install gunicorn~=19.0")
-            local("pip3 install multipipes~=0.1.0")
-            local("echo install app dependency over!")
-
-@task
-@parallel
-def install_dependency(flag=True):
-    with settings(warn_only=True):
-        if flag:
-            put("../sources/sources.list", "/etc/apt/")
-            run("echo renew the apt sources.list")
-            sudo("pip3 install rethinkdb~=2.3")
-            # i.e. a version between 2.3 and 3.0
-            sudo("pip3 install pysha3==1.0.0")
-            sudo("pip3 install cryptoconditions~=0.5.0")
-            sudo("pip3 install statsd~=3.2.1")
-            sudo("pip3 install python-rapidjson~=0.0.8")
-            sudo("pip3 install logstats~=0.2.1")
-            sudo("pip3 install flask~=0.10.1")
-            sudo("pip3 install flask-restful~=0.3.0")
-            sudo("pip3 install requests~=2.9")
-            sudo("pip3 install gunicorn~=19.0")
-            sudo("pip3 install multipipes~=0.1.0")
-            sudo("echo install app dependency over!")
-
+# print("{}, {}, {}, {}".format(_service_name, _setup_name, _server_port, _restore_server_port))
 ################################ Check envl  ######################################
 #step:check port&process&data,conf path
 @task
@@ -300,8 +257,6 @@ def install_unichain_from_git_archive(service_name=None):
             sudo("rm -rf ./{}/*".format(service_name))
     run('tar xvfz unichain-archive.tar.gz -C ./{} >/dev/null 2>&1'.format(service_name))
     sudo('pip3 install -i https://pypi.doubanio.com/simple --upgrade setuptools')
-    # must install dependency first!
-    install_dependency()
 
     with cd('./{}'.format(service_name)):
         sudo('python3 setup.py install')
@@ -354,7 +309,7 @@ def init_localdb(service_name=None):
 # uninstall old unichain
 @task
 @parallel
-def uninstall_unichain(service_name=None, setup_name=None):
+def uninstall_unichain(service_name=None, setup_name=None, only_code=True):
     with settings(warn_only=True):
         if not service_name:
             service_name = _service_name
@@ -362,20 +317,22 @@ def uninstall_unichain(service_name=None, setup_name=None):
         run('echo "[INFO]==========uninstall {}-pro=========="'.format(service_name))
         stop_unichain()
         stop_rethinkdb()
-        sudo('apt-get remove --purge -y rethinkdb')
-        try:
-            sudo('apt-get remove --purge -y collectd')
-        except:
-            fixed_dpkg_error()
-        sudo('pip3 uninstall -y plyvel')
-        sudo('apt-get remove --purge -y libleveldb1')
-        sudo('apt-get remove --purge -y libleveldb-dev')
-        sudo('rm ~/.{}'.format(service_name))
-        sudo('killall -9 {} 2>/dev/null'.format(service_name))
-        sudo('killall -9 {}_api 2>/dev/null'.format(service_name))
-        sudo('killall -9 pip,pip3 2>/dev/null')
-        sudo('rm /usr/local/bin/{} 2>/dev/null'.format(service_name))
-        sudo('rm -rf /usr/local/lib/python3.4/dist-packages/{}* 2>/dev/null'.format(setup_name))
+
+        if not only_code:
+            sudo('/bin/rm ~/.{}'.format(service_name))
+            sudo('apt-get remove --purge -y rethinkdb')
+            try:
+                sudo('apt-get remove --purge -y collectd')
+            except:
+                fixed_dpkg_error()
+            sudo('pip3 uninstall -y plyvel')
+            sudo('apt-get remove --purge -y libleveldb1')
+            sudo('apt-get remove --purge -y libleveldb-dev')
+            sudo('killall -9 pip,pip3 2>/dev/null')
+
+        sudo('/bin/rm /usr/local/bin/{}* 2>/dev/null'.format(service_name))
+        sudo('/bin/rm -rf /usr/local/lib/python3.4/dist-packages/{}* 2>/dev/null'.format(setup_name))
+
         sudo("echo 'uninstall unichain over'")
 
 

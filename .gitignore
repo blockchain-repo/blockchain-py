@@ -77,7 +77,7 @@ ntools/one-m/ansible/ansible.cfg
 ul_deploy/conf/collectd.conf
 ul_deploy/conf/rethinkdb.conf
 ul_deploy/conf/unichain_confiles/
-ul_deploy/conf/keypairs.py
+ul_deploy/script/keypairs.py
 *.gz
 
 #first push should commend and none after

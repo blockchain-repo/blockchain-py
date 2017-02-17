@@ -102,6 +102,7 @@ class LocalVote():
 def initial(current_vote_num, current_vote_timestamp):
 
     records_count = r.db(db_name).table('votes').count().run(get_conn())
+    logger.info("initial local_vote records_count={}, current_vote_num={}".format(records_count, current_vote_num))
     records_count = records_count - current_vote_num
     if records_count >= 1:
         # here max is no effect!

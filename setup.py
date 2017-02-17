@@ -5,13 +5,24 @@ For full docs visit https://bigchaindb.readthedocs.org
 
 """
 from setuptools import setup, find_packages
-app_service_name = "unichain"
-app_setup_name = "UnichainDB"
 
 # get the version
 version = {}
 with open('bigchaindb/version.py') as fp:
     exec(fp.read(), version)
+
+unichain_config = {}
+with open('bigchaindb/__init__.py') as fp:
+    exec(fp.read(), unichain_config)
+
+if not unichain_config:
+    app_service_name = "unichain"
+    app_setup_name = "UnichainDB"
+
+else:
+    base_unichain_config = unichain_config['_app_config']
+    app_service_name = base_unichain_config['service_name']
+    app_setup_name = base_unichain_config['setup_name']
 
 
 # check if setuptools is up to date
@@ -73,11 +84,8 @@ install_requires = [
 setup(
     name='{}'.format(app_setup_name),
     version=version['__version__'],
-    description='BigchainDB: A Scalable Blockchain Database',
+    description='{}: A Scalable Blockchain Database'.format(app_setup_name),
     long_description=__doc__,
-    url='https://github.com/BigchainDB/bigchaindb/',
-    author='BigchainDB Contributors',
-    author_email='dev@bigchaindb.com',
     license='AGPLv3',
     zip_safe=False,
 

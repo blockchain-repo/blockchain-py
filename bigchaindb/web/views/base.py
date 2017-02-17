@@ -20,5 +20,3 @@ def make_response(res_status, res_code, res_message=None, res_data=None):
     })
     return response
 
-print(constant.RESPONSE_STATUS_FAIL)
-

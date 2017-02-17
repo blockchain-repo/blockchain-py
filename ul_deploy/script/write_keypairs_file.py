@@ -15,9 +15,9 @@ Using the list in other Python scripts:
 """
 
 import argparse
-from bigchaindb.common import crypto
-from hostlist import public_dns_names,public_hosts
+import crypto
 import os
+from hostlist import public_dns_names, public_hosts
 
 # Parse the command-line arguments
 desc = 'Write a set of keypairs to keypairs.py'

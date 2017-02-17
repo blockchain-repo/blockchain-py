@@ -13,8 +13,9 @@ logger = logging.getLogger(__name__)
 BANNER = """
 ****************************************************************************
 *                                                                          *
-*   Initialization complete. {} Server is ready and waiting.
-*   Listening to client connections on: {:<15}
+*   Initialization complete. Server is ready and waiting.                  *
+*                                                                          *
+*   Listening to client connections on: {:<20}               *
 *                                                                          *
 ****************************************************************************
 """
@@ -47,7 +48,7 @@ def start():
     local_vote.start()
 
     # start message
-    logger.info(BANNER.format(app_setup_name, bigchaindb.config['server']['bind']))
+    logger.info(BANNER.format(bigchaindb.config['server']['bind']))
 
 def start_api():
     # start the web api
@@ -56,4 +57,4 @@ def start_api():
     p_webapi.start()
 
     # start message
-    logger.info(BANNER.format(app_setup_name, bigchaindb.config['server']['bind']))
+    logger.info(BANNER.format(bigchaindb.config['server']['bind']))

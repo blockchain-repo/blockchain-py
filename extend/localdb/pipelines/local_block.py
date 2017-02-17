@@ -181,6 +181,7 @@ def init_localdb(current_block_num, conn_block, conn_block_header, conn_block_re
 def initial(current_block_num, current_block_timestamp):
 
     records_count = r.db(db_name).table('bigchain').count().run(get_conn())
+    logger.info("initial local_block records_count={}, current_block_num={}".format(records_count, current_block_num))
     records_count = records_count - current_block_num
     return records_count, r.db(db_name).table('bigchain').max(index='block_timestamp').default(None).run(get_conn())
 

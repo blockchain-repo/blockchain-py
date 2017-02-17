@@ -7,9 +7,9 @@ import os
 _app_config = {
     'server_port': 9984,
     'restore_server_port': 9986,
-    'service_name': 'unichain',
-    'setup_name': 'UnichainDB',
-    'db_name':'bigchain'
+    'service_name': 'unichain_test',
+    'setup_name': 'UnichainDB_Test',
+    'db_name':'bigchain_test'
 }
 
 # from functools import reduce
@@ -42,7 +42,7 @@ config = {
         'port': 8125,
         'rate': 0.01,
     },
-    'api_endpoint': os.environ.get('BIGCHAINDB_API_ENDPOINT') or 'http://localhost:{}/api/v1'
+    'api_endpoint': os.environ.get('BIGCHAINDB_API_ENDPOINT') or 'http://localhost:{}/uniledger/v1'
         .format(_app_config['server_port']),
     'backlog_reassign_delay': 30,
     'restore_server': {
@@ -53,7 +53,7 @@ config = {
         'threads': None,  # if none, the value will be int(cpu_count/2) + 2
     },
     'restore_endpoint': os.environ.get('BIGCHAINDB_RESTORE_ENDPOINT') or
-                        'http://localhost:{}/api/v1/collect'.format(_app_config['restore_server_port']),
+                        'http://localhost:{}/uniledger/v1/collect'.format(_app_config['restore_server_port']),
 }
 
 
