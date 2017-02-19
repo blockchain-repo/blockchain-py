@@ -319,7 +319,6 @@ def uninstall_unichain(service_name=None, setup_name=None, only_code=True):
         stop_rethinkdb()
 
         if not only_code:
-            sudo('/bin/rm ~/.{}'.format(service_name))
             sudo('apt-get remove --purge -y rethinkdb')
             try:
                 sudo('apt-get remove --purge -y collectd')
@@ -330,6 +329,7 @@ def uninstall_unichain(service_name=None, setup_name=None, only_code=True):
             sudo('apt-get remove --purge -y libleveldb-dev')
             sudo('killall -9 pip,pip3 2>/dev/null')
 
+        sudo('/bin/rm ~/.{}'.format(service_name))
         sudo('/bin/rm /usr/local/bin/{}* 2>/dev/null'.format(service_name))
         sudo('/bin/rm -rf /usr/local/lib/python3.4/dist-packages/{}* 2>/dev/null'.format(setup_name))
 
