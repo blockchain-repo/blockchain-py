@@ -54,7 +54,12 @@ class ApiQueryByID(Resource):
     # 根据交易ID获取交易
     #@common_api.route('/getTxById/', methods=['POST'])
     #def getTxById():
+        type = request.get_json()["type"]
 
+        if not check_request(request, "type"):
+            return make_response(constant.RESPONSE_STATUS_FAIL,
+                                 constant.RESPONSE_CODE_FAIL,
+                                 "param type not exist")
         tx_id = request.get_json()["tx_id"]
         if not check_request(request, "tx_id"):
             return make_response(constant.RESPONSE_STATUS_FAIL,
@@ -63,19 +68,25 @@ class ApiQueryByID(Resource):
 
         pool = current_app.config['bigchain_pool']
         with pool() as b:
-            tx = b.get_transaction(tx_id)
+            if type == '1':
+                tx = list(b.get_tx_by_id(tx_id))
+            elif type == '2':
+                tx = b.get_blocks_status_containing_tx(tx_id)
+            elif type == '3':
+                tx = b.get_transaction(tx_id)
+                tx = tx.to_dict()
 
         if not tx:
-            tx_result = {}
+            tx = {}
             result_messages = "tx not exist!"
         else:
-            tx_result = tx.to_dict()
+            # tx_result = tx.to_dict()
             result_messages = "query success"
 
         return make_response(constant.RESPONSE_STATUS_SUCCESS,
                              constant.RESPONSE_CODE_SUCCESS,
                              result_messages,
-                             tx_result)
+                             tx)
 
 class ApiQueryTxsTotal(Resource):
     def post(self):

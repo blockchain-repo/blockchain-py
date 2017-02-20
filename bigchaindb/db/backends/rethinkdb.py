@@ -542,8 +542,8 @@ class RethinkDBBackend:
     def get_block(self,block_id):
         return self.connection.run(r.table('bigchain').get(block_id))
 
-
-
+    def get_tx_by_id(self,tx_id):
+        return self.connection.run(r.table('bigchain').get_all(tx_id,index='transaction_id'))
 
 
 
