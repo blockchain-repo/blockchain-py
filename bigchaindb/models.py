@@ -181,6 +181,49 @@ class Block(object):
 
         return self
 
+    def _validate_block(self, bigchain):
+        """Validate the Block without validating the transactions.
+
+        Args:
+            bigchain (:class:`~bigchaindb.Bigchain`): An instantiated Bigchain
+                object.
+
+        Raises:
+            OperationError: If a non-federation node signed the Block.
+            InvalidSignature: If a Block's signature is invalid.
+        """
+        # Check if the block was created by a federation node
+        possible_voters = (bigchain.nodes_except_me + [bigchain.me])
+        if self.node_pubkey not in possible_voters:
+            raise OperationError('Only federation nodes can create blocks')
+
+        # Check that the signature is valid
+        if not self.is_signature_valid():
+            raise InvalidSignature('Invalid block signature')
+
+    def _validate_block_transactions(self, bigchain):
+        """Validate Block transactions.
+
+        Args:
+            bigchain (Bigchain): an instantiated bigchaindb.Bigchain object.
+
+        Raises:
+            OperationError: if the transaction operation is not supported
+            TransactionDoesNotExist: if the input of the transaction is not
+                                     found
+            TransactionNotInValidBlock: if the input of the transaction is not
+                                        in a valid block
+            TransactionOwnerError: if the new transaction is using an input it
+                                   doesn't own
+            DoubleSpend: if the transaction is a double spend
+            InvalidHash: if the hash of the transaction is wrong
+            InvalidSignature: if the signature of the transaction is wrong
+        """
+        for tx in self.transactions:
+            # If a transaction is not valid, `validate_transactions` will
+            # throw an an exception and block validation will be canceled.
+            bigchain.validate_transaction(tx)
+
     def sign(self, signing_key):
         block_body = self.to_dict()
         block_serialized = serialize(block_body['block'])
@@ -215,16 +258,16 @@ class Block(object):
         if block_id != block_body['id']:
             raise InvalidHash()
 
-        if signature is not None:
-            # NOTE: CC throws a `ValueError` on some wrong signatures
-            #       https://github.com/bigchaindb/cryptoconditions/issues/27
-            try:
-                signature_valid = verifying_key\
-                        .verify(block_serialized.encode(), signature)
-            except ValueError:
-                signature_valid = False
-            if signature_valid is False:
-                raise InvalidSignature('Invalid block signature')
+        # if signature is not None:
+        #     # NOTE: CC throws a `ValueError` on some wrong signatures
+        #     #       https://github.com/bigchaindb/cryptoconditions/issues/27
+        #     try:
+        #         signature_valid = verifying_key\
+        #                 .verify(block_serialized.encode(), signature)
+        #     except ValueError:
+        #         signature_valid = False
+        #     if signature_valid is False:
+        #         raise InvalidSignature('Invalid block signature')
 
         transactions = [Transaction.from_dict(tx) for tx
                         in block['transactions']]

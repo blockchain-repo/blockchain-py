@@ -48,7 +48,7 @@ class Vote:
         if not self.bigchain.has_previous_vote(block['id'], block['block']['voters']):
             try:
                 block = Block.from_dict(block)
-            except (exceptions.InvalidHash, exceptions.InvalidSignature):
+            except (exceptions.InvalidHash):
                 # XXX: if a block is invalid we should skip the `validate_tx`
                 # step, but since we are in a pipeline we cannot just jump to
                 # another function. Hackish solution: generate an invalid
@@ -60,12 +60,13 @@ class Vote:
                 if monitor is not None:
                     #with monitor.timer('validate_block', rate=config['statsd']['rate']):
                     with monitor.timer('validate_block'):
+                        block._validate_block(self.bigchain)
                         self.consensus.validate_block(self.bigchain, block)
                 else:
-                    self.consensus.validate_block(self.bigchain, block)
+                    block._validate_block(self.bigchain)
+                    # self.consensus.validate_block(self.bigchain, block)
                 #self.consensus.validate_block(self.bigchain, block)
-            except (exceptions.InvalidHash,
-                    exceptions.OperationError,
+            except (exceptions.OperationError,
                     exceptions.InvalidSignature):
                 # XXX: if a block is invalid we should skip the `validate_tx`
                 # step, but since we are in a pipeline we cannot just jump to
