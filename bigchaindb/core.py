@@ -831,6 +831,7 @@ class Bigchain(object):
         return block
 
 
-
+    def get_tx_by_id(self,tx_id):
+        return self.backend.get_tx_by_id(tx_id)
 
 
