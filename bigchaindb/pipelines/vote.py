@@ -61,7 +61,7 @@ class Vote:
                     #with monitor.timer('validate_block', rate=config['statsd']['rate']):
                     with monitor.timer('validate_block'):
                         block._validate_block(self.bigchain)
-                        self.consensus.validate_block(self.bigchain, block)
+                        # self.consensus.validate_block(self.bigchain, block)
                 else:
                     block._validate_block(self.bigchain)
                     # self.consensus.validate_block(self.bigchain, block)
