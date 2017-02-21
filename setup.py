@@ -20,10 +20,9 @@ if not unichain_config:
     app_setup_name = "UnichainDB"
 
 else:
-    base_unichain_config = unichain_config['_app_config']
+    base_unichain_config = unichain_config['unichain_config']
     app_service_name = base_unichain_config['service_name']
     app_setup_name = base_unichain_config['setup_name']
-
 
 # check if setuptools is up to date
 def check_setuptools_features():
