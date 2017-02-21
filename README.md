@@ -2,14 +2,14 @@
 
 ## Quick Start
 
-### 1. Install RethinkDB Server
+### 1. Install [RethinkDB]("https://rethinkdb.com/docs/install/ubuntu/") Server
 
 Open a Terminal and run RethinkDB Server with the command
 ```
 rethinkdb or rethinkdb --bind all
 ```
 ### 2. Env install and update
-Ubuntu 14.04 already has Python 3.4, so you don\`t need to install it, but you do need to install a couple other things:
+Ubuntu 14.04 already has Python 3.4, so you don\`t need to install it, but you do need to install others:
 
 ```
 sudo apt-get update
@@ -28,10 +28,10 @@ sudo pip3 install plyvel
 
 # localdb dir
 sudo mkdir -p /data/localdb_unichain
-chown -R `uname -n`:`uname -n` /localdb_unichain
+chown -R `uname -n`:`uname -n` /data/localdb_unichain
 ```
 
-### 4. start
+### 4. Start
 ```
 unichain start
 unichain_api start
