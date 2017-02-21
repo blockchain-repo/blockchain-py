@@ -1,5 +1,5 @@
 ## node localdb check
-### http://127.0.0.1:9986/api/v1/collect/check/ [POST]
+### http://127.0.0.1:9986/uniledger/v1/collect/check/ [POST]
 request = {
  	"target":"check",
 	"desc":"check the node localdb dirs"
@@ -11,7 +11,7 @@ response = {
     }
 
 ## node info
-### http://127.0.0.1:9986/api/v1/collect/node/ [POST]
+### http://127.0.0.1:9986/uniledger/v1/collect/node/ [POST]
 request = {
  	"target":"node",
 	"desc":"collect node info"
@@ -26,7 +26,7 @@ response = {
     'restart_times': 18
     }
 
-### http://127.0.0.1:9986/api/v1/collect/block/ [POST]
+### http://127.0.0.1:9986/uniledger/v1/collect/block/ [POST]
 request = {
  	"target":"block",
  	"current_block_num":1,
@@ -47,7 +47,7 @@ response = {
     "desc": "The node block_num {}, progress {:<8},".format(block_num,"%0.2f%%" %(block_num/total_block_num*100))
     }
 
-### http://127.0.0.1:9986/api/v1/collect/pre_restore/ [POST]
+### http://127.0.0.1:9986/uniledger/v1/collect/pre_restore/ [POST]
 request = {
      "target":'pre_restore':
       "sent_num":0,
