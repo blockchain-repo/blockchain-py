@@ -62,10 +62,11 @@ class Election:
             nodeIndex = self.bigchain.nodelist.index(invalid_block.node_pubkey)
             myIndex = self.bigchain.nodelist.index(self.bigchain.me)
             # 计算到什么时间才需要当前node处理
-            if nodeIndex > myIndex:
-                endtime = time() + (nodeIndex - myIndex) * 10 # 每个节点需要n秒钟处理时间，待定为10s
+            if nodeIndex < myIndex:
+                endtime = time() + (myIndex - nodeIndex ) * 10 # 每个节点需要n秒钟处理时间，待定为10s
             else:
                 endtime = time() + (len(self.bigchain.nodelist) - nodeIndex + myIndex) * 10
+
             # 在到截止时间的过程中，不断的去查询这个block是否已经处理了。
             while(endtime > time()):
                 sleep(3)
