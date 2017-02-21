@@ -2,7 +2,7 @@
 
 ## Quick Start
 
-### 1. Install [RethinkDB]("https://rethinkdb.com/docs/install/ubuntu/") Server
+### 1. Install [RethinkDB](https://rethinkdb.com/docs/install/ubuntu/) Server
 
 Open a Terminal and run RethinkDB Server with the command
 ```
