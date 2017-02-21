@@ -439,23 +439,27 @@ class RethinkDBBackend:
 
     def get_transaction_createavgtime_by_range(self, begintime, endtime):
         time_range = int(endtime) - int(begintime)
-        if time_range <= 0:
+        if time_range < 0:
             return 0,False
         # transaction_count =  self.connection.run(
         #     r.table('bigchain', read_mode=self.read_mode)
         #      .between(begintime, endtime, index='tx_timestamp').count())  # tx time
-        transaction_count = self.connection.run(r.table("bigchain").concat_map(lambda block: block['block']['transactions']).filter((r.row["transaction"]['timestamp'] > begintime) & (r.row["transaction"]['timestamp'] < endtime)).count())
+        transaction_count = self.connection.run(r.table("bigchain").concat_map(lambda block: block['block']['transactions']).filter((r.row["transaction"]['timestamp'] > begintime) and (r.row["transaction"]['timestamp'] < endtime)).count())
         if not transaction_count:
             return 0,False
+        if time_range == 0:
+            time_range = 1
         return round(time_range/transaction_count,3),True
    
     def get_block_createavgtime_by_range(self, begintime, endtime):
         time_range = int(endtime) - int(begintime)
-        if time_range <= 0:
+        if time_range < 0:
             return 0,False
         block_count =  self.connection.run(r.table('bigchain', read_mode=self.read_mode).between(begintime, endtime, index='block_timestamp').count())  # block time
         if not block_count:
             return 0,False
+        if time_range == 0:
+            time_range = 1
         return round(time_range/block_count,3),True
 
     def get_vote_time_by_blockid(self, block_id):
@@ -470,11 +474,13 @@ class RethinkDBBackend:
 
     def get_vote_avgtime_by_range(self, begintime, endtime):     
         time_range = int(endtime) - int(begintime)
-        if time_range <= 0:
+        if time_range < 0:
             return 0,False
         vote_count =  self.connection.run(r.table('votes', read_mode=self.read_mode).between(begintime, endtime, index='vote_timestamp').get_field('vote').get_field('voting_for_block').distinct().count())
         if not vote_count:
             return 0,False
+        if not time_range:
+            vote_time = 1
         return round(time_range/vote_count,3),True
 
 

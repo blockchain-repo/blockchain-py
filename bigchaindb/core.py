@@ -729,7 +729,7 @@ class Bigchain(object):
     ##############################
     def get_txCreateAvgTimeByRange(self, begintime, endtime):
         status = True
-        if endtime > gen_timestamp() or  endtime <= begintime:
+        if endtime > gen_timestamp() or  endtime < begintime:
             status = False
             return 0,status
         avgtime,ret = self.backend.get_transaction_createavgtime_by_range(begintime, endtime)
@@ -740,7 +740,7 @@ class Bigchain(object):
 
     def get_blockCreateAvgTimeByRange(self, begintime, endtime):
         status = True
-        if endtime > gen_timestamp() or endtime <= begintime:
+        if endtime > gen_timestamp() or endtime < begintime:
             status = False
             return 0,status
         avgtime,ret = self.backend.get_block_createavgtime_by_range(begintime, endtime)
@@ -761,7 +761,7 @@ class Bigchain(object):
 
     def get_voteAvgTimeByRange(self, begintime, endtime):
         status = True
-        if endtime > gen_timestamp() or  endtime <= begintime:
+        if endtime > gen_timestamp() or  endtime < begintime:
             status = False
             return 0,status
         avgtime,ret = self.backend.get_vote_avgtime_by_range(begintime, endtime)
