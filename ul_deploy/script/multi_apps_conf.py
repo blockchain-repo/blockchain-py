@@ -2,7 +2,7 @@
 # from bigchaindb import _app_config
 
 unichain_config = {}
-with open('../../bigchaindb/__init__.py') as fp:
+with open('../../bigchaindb/base_config_.py') as fp:
     exec(fp.read(), unichain_config)
 
 if not unichain_config:

@@ -12,7 +12,7 @@ with open('bigchaindb/version.py') as fp:
     exec(fp.read(), version)
 
 unichain_config = {}
-with open('bigchaindb/__init__.py') as fp:
+with open('bigchaindb/base_config.py') as fp:
     exec(fp.read(), unichain_config)
 
 if not unichain_config:
