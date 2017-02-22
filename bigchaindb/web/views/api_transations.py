@@ -11,8 +11,19 @@ from flask_restful import Resource, Api
 import bigchaindb
 from bigchaindb.common.exceptions import InvalidHash, InvalidSignature
 from bigchaindb.models import Transaction
-from bigchaindb.web.views.base import make_response,check_request
+from bigchaindb.web.views.base import make_response,check_request,make_error
 from bigchaindb.web.views import constant
+
+from bigchaindb.common.exceptions import (
+    AmountError,
+    FulfillmentNotInValidBlock,
+    DoubleSpend,
+    InvalidHash,
+    InvalidSignature,
+    OperationError,
+    TransactionDoesNotExist,
+    TransactionOwnerError,
+)
 
 transaction_views = Blueprint('transaction_views', __name__)
 transaction_api = Api(transaction_views)
@@ -140,7 +151,67 @@ class ApiQueryGroupByBlock(Resource):
         return make_response(constant.RESPONSE_STATUS_SUCCESS,
                              constant.RESPONSE_CODE_SUCCESS,
                              "query success",
-                             blockIdTxList)
+                             blockIdTxList)\
+
+
+
+class ApiCreateByUser(Resource):
+    def post(self):
+        pool = current_app.config['bigchain_pool']
+        monitor = current_app.config['monitor']
+
+        payload_dict = request.get_json(force=True)
+
+        with pool() as b:
+            tx = Transaction.create(['6GSFmL4kcK6YJVFC2xq1KegmezhMRNhXLGmRAkLEt9Zq'], ['6GSFmL4kcK6YJVFC2xq1KegmezhMRNhXLGmRAkLEt9Zq'], metadata=payload_dict)
+            tx = tx.sign(['5y5whz73ixHsoRi27U9eBqPykk5pzv1Y1nUrCf3SBQWV'])
+            rate = bigchaindb.config['statsd']['rate']
+            with monitor.timer('write_transaction', rate=rate):
+                b.write_transaction(tx)
+
+        # tx = tx.to_dict()
+        # return rapidjson.dumps(tx)
+
+        if not tx:
+            tx_result = {}
+            result_messages = "tx not exist!"
+        else:
+            tx_result = tx.to_dict()
+            result_messages = "query success"
+
+        return make_response(constant.RESPONSE_STATUS_SUCCESS,
+                             constant.RESPONSE_CODE_SUCCESS,
+                             result_messages,
+                             tx_result)
+
+
+class ApiCreateOrTransferTx(Resource):
+    def post(self):
+        pool = current_app.config['bigchain_pool']
+        tx = request.get_json(force=True)
+        tx_obj = Transaction.from_dict(tx)
+        with pool() as bigchain:
+            try:
+                bigchain.validate_transaction(tx_obj)
+            except (ValueError,
+                    OperationError,
+                    TransactionDoesNotExist,
+                    TransactionOwnerError,
+                    FulfillmentNotInValidBlock,
+                    DoubleSpend,
+                    InvalidHash,
+                    InvalidSignature,
+                    AmountError) as e:
+                return make_error(
+                    400,
+                    'Invalid transaction ({}): {}'.format(type(e).__name__, e)
+                )
+            else:
+                bigchain.write_transaction(tx_obj)
+
+        return tx, 202
+
+
 
 ##Router display
 transaction_api.add_resource(ApiCreateByPayload,
@@ -158,3 +229,15 @@ transaction_api.add_resource(ApiQueryTxsByRange,
 transaction_api.add_resource(ApiQueryGroupByBlock,
                           '/queryGroupByBlock',
                           strict_slashes=False)
+
+
+
+transaction_api.add_resource(ApiCreateByUser,
+                          '/createByUser',
+                          strict_slashes=False)
+
+# CREATE|TRANSFER tx api for client
+transaction_api.add_resource(ApiCreateOrTransferTx,
+                          '/createOrTransferTx',
+                          strict_slashes=False)
+

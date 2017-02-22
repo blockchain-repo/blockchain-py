@@ -1,5 +1,9 @@
 from bigchaindb.web.views import constant
 from flask import jsonify
+import logging
+
+
+logger = logging.getLogger(__name__)
 
 def check_request(request, key=None):
     if not request.json:
@@ -20,3 +24,11 @@ def make_response(res_status, res_code, res_message=None, res_data=None):
     })
     return response
 
+def make_error(status_code, message=None):
+    if status_code == 404 and message is None:
+        message = 'Not found'
+    response_content = {'status': status_code, 'message': message}
+    logger.error('HTTP API error: %(status)s - %(message)s', response_content)
+    response = jsonify(response_content)
+    response.status_code = status_code
+    return response

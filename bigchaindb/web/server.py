@@ -16,6 +16,7 @@ from bigchaindb.web.views.api_transations import transaction_views
 from bigchaindb.web.views.api_block import block_views
 from bigchaindb.web.views.api_vote import vote_views
 from bigchaindb.web.views.api_timestat import timestat_views
+from bigchaindb.web.views.api_condition import condition_views
 # from bigchaindb.web.apiForVeracity.apiForVeracity import testVeracity_api
 from bigchaindb.monitor import Monitor
 
@@ -76,6 +77,8 @@ def create_app(settings):
     app.register_blueprint(vote_views, url_prefix='/uniledger/v1/vote')
     #timestat operate view
     app.register_blueprint(timestat_views, url_prefix='/uniledger/v1/timestat')
+
+    app.register_blueprint(condition_views, url_prefix='/uniledger/v1/condition')
     
     return app
 

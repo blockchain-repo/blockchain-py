@@ -835,3 +835,62 @@ class Bigchain(object):
         return self.backend.get_tx_by_id(tx_id)
 
 
+    def get_outputs(self, owner):
+        """Retrieve a list of links to transaction outputs for a given public
+           key.
+
+        Args:
+            owner (str): base58 encoded public key.
+
+        Returns:
+            :obj:`list` of TransactionLink: list of ``txid`` s and ``output`` s
+            pointing to another transaction's condition
+        """
+        # get all transactions in which owner is in the `owners_after` list
+        response = self.backend.get_owned_ids(owner)
+
+        links = []
+        linksAmount = []
+        for tx in response:
+            # disregard transactions from invalid blocks
+            validity = self.get_blocks_status_containing_tx(tx['id'])
+            if Bigchain.BLOCK_VALID not in validity.values():
+                if Bigchain.BLOCK_UNDECIDED not in validity.values():
+                    continue
+
+            # NOTE: It's OK to not serialize the transaction here, as we do not
+            # use it after the execution of this function.
+            # a transaction can contain multiple outputs so we need to iterate over all of them
+            # to get a list of outputs available to spend
+            for index, output in enumerate(tx['transaction']['conditions']):
+                # for simple signature conditions there are no subfulfillments
+                # check if the owner is in the condition `owners_after`
+                amount = output['amount']
+                if len(output['owners_after']) == 1:
+                    if output['condition']['details']['public_key'] == owner:
+                        tx_link = TransactionLink(tx['id'], index)
+                else:
+                    # for transactions with multiple `public_keys` there will be several subfulfillments nested
+                    # in the condition. We need to iterate the subfulfillments to make sure there is a
+                    # subfulfillment for `owner`
+                    if util.condition_details_has_owner(output['condition']['details'], owner):
+                        tx_link = TransactionLink(tx['id'], index)
+                links.append(dict(tx_link.to_dict(), **{'amount': amount}))
+                # linksAmount.append(amount)
+
+        return links
+
+
+    def get_outputs_filtered(self, owner, include_spent=True):
+        """
+        Get a list of output links filtered on some criteria
+        """
+        outputs = self.get_outputs(owner)
+
+        if not include_spent:
+            outputs = [o for o in outputs
+                       if not self.get_spent(o['txid'], o['cid'])]
+
+        # return [u.to_dict() for u in outputs]
+
+        return outputs
