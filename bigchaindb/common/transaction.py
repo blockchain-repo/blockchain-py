@@ -125,6 +125,14 @@ class Fulfillment(object):
         input_ = TransactionLink.from_dict(ffill['input'])
         return cls(fulfillment, ffill['owners_before'], input_)
 
+    @classmethod
+    def generate(cls, public_keys):
+        # TODO: write docstring
+        # The amount here does not really matter. It is only use on the
+        # output data model but here we only care about the fulfillment
+        output = Condition.generate(public_keys, 1)
+        return cls(output.fulfillment, public_keys)
+
 
 class TransactionLink(object):
     """An object for unidirectional linking to a Transaction's Condition.
@@ -263,10 +271,66 @@ class Condition(object):
         if cid is not None:
             cond['cid'] = cid
         return cond
+    #
+    # @classmethod
+    # def generate(cls, owners_after):
+    #     """Generates a Condition from a specifically formed tuple or list.
+    #
+    #         Note:
+    #             If a ThresholdCondition has to be generated where the threshold
+    #             is always the number of subconditions it is split between, a
+    #             list of the following structure is sufficient:
+    #
+    #             [(address|condition)*, [(address|condition)*, ...], ...]
+    #
+    #             If however, the thresholds of individual threshold conditions
+    #             to be created have to be set specifically, a tuple of the
+    #             following structure is necessary:
+    #
+    #             ([(address|condition)*,
+    #               ([(address|condition)*, ...], subthreshold),
+    #               ...], threshold)
+    #
+    #         Args:
+    #             owners_after (:obj:`list` of :obj:`str`|tuple): The users that
+    #                 should be able to fulfill the Condition that is being
+    #                 created.
+    #
+    #         Returns:
+    #             A Condition that can be used in a Transaction.
+    #
+    #         Returns:
+    #             TypeError: If `owners_after` is not an instance of `list`.
+    #             TypeError: If `owners_after` is an empty list.
+    #     """
+    #     # TODO: We probably want to remove the tuple logic for weights here
+    #     # again:
+    #     # github.com/bigchaindb/bigchaindb/issues/730#issuecomment-255144756
+    #     if isinstance(owners_after, tuple):
+    #         owners_after, threshold = owners_after
+    #     else:
+    #         threshold = len(owners_after)
+    #
+    #     if not isinstance(owners_after, list):
+    #         raise TypeError('`owners_after` must be an instance of list')
+    #     if len(owners_after) == 0:
+    #         raise ValueError('`owners_after` needs to contain at least one'
+    #                          'owner')
+    #     elif len(owners_after) == 1 and not isinstance(owners_after[0], list):
+    #         try:
+    #             ffill = Ed25519Fulfillment(public_key=owners_after[0])
+    #         except TypeError:
+    #             ffill = owners_after[0]
+    #         return cls(ffill, owners_after)
+    #     else:
+    #         initial_cond = ThresholdSha256Fulfillment(threshold=threshold)
+    #         threshold_cond = reduce(cls._gen_condition, owners_after,
+    #                                 initial_cond)
+    #         return cls(threshold_cond, owners_after)
 
     @classmethod
-    def generate(cls, owners_after):
-        """Generates a Condition from a specifically formed tuple or list.
+    def generate(cls, public_keys, amount):
+        """Generates a Output from a specifically formed tuple or list.
 
             Note:
                 If a ThresholdCondition has to be generated where the threshold
@@ -275,50 +339,41 @@ class Condition(object):
 
                 [(address|condition)*, [(address|condition)*, ...], ...]
 
-                If however, the thresholds of individual threshold conditions
-                to be created have to be set specifically, a tuple of the
-                following structure is necessary:
-
-                ([(address|condition)*,
-                  ([(address|condition)*, ...], subthreshold),
-                  ...], threshold)
-
             Args:
-                owners_after (:obj:`list` of :obj:`str`|tuple): The users that
-                    should be able to fulfill the Condition that is being
-                    created.
+                public_keys (:obj:`list` of :obj:`str`): The public key of
+                    the users that should be able to fulfill the Condition
+                    that is being created.
+                amount (:obj:`int`): The amount locked by the Output.
 
             Returns:
-                A Condition that can be used in a Transaction.
+                An Output that can be used in a Transaction.
 
-            Returns:
-                TypeError: If `owners_after` is not an instance of `list`.
-                TypeError: If `owners_after` is an empty list.
+            Raises:
+                TypeError: If `public_keys` is not an instance of `list`.
+                ValueError: If `public_keys` is an empty list.
         """
-        # TODO: We probably want to remove the tuple logic for weights here
-        # again:
-        # github.com/bigchaindb/bigchaindb/issues/730#issuecomment-255144756
-        if isinstance(owners_after, tuple):
-            owners_after, threshold = owners_after
-        else:
-            threshold = len(owners_after)
-
-        if not isinstance(owners_after, list):
-            raise TypeError('`owners_after` must be an instance of list')
-        if len(owners_after) == 0:
-            raise ValueError('`owners_after` needs to contain at least one'
+        threshold = len(public_keys)
+        if not isinstance(amount, int):
+            raise TypeError('`amount` must be a int')
+        if amount < 1:
+            raise TypeError('`amount` must be a int')
+            # raise AmountError('`amount` needs to be greater than zero')
+        if not isinstance(public_keys, list):
+            raise TypeError('`public_keys` must be an instance of list')
+        if len(public_keys) == 0:
+            raise ValueError('`public_keys` needs to contain at least one'
                              'owner')
-        elif len(owners_after) == 1 and not isinstance(owners_after[0], list):
+        elif len(public_keys) == 1 and not isinstance(public_keys[0], list):
             try:
-                ffill = Ed25519Fulfillment(public_key=owners_after[0])
+                ffill = Ed25519Fulfillment(public_key=public_keys[0])
             except TypeError:
-                ffill = owners_after[0]
-            return cls(ffill, owners_after)
+                ffill = public_keys[0]
+            return cls(ffill, public_keys, amount=amount)
         else:
             initial_cond = ThresholdSha256Fulfillment(threshold=threshold)
-            threshold_cond = reduce(cls._gen_condition, owners_after,
+            threshold_cond = reduce(cls._gen_condition, public_keys,
                                     initial_cond)
-            return cls(threshold_cond, owners_after)
+            return cls(threshold_cond, public_keys, amount=amount)
 
     @classmethod
     def _gen_condition(cls, initial, current):
@@ -392,6 +447,8 @@ class Condition(object):
             # NOTE: Hashlock condition case
             fulfillment = cond['condition']['uri']
         return cls(fulfillment, cond['owners_after'], cond['amount'])
+
+
 
 
 class Asset(object):
@@ -611,10 +668,96 @@ class Transaction(object):
         self.conditions = conditions if conditions else []
         self.fulfillments = fulfillments if fulfillments else []
         self.metadata = metadata
+    #
+    # @classmethod
+    # def create(cls, owners_before, owners_after, metadata=None, asset=None,
+    #            secret=None, time_expire=None):
+    #     """A simple way to generate a `CREATE` transaction.
+    #
+    #         Note:
+    #             This method currently supports the following Cryptoconditions
+    #             use cases:
+    #                 - Ed25519
+    #                 - ThresholdSha256
+    #                 - PreimageSha256.
+    #
+    #             Additionally, it provides support for the following BigchainDB
+    #             use cases:
+    #                 - Multiple inputs and outputs.
+    #
+    #         Args:
+    #             owners_before (:obj:`list` of :obj:`str`): A list of keys that
+    #                 represent the creators of this asset.
+    #             owners_after (:obj:`list` of :obj:`str`): A list of keys that
+    #                 represent the receivers of this Transaction.
+    #             metadata (dict): Python dictionary to be stored along with the
+    #                 Transaction.
+    #             asset (:class:`~bigchaindb.common.transaction.Asset`): An Asset
+    #                 to be created in this Transaction.
+    #             secret (binarystr, optional): A secret string to create a hash-
+    #                 lock Condition.
+    #             time_expire (int, optional): The UNIX time a Transaction is
+    #                 valid.
+    #
+    #         Returns:
+    #             :class:`~bigchaindb.common.transaction.Transaction`
+    #     """
+    #     if not isinstance(owners_before, list):
+    #         raise TypeError('`owners_before` must be a list instance')
+    #     if not isinstance(owners_after, list):
+    #         raise TypeError('`owners_after` must be a list instance')
+    #
+    #     metadata = Metadata(metadata)
+    #     if len(owners_before) == len(owners_after) and len(owners_after) == 1:
+    #         # NOTE: Standard case, one owner before, one after.
+    #         # NOTE: For this case its sufficient to use the same
+    #         #       fulfillment for the fulfillment and condition.
+    #         ffill = Ed25519Fulfillment(public_key=owners_before[0])
+    #         ffill_tx = Fulfillment(ffill, owners_before)
+    #         cond_tx = Condition.generate(owners_after)
+    #         return cls(cls.CREATE, asset, [ffill_tx], [cond_tx], metadata)
+    #
+    #     elif len(owners_before) == len(owners_after) and len(owners_after) > 1:
+    #         raise NotImplementedError('Multiple inputs and outputs not'
+    #                                   'available for CREATE')
+    #         # NOTE: Multiple inputs and outputs case. Currently not supported.
+    #         ffills = [Fulfillment(Ed25519Fulfillment(public_key=owner_before),
+    #                               [owner_before])
+    #                   for owner_before in owners_before]
+    #         conds = [Condition.generate(owners) for owners in owners_after]
+    #         return cls(cls.CREATE, asset, ffills, conds, metadata)
+    #
+    #     elif len(owners_before) == 1 and len(owners_after) > 1:
+    #         # NOTE: Multiple owners case
+    #         cond_tx = Condition.generate(owners_after)
+    #         ffill = Ed25519Fulfillment(public_key=owners_before[0])
+    #         ffill_tx = Fulfillment(ffill, owners_before)
+    #         return cls(cls.CREATE, asset, [ffill_tx], [cond_tx], metadata)
+    #
+    #     elif (len(owners_before) == 1 and len(owners_after) == 0 and
+    #           secret is not None):
+    #         # NOTE: Hashlock condition case
+    #         hashlock = PreimageSha256Fulfillment(preimage=secret)
+    #         cond_tx = Condition(hashlock.condition_uri)
+    #         ffill = Ed25519Fulfillment(public_key=owners_before[0])
+    #         ffill_tx = Fulfillment(ffill, owners_before)
+    #         return cls(cls.CREATE, asset, [ffill_tx], [cond_tx], metadata)
+    #
+    #     elif (len(owners_before) > 0 and len(owners_after) == 0 and
+    #           time_expire is not None):
+    #         raise NotImplementedError('Timeout conditions will be implemented '
+    #                                   'later')
+    #
+    #     elif (len(owners_before) > 0 and len(owners_after) == 0 and
+    #           secret is None):
+    #         raise ValueError('Define a secret to create a hashlock condition')
+    #
+    #     else:
+    #         raise ValueError("These are not the cases you're looking for ;)")
+
 
     @classmethod
-    def create(cls, owners_before, owners_after, metadata=None, asset=None,
-               secret=None, time_expire=None):
+    def create(cls, tx_signers, recipients, metadata=None, asset=None):
         """A simple way to generate a `CREATE` transaction.
 
             Note:
@@ -622,81 +765,99 @@ class Transaction(object):
                 use cases:
                     - Ed25519
                     - ThresholdSha256
-                    - PreimageSha256.
 
                 Additionally, it provides support for the following BigchainDB
                 use cases:
                     - Multiple inputs and outputs.
 
             Args:
-                owners_before (:obj:`list` of :obj:`str`): A list of keys that
-                    represent the creators of this asset.
-                owners_after (:obj:`list` of :obj:`str`): A list of keys that
-                    represent the receivers of this Transaction.
-                metadata (dict): Python dictionary to be stored along with the
+                tx_signers (:obj:`list` of :obj:`str`): A list of keys that
+                    represent the signers of the CREATE Transaction.
+                recipients (:obj:`list` of :obj:`tuple`): A list of
+                    ([keys],amount) that represent the recipients of this
                     Transaction.
-                asset (:class:`~bigchaindb.common.transaction.Asset`): An Asset
-                    to be created in this Transaction.
-                secret (binarystr, optional): A secret string to create a hash-
-                    lock Condition.
-                time_expire (int, optional): The UNIX time a Transaction is
-                    valid.
+                metadata
+                asset
 
             Returns:
                 :class:`~bigchaindb.common.transaction.Transaction`
         """
-        if not isinstance(owners_before, list):
-            raise TypeError('`owners_before` must be a list instance')
-        if not isinstance(owners_after, list):
-            raise TypeError('`owners_after` must be a list instance')
+        if not isinstance(tx_signers, list):
+            raise TypeError('`tx_signers` must be a list instance')
+        if not isinstance(recipients, list):
+            raise TypeError('`recipients` must be a list instance')
+        if len(tx_signers) == 0:
+            raise ValueError('`tx_signers` list cannot be empty')
+        if len(recipients) == 0:
+            raise ValueError('`recipients` list cannot be empty')
 
+        # if not (asset is None or isinstance(asset, dict)):
+        #     raise TypeError('`asset` must be a dict or None')
+
+        inputs = []
+        conditions = []
         metadata = Metadata(metadata)
-        if len(owners_before) == len(owners_after) and len(owners_after) == 1:
-            # NOTE: Standard case, one owner before, one after.
-            # NOTE: For this case its sufficient to use the same
-            #       fulfillment for the fulfillment and condition.
-            ffill = Ed25519Fulfillment(public_key=owners_before[0])
-            ffill_tx = Fulfillment(ffill, owners_before)
-            cond_tx = Condition.generate(owners_after)
-            return cls(cls.CREATE, asset, [ffill_tx], [cond_tx], metadata)
+        # generate_outputs
+        for recipient in recipients:
+            if not isinstance(recipient, tuple) or len(recipient) != 2:
+                raise ValueError(('Each `recipient` in the list must be a'
+                                  ' tuple of `([<list of public keys>],'
+                                  ' <amount>)`'))
+            pub_keys, amount = recipient
+            conditions.append(Condition.generate(pub_keys, amount))
 
-        elif len(owners_before) == len(owners_after) and len(owners_after) > 1:
-            raise NotImplementedError('Multiple inputs and outputs not'
-                                      'available for CREATE')
-            # NOTE: Multiple inputs and outputs case. Currently not supported.
-            ffills = [Fulfillment(Ed25519Fulfillment(public_key=owner_before),
-                                  [owner_before])
-                      for owner_before in owners_before]
-            conds = [Condition.generate(owners) for owners in owners_after]
-            return cls(cls.CREATE, asset, ffills, conds, metadata)
+        # generate inputs
+        inputs.append(Fulfillment.generate(tx_signers))
 
-        elif len(owners_before) == 1 and len(owners_after) > 1:
-            # NOTE: Multiple owners case
-            cond_tx = Condition.generate(owners_after)
-            ffill = Ed25519Fulfillment(public_key=owners_before[0])
-            ffill_tx = Fulfillment(ffill, owners_before)
-            return cls(cls.CREATE, asset, [ffill_tx], [cond_tx], metadata)
+        return cls(cls.CREATE, asset, inputs, conditions, metadata)
 
-        elif (len(owners_before) == 1 and len(owners_after) == 0 and
-              secret is not None):
-            # NOTE: Hashlock condition case
-            hashlock = PreimageSha256Fulfillment(preimage=secret)
-            cond_tx = Condition(hashlock.condition_uri)
-            ffill = Ed25519Fulfillment(public_key=owners_before[0])
-            ffill_tx = Fulfillment(ffill, owners_before)
-            return cls(cls.CREATE, asset, [ffill_tx], [cond_tx], metadata)
 
-        elif (len(owners_before) > 0 and len(owners_after) == 0 and
-              time_expire is not None):
-            raise NotImplementedError('Timeout conditions will be implemented '
-                                      'later')
+    @classmethod
+    def generate(cls, public_keys, amount):
+        """Generates a Output from a specifically formed tuple or list.
 
-        elif (len(owners_before) > 0 and len(owners_after) == 0 and
-              secret is None):
-            raise ValueError('Define a secret to create a hashlock condition')
+            Note:
+                If a ThresholdCondition has to be generated where the threshold
+                is always the number of subconditions it is split between, a
+                list of the following structure is sufficient:
 
+                [(address|condition)*, [(address|condition)*, ...], ...]
+
+            Args:
+                public_keys (:obj:`list` of :obj:`str`): The public key of
+                    the users that should be able to fulfill the Condition
+                    that is being created.
+                amount (:obj:`int`): The amount locked by the Output.
+
+            Returns:
+                An Output that can be used in a Transaction.
+
+            Raises:
+                TypeError: If `public_keys` is not an instance of `list`.
+                ValueError: If `public_keys` is an empty list.
+        """
+        threshold = len(public_keys)
+        if not isinstance(amount, int):
+            raise TypeError('`amount` must be a int')
+        if amount < 1:
+            raise TypeError('`amount` must be a 》0')
+            # raise AmountError('`amount` needs to be greater than zero')
+        if not isinstance(public_keys, list):
+            raise TypeError('`public_keys` must be an instance of list')
+        if len(public_keys) == 0:
+            raise ValueError('`public_keys` needs to contain at least one'
+                             'owner')
+        elif len(public_keys) == 1 and not isinstance(public_keys[0], list):
+            try:
+                ffill = Ed25519Fulfillment(public_key=public_keys[0])
+            except TypeError:
+                ffill = public_keys[0]
+            return cls(ffill, public_keys, amount=amount)
         else:
-            raise ValueError("These are not the cases you're looking for ;)")
+            initial_cond = ThresholdSha256Fulfillment(threshold=threshold)
+            threshold_cond = reduce(cls._gen_condition, public_keys,
+                                    initial_cond)
+            return cls(threshold_cond, public_keys, amount=amount)
 
     @classmethod
     def transfer(cls, inputs, owners_after, asset, metadata=None):

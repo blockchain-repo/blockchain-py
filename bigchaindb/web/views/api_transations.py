@@ -39,7 +39,7 @@ class ApiCreateByPayload(Resource):
         payload_dict = request.get_json(force=True)
 
         with pool() as b:
-            tx = Transaction.create([b.me], [b.me], metadata=payload_dict)
+            tx = Transaction.create([b.me], [([b.me],1)], metadata=payload_dict)
             tx = tx.sign([b.me_private])
             rate = bigchaindb.config['statsd']['rate']
             with monitor.timer('write_transaction', rate=rate):
@@ -155,34 +155,34 @@ class ApiQueryGroupByBlock(Resource):
 
 
 
-class ApiCreateByUser(Resource):
-    def post(self):
-        pool = current_app.config['bigchain_pool']
-        monitor = current_app.config['monitor']
-
-        payload_dict = request.get_json(force=True)
-
-        with pool() as b:
-            tx = Transaction.create(['6GSFmL4kcK6YJVFC2xq1KegmezhMRNhXLGmRAkLEt9Zq'], ['6GSFmL4kcK6YJVFC2xq1KegmezhMRNhXLGmRAkLEt9Zq'], metadata=payload_dict)
-            tx = tx.sign(['5y5whz73ixHsoRi27U9eBqPykk5pzv1Y1nUrCf3SBQWV'])
-            rate = bigchaindb.config['statsd']['rate']
-            with monitor.timer('write_transaction', rate=rate):
-                b.write_transaction(tx)
-
-        # tx = tx.to_dict()
-        # return rapidjson.dumps(tx)
-
-        if not tx:
-            tx_result = {}
-            result_messages = "tx not exist!"
-        else:
-            tx_result = tx.to_dict()
-            result_messages = "query success"
-
-        return make_response(constant.RESPONSE_STATUS_SUCCESS,
-                             constant.RESPONSE_CODE_SUCCESS,
-                             result_messages,
-                             tx_result)
+# class ApiCreateByUser(Resource):
+#     def post(self):
+#         pool = current_app.config['bigchain_pool']
+#         monitor = current_app.config['monitor']
+#
+#         payload_dict = request.get_json(force=True)
+#
+#         with pool() as b:
+#             tx = Transaction.create(['6GSFmL4kcK6YJVFC2xq1KegmezhMRNhXLGmRAkLEt9Zq'], [(['6GSFmL4kcK6YJVFC2xq1KegmezhMRNhXLGmRAkLEt9Zq'],1)], metadata=payload_dict)
+#             tx = tx.sign(['5y5whz73ixHsoRi27U9eBqPykk5pzv1Y1nUrCf3SBQWV'])
+#             rate = bigchaindb.config['statsd']['rate']
+#             with monitor.timer('write_transaction', rate=rate):
+#                 b.write_transaction(tx)
+#
+#         # tx = tx.to_dict()
+#         # return rapidjson.dumps(tx)
+#
+#         if not tx:
+#             tx_result = {}
+#             result_messages = "tx not exist!"
+#         else:
+#             tx_result = tx.to_dict()
+#             result_messages = "query success"
+#
+#         return make_response(constant.RESPONSE_STATUS_SUCCESS,
+#                              constant.RESPONSE_CODE_SUCCESS,
+#                              result_messages,
+#                              tx_result)
 
 
 class ApiCreateOrTransferTx(Resource):
@@ -232,9 +232,9 @@ transaction_api.add_resource(ApiQueryGroupByBlock,
 
 
 
-transaction_api.add_resource(ApiCreateByUser,
-                          '/createByUser',
-                          strict_slashes=False)
+# transaction_api.add_resource(ApiCreateByUser,
+#                           '/createByUser',
+#                           strict_slashes=False)
 
 # CREATE|TRANSFER tx api for client
 transaction_api.add_resource(ApiCreateOrTransferTx,
