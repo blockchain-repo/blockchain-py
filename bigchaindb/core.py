@@ -869,13 +869,15 @@ class Bigchain(object):
                 if len(output['owners_after']) == 1:
                     if output['condition']['details']['public_key'] == owner:
                         tx_link = TransactionLink(tx['id'], index)
+                        links.append(dict(tx_link.to_dict(), **{'amount': amount}))
                 else:
                     # for transactions with multiple `public_keys` there will be several subfulfillments nested
                     # in the condition. We need to iterate the subfulfillments to make sure there is a
                     # subfulfillment for `owner`
                     if util.condition_details_has_owner(output['condition']['details'], owner):
                         tx_link = TransactionLink(tx['id'], index)
-                links.append(dict(tx_link.to_dict(), **{'amount': amount}))
+                        links.append(dict(tx_link.to_dict(), **{'amount': amount}))
+
                 # linksAmount.append(amount)
 
         return links
