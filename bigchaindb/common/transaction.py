@@ -1276,8 +1276,7 @@ class Transaction(object):
                                                   tx_serialized,
                                                   input_condition_uri)
 
-        if not fulfillments_count == conditions_count == \
-           input_condition_uris_count:
+        if not fulfillments_count == input_condition_uris_count:
             raise ValueError('Fulfillments, conditions and '
                              'input_condition_uris must have the same count')
         else:
