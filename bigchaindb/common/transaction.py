@@ -859,8 +859,69 @@ class Transaction(object):
                                     initial_cond)
             return cls(threshold_cond, public_keys, amount=amount)
 
+    # @classmethod
+    # def transfer(cls, inputs, owners_after, asset, metadata=None):
+    #     """A simple way to generate a `TRANSFER` transaction.
+    #
+    #         Note:
+    #             Different cases for threshold conditions:
+    #
+    #             Combining multiple `inputs` with an arbitrary number of
+    #             `owners_after` can yield interesting cases for the creation of
+    #             threshold conditions we'd like to support. The following
+    #             notation is proposed:
+    #
+    #             1. The index of an `owner_after` corresponds to the index of
+    #                an input:
+    #                e.g. `transfer([input1], [a])`, means `input1` would now be
+    #                     owned by user `a`.
+    #
+    #             2. `owners_after` can (almost) get arbitrary deeply nested,
+    #                creating various complex threshold conditions:
+    #                e.g. `transfer([inp1, inp2], [[a, [b, c]], d])`, means
+    #                     `a`'s signature would have a 50% weight on `inp1`
+    #                     compared to `b` and `c` that share 25% of the leftover
+    #                     weight respectively. `inp2` is owned completely by `d`.
+    #
+    #         Args:
+    #             inputs (:obj:`list` of :class:`~bigchaindb.common.transaction.
+    #                 Fulfillment`): Converted "output" Conditions, intended to
+    #                 be used as "input" Fulfillments in the transfer to
+    #                 generate.
+    #             owners_after (:obj:`list` of :obj:`str`): A list of keys that
+    #                 represent the receivers of this Transaction.
+    #             asset (:class:`~bigchaindb.common.transaction.Asset`): An Asset
+    #                 to be transferred in this Transaction.
+    #             metadata (dict): Python dictionary to be stored along with the
+    #                 Transaction.
+    #
+    #         Returns:
+    #             :class:`~bigchaindb.common.transaction.Transaction`
+    #     """
+    #     if not isinstance(inputs, list):
+    #         raise TypeError('`inputs` must be a list instance')
+    #     if len(inputs) == 0:
+    #         raise ValueError('`inputs` must contain at least one item')
+    #     if not isinstance(owners_after, list):
+    #         raise TypeError('`owners_after` must be a list instance')
+    #
+    #     # NOTE: See doc strings `Note` for description.
+    #     if len(inputs) == len(owners_after):
+    #         if len(owners_after) == 1:
+    #             conditions = [Condition.generate(owners_after)]
+    #         elif len(owners_after) > 1:
+    #             conditions = [Condition.generate(owners) for owners
+    #                           in owners_after]
+    #     else:
+    #         raise ValueError("`inputs` and `owners_after`'s count must be the "
+    #                          "same")
+    #
+    #     metadata = Metadata(metadata)
+    #     inputs = deepcopy(inputs)
+    #     return cls(cls.TRANSFER, asset, inputs, conditions, metadata)
+
     @classmethod
-    def transfer(cls, inputs, owners_after, asset, metadata=None):
+    def transfer(cls, inputs, recipients, asset, metadata=None):
         """A simple way to generate a `TRANSFER` transaction.
 
             Note:
@@ -888,8 +949,7 @@ class Transaction(object):
                     Fulfillment`): Converted "output" Conditions, intended to
                     be used as "input" Fulfillments in the transfer to
                     generate.
-                owners_after (:obj:`list` of :obj:`str`): A list of keys that
-                    represent the receivers of this Transaction.
+                owners_after
                 asset (:class:`~bigchaindb.common.transaction.Asset`): An Asset
                     to be transferred in this Transaction.
                 metadata (dict): Python dictionary to be stored along with the
@@ -902,23 +962,28 @@ class Transaction(object):
             raise TypeError('`inputs` must be a list instance')
         if len(inputs) == 0:
             raise ValueError('`inputs` must contain at least one item')
-        if not isinstance(owners_after, list):
-            raise TypeError('`owners_after` must be a list instance')
 
-        # NOTE: See doc strings `Note` for description.
-        if len(inputs) == len(owners_after):
-            if len(owners_after) == 1:
-                conditions = [Condition.generate(owners_after)]
-            elif len(owners_after) > 1:
-                conditions = [Condition.generate(owners) for owners
-                              in owners_after]
-        else:
-            raise ValueError("`inputs` and `owners_after`'s count must be the "
-                             "same")
+        if not isinstance(recipients, list):
+            raise TypeError('`recipients` must be a list instance')
+        if len(recipients) == 0:
+            raise ValueError('`recipients` list cannot be empty')
+
+        conditions = []
+        for recipient in recipients:
+            if not isinstance(recipient, tuple) or len(recipient) != 2:
+                raise ValueError(('Each `recipient` in the list must be a'
+                                  ' <amount>)`'))
+            pub_keys, amount = recipient
+            conditions.append(Condition.generate(pub_keys, amount))
+
+        # if not isinstance(asset_id, str):
+        #     raise TypeError('`asset_id` must be a string')
 
         metadata = Metadata(metadata)
         inputs = deepcopy(inputs)
+
         return cls(cls.TRANSFER, asset, inputs, conditions, metadata)
+
 
     def __eq__(self, other):
         try:
