@@ -28,7 +28,7 @@ sudo pip3 install plyvel
 
 # localdb dir
 sudo mkdir -p /data/localdb_unichain
-chown -R `uname -n`:`uname -n` /data/localdb_unichain
+sudo chown -R $your_user_name:$your_user_name /data/localdb_unichain
 ```
 
 ### 4. Start
