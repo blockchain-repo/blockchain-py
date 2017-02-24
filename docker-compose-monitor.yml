@@ -21,7 +21,7 @@ services:
     # tty: true
     build: ./grafana-unichain-docker
     ports:
-      - "30:30"
+      - "30:3000"
     environment:
       INFLUXDB_HOST: "influxdb"
     volumes:
