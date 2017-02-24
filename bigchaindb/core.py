@@ -865,18 +865,22 @@ class Bigchain(object):
             for index, output in enumerate(tx['transaction']['conditions']):
                 # for simple signature conditions there are no subfulfillments
                 # check if the owner is in the condition `owners_after`
+                details = output['condition']['details']
                 amount = output['amount']
+                merged = {'details':details,'amount':amount}
+
                 if len(output['owners_after']) == 1:
                     if output['condition']['details']['public_key'] == owner:
                         tx_link = TransactionLink(tx['id'], index)
-                        links.append(dict(tx_link.to_dict(), **{'amount': amount}))
+                        links.append(dict(tx_link.to_dict(), **merged))
+
                 else:
                     # for transactions with multiple `public_keys` there will be several subfulfillments nested
                     # in the condition. We need to iterate the subfulfillments to make sure there is a
                     # subfulfillment for `owner`
                     if util.condition_details_has_owner(output['condition']['details'], owner):
                         tx_link = TransactionLink(tx['id'], index)
-                        links.append(dict(tx_link.to_dict(), **{'amount': amount}))
+                        links.append(dict(tx_link.to_dict(), **merged))
 
                 # linksAmount.append(amount)
 
@@ -896,3 +900,14 @@ class Bigchain(object):
         # return [u.to_dict() for u in outputs]
 
         return outputs
+
+    def gettxRecordByPubkey(self,pubkey):
+
+        return self.backend.get_tx_record_by_pubkey(pubkey)
+        # for tx in txlist:
+        #     for c in tx['conditions']:
+        #         c.pop('condition')
+        #         c.pop('cid')
+        #     tx.pop('id')
+
+        # print(txlist)

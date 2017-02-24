@@ -6,13 +6,13 @@ Date:  2017-02-14
 import rapidjson
 import uuid
 from flask import current_app, request, Blueprint
-from flask_restful import Resource, Api
+from flask_restful import Resource, Api,reqparse
 
 import bigchaindb
 from bigchaindb.common.exceptions import InvalidHash, InvalidSignature
 from bigchaindb.models import Transaction
 from bigchaindb.web.views.base import make_response,check_request,make_error
-from bigchaindb.web.views import constant
+from bigchaindb.web.views import constant,parameters
 
 from bigchaindb.common.exceptions import (
     AmountError,
@@ -211,7 +211,16 @@ class ApiCreateOrTransferTx(Resource):
 
         return tx, 202
 
+class ApiGetTxRecord(Resource):
+    def get(self):
+        parser = reqparse.RequestParser()
+        parser.add_argument('public_key', type=parameters.valid_ed25519, required=True)
+        args = parser.parse_args()
 
+        pool = current_app.config['bigchain_pool']
+        with pool() as bigchain:
+            txRecord = bigchain.gettxRecordByPubkey(args['public_key'])
+            return txRecord
 
 ##Router display
 transaction_api.add_resource(ApiCreateByPayload,
@@ -241,3 +250,6 @@ transaction_api.add_resource(ApiCreateOrTransferTx,
                           '/createOrTransferTx',
                           strict_slashes=False)
 
+transaction_api.add_resource(ApiGetTxRecord,
+                          '/getTxRecord',
+                          strict_slashes=False)
