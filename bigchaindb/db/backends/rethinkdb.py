@@ -555,9 +555,10 @@ class RethinkDBBackend:
 
     def get_tx_record_by_pubkey(self,pubkey):
         return self.connection.run(r.table('bigchain').concat_map(lambda doc: doc['block']['transactions'])
-                                                    .filter(lambda tx: (tx['transaction']['conditions'].contains(lambda c: c['owners_after'].contains(pubkey)))
-                                                                    or (tx['transaction']['fulfillments'].contains(lambda c: c['owners_before'].contains(pubkey))))
-                                                    .order_by(r.row['timestamp']).map({'id':r.row['id'],'owner_before':r.row['transaction']['fulfillments'][0]['owners_before'][0],'operation':r.row['transaction']['operation'],'amount':r.row['transaction']['conditions'][0]['amount'],'owners_after':r.row['transaction']['conditions'][0]['owners_after'][0],'timestamp':r.row['transaction']['timestamp']}))
+                                                    .filter(lambda tx: ((tx['transaction']['fulfillments'][0]['owners_before'][0]==pubkey)
+                                                                    | (tx['transaction']['conditions'][0]['owners_after'][0]==pubkey)))
+                                                    .map({'id':r.row['id'],'owner_before':r.row['transaction']['fulfillments'][0]['owners_before'][0],'operation':r.row['transaction']['operation'],'amount':r.row['transaction']['conditions'][0]['amount'],'owners_after':r.row['transaction']['conditions'][0]['owners_after'][0],'timestamp':r.row['transaction']['timestamp']})
+                                                    .order_by(r.asc(r.row['timestamp'])))
 
 
 
