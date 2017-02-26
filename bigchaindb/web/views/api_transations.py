@@ -53,7 +53,7 @@ class ApiCreateByPayload(Resource):
             result_messages = "tx not exist!"
         else:
             tx_result = tx.to_dict()
-            result_messages = "query success"
+            result_messages = "create transaction success"
 
         return make_response(constant.RESPONSE_STATUS_SUCCESS,
                              constant.RESPONSE_CODE_SUCCESS,
