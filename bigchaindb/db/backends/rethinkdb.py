@@ -444,13 +444,13 @@ class RethinkDBBackend:
         # transaction_count =  self.connection.run(
         #     r.table('bigchain', read_mode=self.read_mode)
         #      .between(begintime, endtime, index='tx_timestamp').count())  # tx time
-        transaction_count = self.connection.run(r.table("bigchain").concat_map(lambda block: block['block']['transactions']).filter((r.row["transaction"]['timestamp'] > begintime) and (r.row["transaction"]['timestamp'] < endtime)).count())
+        transaction_count = self.connection.run(r.table("bigchain").concat_map(lambda block: block['block']['transactions']).filter((r.row["transaction"]['timestamp'] > begintime) and_ (r.row["transaction"]['timestamp'] < endtime)).count())
         if not transaction_count:
             return 0,False
         if time_range == 0:
             time_range = 1
         return round(time_range/transaction_count,3),True
-   
+
     def get_block_createavgtime_by_range(self, begintime, endtime):
         time_range = int(endtime) - int(begintime)
         if time_range < 0:
@@ -472,7 +472,7 @@ class RethinkDBBackend:
             vote_time = 1
         return vote_time,True
 
-    def get_vote_avgtime_by_range(self, begintime, endtime):     
+    def get_vote_avgtime_by_range(self, begintime, endtime):
         time_range = int(endtime) - int(begintime)
         if time_range < 0:
             return 0,False
@@ -535,9 +535,9 @@ class RethinkDBBackend:
 
     def get_txIdList(self, startTime=r.minval, endTime=r.maxval, limit=None):
         if limit == None:
-            return self.connection.run(r.table("bigchain").concat_map(lambda block: block['block']['transactions']).order_by(r.desc(r.row['block']['transactions']['transaction']['timestamp'])).filter((r.row["transaction"]['timestamp'] >= startTime) and (r.row["transaction"]['timestamp'] <= endTime)))
+            return self.connection.run(r.table("bigchain").concat_map(lambda block: block['block']['transactions']).order_by(r.desc(r.row['block']['transactions']['transaction']['timestamp'])).filter((r.row["transaction"]['timestamp'] >= startTime) and_ (r.row["transaction"]['timestamp'] <= endTime)))
         else:
-            return self.connection.run(r.table("bigchain").concat_map(lambda block: block['block']['transactions']).order_by(r.desc(r.row['block']['transactions']['transaction']['timestamp'])).filter((r.row["transaction"]['timestamp'] >= startTime) and (r.row["transaction"]['timestamp'] <= endTime)).limit(limit))
+            return self.connection.run(r.table("bigchain").concat_map(lambda block: block['block']['transactions']).order_by(r.desc(r.row['block']['transactions']['transaction']['timestamp'])).filter((r.row["transaction"]['timestamp'] >= startTime) and_ (r.row["transaction"]['timestamp'] <= endTime)).limit(limit))
 
     def get_txNumberOfEachBlock(self,limit=None):
         if limit == None:
@@ -559,18 +559,3 @@ class RethinkDBBackend:
                                                                     | (tx['transaction']['conditions'][0]['owners_after'][0]==pubkey)))
                                                     .map({'id':r.row['id'],'owner_before':r.row['transaction']['fulfillments'][0]['owners_before'][0],'operation':r.row['transaction']['operation'],'amount':r.row['transaction']['conditions'][0]['amount'],'owners_after':r.row['transaction']['conditions'][0]['owners_after'][0],'timestamp':r.row['transaction']['timestamp']})
                                                     .order_by(r.asc(r.row['timestamp'])))
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
