@@ -444,7 +444,7 @@ class RethinkDBBackend:
         # transaction_count =  self.connection.run(
         #     r.table('bigchain', read_mode=self.read_mode)
         #      .between(begintime, endtime, index='tx_timestamp').count())  # tx time
-        transaction_count = self.connection.run(r.table("bigchain").concat_map(lambda block: block['block']['transactions']).filter((r.row["transaction"]['timestamp'] > begintime) and_ (r.row["transaction"]['timestamp'] < endtime)).count())
+        transaction_count = self.connection.run(r.table("bigchain").concat_map(lambda block: block['block']['transactions']).filter((r.row["transaction"]['timestamp'] > begintime) & (r.row["transaction"]['timestamp'] < endtime)).count())
         if not transaction_count:
             return 0,False
         if time_range == 0:
@@ -535,9 +535,9 @@ class RethinkDBBackend:
 
     def get_txIdList(self, startTime=r.minval, endTime=r.maxval, limit=None):
         if limit == None:
-            return self.connection.run(r.table("bigchain").concat_map(lambda block: block['block']['transactions']).order_by(r.desc(r.row['block']['transactions']['transaction']['timestamp'])).filter((r.row["transaction"]['timestamp'] >= startTime) and_ (r.row["transaction"]['timestamp'] <= endTime)))
+            return self.connection.run(r.table("bigchain").concat_map(lambda block: block['block']['transactions']).order_by(r.desc(r.row['block']['transactions']['transaction']['timestamp'])).filter((r.row["transaction"]['timestamp'] >= startTime) & (r.row["transaction"]['timestamp'] <= endTime)))
         else:
-            return self.connection.run(r.table("bigchain").concat_map(lambda block: block['block']['transactions']).order_by(r.desc(r.row['block']['transactions']['transaction']['timestamp'])).filter((r.row["transaction"]['timestamp'] >= startTime) and_ (r.row["transaction"]['timestamp'] <= endTime)).limit(limit))
+            return self.connection.run(r.table("bigchain").concat_map(lambda block: block['block']['transactions']).order_by(r.desc(r.row['block']['transactions']['transaction']['timestamp'])).filter((r.row["transaction"]['timestamp'] >= startTime) & (r.row["transaction"]['timestamp'] <= endTime)).limit(limit))
 
     def get_txNumberOfEachBlock(self,limit=None):
         if limit == None:
