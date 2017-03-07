@@ -101,9 +101,9 @@ class LocalBlock():
         # logger.warning('The count of this node(since start[{}]) has write to local block is: {}, current_block_num is: {}'
         #                .format(self.node_start_time,self.node_block_count,self.current_block_num))
 
-        info = "Block[num={},size={},id={},accumulate_txs={}]".format(
-            self.current_block_num, block_txs_num, block_id, self.total_block_txs_num)
-        logger.info(info)
+        #info = "Block[num={},size={},id={},accumulate_txs={}]".format(
+        #    self.current_block_num, block_txs_num, block_id, self.total_block_txs_num)
+        # logger.info(info)
 
         return None
 
@@ -130,8 +130,8 @@ def init_localdb(current_block_num, conn_block, conn_block_header, conn_block_re
     node_pubkey = bigchaindb.config['keypair']['public']
     node_prikey = bigchaindb.config['keypair']['private']
     node_prikey_encode = len(node_prikey) * '*'
-    logger.info('node_info init Node info: [host={},public_key={},private_key={}]'
-                .format(node_host,node_pubkey,node_prikey_encode))
+    logger.info('node_info init Node info: [host={},public_key={}]'
+                .format(node_host,node_pubkey))
 
     # insert or update this node info and close the conn after write
     conn_node_info = ldb.LocalBlock().conn['node_info']
@@ -166,13 +166,13 @@ def init_localdb(current_block_num, conn_block, conn_block_header, conn_block_re
         ldb.batch_insertOrUpdate(conn_block_header, block_header_data_dict, transaction=True)
         del block_header_data_dict
 
-        logger.info("localdb write the genesis block [id={}]".format(genesis_block_id))
+        # logger.info("localdb write the genesis block [id={}]".format(genesis_block_id))
 
         # write the block_records [block_num=block_id-block_txs-total_block-txs]
         block_records_val = "{}-{}-{}".format(genesis_block_id, current_block_txs_num, current_block_txs_num)
         ldb.insert(conn_block_records, current_block_num, block_records_val)
 
-    logger.info('localdb genesis_block_id {}'.format(genesis_block_id))
+    #logger.info('localdb genesis_block_id {}'.format(genesis_block_id))
     logger.info('localdb init done')
 
     return current_block_num

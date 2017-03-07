@@ -92,9 +92,9 @@ class LocalVote():
         # logger.warning('The count of this node(since start[{}]) has write to local vote is: {}, current_vote_num is: {}'
         #     .format(self.node_start_time,self.node_vote_count, self.current_vote_num))
 
-        info = "Vote[num={},voting_for_block={},id={}]"\
-            .format(self.current_vote_num, vote['vote']['voting_for_block'], vote_id)
-        logger.info(info)
+        #info = "Vote[num={},voting_for_block={},id={}]"\
+        #    .format(self.current_vote_num, vote['vote']['voting_for_block'], vote_id)
+        # logger.info(info)
 
         return None
 
