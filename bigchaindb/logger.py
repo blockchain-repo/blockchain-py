@@ -46,7 +46,7 @@ LOG_CONF = {
          "unichain": {
              "level": "INFO",
              "handlers": ["console", "pro"],
-             "propagate": True
+             "propagate": False
          }
     },
     "root": {
