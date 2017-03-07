@@ -82,8 +82,8 @@ class ChangeFeed(Node):
             while True:
                 if records_count == 0:
                     break
-                logger.info("{} has {} rounds to write the missing localdb data[count={}]"
-                            .format(self.table_class, self.pre_round, records_count))
+                #logger.info("{} has {} rounds to write the missing localdb data[count={}]"
+                #           .format(self.table_class, self.pre_round, records_count))
                 self.round_write_localdb(data)
                 self.pre_round -= 1
                 if self.pre_round <= 0:
