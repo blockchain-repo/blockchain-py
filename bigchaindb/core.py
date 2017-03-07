@@ -101,6 +101,7 @@ class Bigchain(object):
 
         signed_transaction.update({'assignee': assignee})
         signed_transaction.update({'assignment_timestamp': time()})
+        signed_transaction.update({'assignee_isdeal': False})
 
         # write to the backlog
         return self.backend.write_transaction(signed_transaction)
@@ -911,3 +912,8 @@ class Bigchain(object):
         #     tx.pop('id')
 
         # print(txlist)
+    def get_tx_from_backlog(self):
+        return self.backend.get_tx_from_backlog(self.me)
+
+    def update_assign_is_deal(self,tx_id):
+        return self.backend.update_assign_is_deal(tx_id)

@@ -559,3 +559,17 @@ class RethinkDBBackend:
                                                                     | (tx['transaction']['conditions'][0]['owners_after'][0]==pubkey)))
                                                     .map({'id':r.row['id'],'owner_before':r.row['transaction']['fulfillments'][0]['owners_before'][0],'operation':r.row['transaction']['operation'],'amount':r.row['transaction']['conditions'][0]['amount'],'owners_after':r.row['transaction']['conditions'][0]['owners_after'][0],'timestamp':r.row['transaction']['timestamp']})
                                                     .order_by(r.asc(r.row['timestamp'])))
+    def get_tx_from_backlog(self,myNodePubkey):
+        return self.connection.run(
+            r.table('backlog').filter((r.row["assignee"] == myNodePubkey) & (r.row["assignee_isdeal"] == False)).limit(1000)
+            #
+            # r.table('backlog').filter((r.row["assignee_node"] == myNodePubkey).limit(1000))
+            # .order_by(index=r.asc('assignee__transaction_timestamp'))
+        )
+
+    def update_assign_is_deal(self,tx_id):
+        return self.connection.run(
+                r.table('backlog')
+                .get(tx_id)
+                .update({'assignee_isdeal': True}))
+        # return self.connection.run(r.table('backlog').filter({'id': tx_id}).update({'assignee_isdeal': True}))

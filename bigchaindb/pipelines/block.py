@@ -13,6 +13,7 @@ from multipipes import Pipeline, Node, Pipe
 from bigchaindb.monitor import Monitor
 from bigchaindb.models import Transaction
 from bigchaindb.pipelines.utils import ChangeFeed
+from bigchaindb.pipelines.utils_for_backlog import BacklogTxToQueue
 from bigchaindb import Bigchain, config
 
 logger = logging.getLogger(__name__)
@@ -45,6 +46,7 @@ class BlockPipeline:
         if tx['assignee'] == self.bigchain.me:
             tx.pop('assignee')
             tx.pop('assignment_timestamp')
+            tx.pop('assignee_isdeal')
             return tx
 
     def validate_tx(self, tx):
@@ -60,6 +62,10 @@ class BlockPipeline:
             :class:`~bigchaindb.models.Transaction`: The transaction if valid,
             ``None`` otherwise.
         """
+        # print(tx)
+        tx.pop('assignee')
+        tx.pop('assignment_timestamp')
+        tx.pop('assignee_isdeal')
         tx = Transaction.from_dict(tx)
         if self.bigchain.transaction_exists(tx.id):
             # if the transaction already exists, we must check whether
@@ -152,6 +158,7 @@ class BlockPipeline:
             :class:`~bigchaindb.models.Block`: The block.
         """
         self.bigchain.delete_transaction(*[tx.id for tx in block.transactions])
+
         return block
 
 
@@ -168,12 +175,14 @@ def initial():
             .order_by(index=r.asc('assignee__transaction_timestamp')))
 
 
-def get_changefeed():
-    """Create and return the changefeed for the backlog."""
+# def get_changefeed():
+#     """Create and return the changefeed for the backlog."""
+#
+#     return ChangeFeed('backlog', ChangeFeed.INSERT | ChangeFeed.UPDATE,
+#                       prefeed=initial())
 
-    return ChangeFeed('backlog', ChangeFeed.INSERT | ChangeFeed.UPDATE,
-                      prefeed=initial())
-
+def get_tx_in_backlog():
+    return BacklogTxToQueue(prefeed=initial())
 
 def create_pipeline():
     """Create and return the pipeline of operations to be distributed
@@ -183,7 +192,7 @@ def create_pipeline():
 
     pipeline = Pipeline([
         Pipe(maxsize=2000),
-        Node(block_pipeline.filter_tx),
+        # Node(block_pipeline.filter_tx),
         Node(block_pipeline.validate_tx, fraction_of_cores=1),
         Node(block_pipeline.create, timeout=1),
         Node(block_pipeline.write),
@@ -196,6 +205,6 @@ def create_pipeline():
 def start():
     """Create, start, and return the block pipeline."""
     pipeline = create_pipeline()
-    pipeline.setup(indata=get_changefeed())
+    pipeline.setup(indata=get_tx_in_backlog())
     pipeline.start()
     return pipeline
