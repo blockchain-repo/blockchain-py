@@ -48,7 +48,7 @@ def start():
     local_vote.start()
 
     # start message
-    logger.info(BANNER.format(bigchaindb.config['server']['bind']))
+    # logger.info(BANNER.format(bigchaindb.config['server']['bind']))
 
 def start_api():
     # start the web api
