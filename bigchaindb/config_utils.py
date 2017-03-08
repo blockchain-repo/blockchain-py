@@ -221,7 +221,7 @@ def autoconfigure(filename=None, config=None, force=False):
     been initialized."""
 
     if not force and bigchaindb.config.get('CONFIGURED'):
-        logger.debug('System already configured, skipping autoconfiguration')
+        # logger.debug('System already configured, skipping autoconfiguration')
         return
 
     # start with the current configuration
