@@ -142,7 +142,7 @@ def run_configure(args, skip_if_exists=False):
 def run_export_my_pubkey(args):
     """Export this node's public key to standard output
     """
-    logger.debug('{} args = {}'.format(app_service_name, args))
+    # logger.debug('{} args = {}'.format(app_service_name, args))
     bigchaindb.config_utils.autoconfigure(filename=args.config, force=True)
     pubkey = bigchaindb.config['keypair']['public']
     if pubkey is not None:
@@ -158,7 +158,7 @@ def run_export_my_pubkey(args):
 def run_export_my_ip(args):
     """Export this node's api_endpoint ip to standard output
     """
-    logger.debug('{} args = {}'.format(app_service_name, args))
+    # logger.debug('{} args = {}'.format(app_service_name, args))
     bigchaindb.config_utils.autoconfigure(filename=args.config, force=True)
     from urllib.parse import urlparse
     api_endpoint = urlparse(bigchaindb.config['api_endpoint'])

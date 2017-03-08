@@ -83,6 +83,7 @@ class StaleTransactionMonitor:
         if not isalive:
             # print("i am the reassignee node. the tx node is dead. need to be reassignee!")
             # node down ，需要reassign tx
+            logger.info('Reassigning transaction with id %s', tx['id'])
             self.bigchain.reassign_transaction(tx)
             return tx
         # 如果alive，就是阻塞，不需要reassignee
