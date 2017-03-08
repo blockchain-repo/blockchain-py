@@ -143,7 +143,7 @@ class Vote:
             vote: the vote to write.
         """
         validity = 'valid' if vote['vote']['is_block_valid'] else 'invalid'
-        logger.info("Voting '%s' for block %s", validity,
+        logger.info("Vote '%s' block %s", validity,
                     vote['vote']['voting_for_block'])
         self.bigchain.write_vote(vote)
         return vote

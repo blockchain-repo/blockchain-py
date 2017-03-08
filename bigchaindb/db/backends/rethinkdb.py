@@ -3,6 +3,7 @@
 This module contains all the methods to store and retrieve data from RethinkDB.
 """
 
+import logging
 from time import time
 
 import rethinkdb as r
@@ -11,6 +12,7 @@ from bigchaindb import util
 from bigchaindb.db.utils import Connection
 from bigchaindb.common import exceptions
 
+logger = logging.getLogger(__name__)
 
 class RethinkDBBackend:
 
@@ -36,6 +38,7 @@ class RethinkDBBackend:
         Returns:
             The result of the operation.
         """
+        logger.debug("Writing transaction id = %s", signed_transaction['id'])
         return self.connection.run(
                 r.table('backlog')
                 .insert(signed_transaction, durability=self.durability))

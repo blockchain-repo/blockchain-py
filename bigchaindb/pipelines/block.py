@@ -62,6 +62,7 @@ class BlockPipeline:
             :class:`~bigchaindb.models.Transaction`: The transaction if valid,
             ``None`` otherwise.
         """
+        logger.debug("Validating transaction %s", tx['id'])
         # print(tx)
         tx.pop('assignee')
         tx.pop('assignment_timestamp')
@@ -114,6 +115,7 @@ class BlockPipeline:
         """
         if tx:
             self.txs.append(tx)
+            logger.debug("Validated transaction %s, txs.len = %d", tx.id,len(self.txs))
         if len(self.txs) == 1:
             # 心跳机制，写Node，时间戳。
             self.bigchain.updateHeartbeat(time.time())
@@ -135,7 +137,7 @@ class BlockPipeline:
         Returns:
             :class:`~bigchaindb.models.Block`: The Block.
         """
-        logger.info('Write new block %s with %s transactions', block.id, len(block.transactions))
+        logger.info('Writing new block %s with %s transactions', block.id, len(block.transactions))
         # logger.info('Write new block %s with %s transactions', block.id, block.transactions)
         # zy@secn
         if monitor is not None:
