@@ -3,8 +3,12 @@ import os
 import datetime
 import logging.config
 import bigchaindb
+from bigchaindb.base_config import unichain_config
+
 app_service_name = bigchaindb.config['app']['service_name']
 app_setup_name = bigchaindb.config['app']['setup_name']
+debug_to_console = "DEBUG" if unichain_config['logger_config']['debug_to_console']==True else "INFO"
+debug_to_file = "DEBUG" if unichain_config['logger_config']['debug_to_file']==True else "INFO"
 
 ####log configure####
 BASE_DIR = os.path.expandvars('$HOME')
@@ -13,6 +17,7 @@ if not os.path.exists(LOG_DIR):
     os.makedirs(LOG_DIR) 
 PRO_LOG_FILE = "{}.log.{}".format(app_service_name, datetime.datetime.now().strftime("%Y%m%d%H%M%S"))
 
+##log conf
 LOG_CONF = {
     "version": 1,
     "disable_existing_loggers": False,
@@ -27,13 +32,13 @@ LOG_CONF = {
     "handlers": {
         "console": {
             "class": "logging.StreamHandler",
-            "level": "INFO",
+            "level": debug_to_console,
             "formatter": "simple",
             "stream": "ext://sys.stdout"
         },
         "pro": {
             "class": "logging.handlers.RotatingFileHandler",
-            "level": "INFO",
+            "level": debug_to_file,
             "formatter": "standard",
             "filename": os.path.join(LOG_DIR, PRO_LOG_FILE),
             'mode': 'w+',

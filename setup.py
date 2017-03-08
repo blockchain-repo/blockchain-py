@@ -20,7 +20,7 @@ if not unichain_config:
     app_setup_name = "UnichainDB"
 
 else:
-    base_unichain_config = unichain_config['unichain_config']
+    base_unichain_config = unichain_config['unichain_config']['server_config']
     app_service_name = base_unichain_config['service_name']
     app_setup_name = base_unichain_config['setup_name']
 

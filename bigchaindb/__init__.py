@@ -12,20 +12,20 @@ from bigchaindb.base_config import unichain_config
 # basically, the port number is 9984
 config = {
     'app': {
-        'setup_name': '{}'.format(unichain_config['setup_name']),  # BigchainDB
-        'service_name': '{}'.format(unichain_config['service_name']),  # unichain
+        'setup_name': '{}'.format(unichain_config['server_config']['setup_name']),  # BigchainDB
+        'service_name': '{}'.format(unichain_config['server_config']['service_name']),  # unichain
     },
     'server': {
         # Note: this section supports all the Gunicorn settings:
         #       - http://docs.gunicorn.org/en/stable/settings.html
-        'bind': os.environ.get('BIGCHAINDB_SERVER_BIND') or 'localhost:{}'.format(unichain_config['server_port']),
+        'bind': os.environ.get('BIGCHAINDB_SERVER_BIND') or 'localhost:{}'.format(unichain_config['server_config']['server_port']),
         'workers': None,  # if none, the value will be cpu_count * 2 + 1
         'threads': None,  # if none, the value will be cpu_count * 2 + 1
     },
     'database': {
         'host': os.environ.get('BIGCHAINDB_DATABASE_HOST', 'localhost'),
         'port': 28015,
-        'name': '{}'.format(unichain_config['db_name']),
+        'name': '{}'.format(unichain_config['server_config']['db_name']),
     },
     'keypair': {
         'public': None,
@@ -38,17 +38,17 @@ config = {
         'rate': 0.01,
     },
     'api_endpoint': os.environ.get('BIGCHAINDB_API_ENDPOINT') or 'http://localhost:{}/uniledger/v1'
-        .format(unichain_config['server_port']),
+        .format(unichain_config['server_config']['server_port']),
     'backlog_reassign_delay': 30,
     'restore_server': {
         'bind': os.environ.get('BIGCHAINDB_RESTORE_SERVER_BIND') or 'localhost:{}'
-            .format(unichain_config['restore_server_port']),
+            .format(unichain_config['server_config']['restore_server_port']),
         'compress': True, # if compress, compress the response data
         'workers': None,  # if none, the value will be int(cpu_count/2) + 2
         'threads': None,  # if none, the value will be int(cpu_count/2) + 2
     },
     'restore_endpoint': os.environ.get('BIGCHAINDB_RESTORE_ENDPOINT') or
-                        'http://localhost:{}/uniledger/v1/collect'.format(unichain_config['restore_server_port']),
+                        'http://localhost:{}/uniledger/v1/collect'.format(unichain_config['server_config']['restore_server_port']),
 }
 
 
