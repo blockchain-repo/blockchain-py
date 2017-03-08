@@ -55,4 +55,6 @@ LOG_CONF = {
         'propagate': False
     }
 }
+# root is in use
+
 logging.config.dictConfig(LOG_CONF)

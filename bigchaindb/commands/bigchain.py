@@ -3,6 +3,7 @@ which is one of the commands in the BigchainDB
 command-line interface.
 """
 
+import logging
 import os
 import sys
 import argparse
@@ -26,7 +27,7 @@ from bigchaindb.util import ProcessGroup
 from bigchaindb import db
 from bigchaindb.commands import utils
 from bigchaindb import processes
-from bigchaindb.logger import *
+from bigchaindb import logger
 
 from bigchaindb.monitor import Monitor
 monitor = Monitor()
@@ -34,7 +35,7 @@ monitor = Monitor()
 app_service_name = bigchaindb.config['app']['service_name']
 app_setup_name = bigchaindb.config['app']['setup_name']
 
-logger = logging.getLogger(app_service_name)
+logger = logging.getLogger(__name__)
 # We need this because `input` always prints on stdout, while it should print
 # to stderr. It's a very old bug, check it out here:
 # - https://bugs.python.org/issue1927

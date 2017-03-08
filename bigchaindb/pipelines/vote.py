@@ -5,6 +5,7 @@ of actions to do on transactions is specified in the ``create_pipeline``
 function.
 """
 
+import logging
 from collections import Counter
 
 from multipipes import Pipeline, Node
@@ -17,6 +18,8 @@ from bigchaindb.pipelines.utils import ChangeFeed
 from bigchaindb import Bigchain
 
 monitor = Monitor()
+
+logger = logging.getLogger(__name__)
 
 class Vote:
     """This class encapsulates the logic to vote on blocks.
@@ -139,7 +142,9 @@ class Vote:
         Args:
             vote: the vote to write.
         """
-
+        validity = 'valid' if vote['vote']['is_block_valid'] else 'invalid'
+        logger.info("Voting '%s' for block %s", validity,
+                    vote['vote']['voting_for_block'])
         self.bigchain.write_vote(vote)
         return vote
 
