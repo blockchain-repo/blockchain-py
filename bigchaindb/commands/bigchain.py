@@ -116,6 +116,12 @@ def run_configure(args, skip_if_exists=False):
             input('Stale transaction reassignment delay (in seconds)? (default `{}`): '.format(val)) \
             or val
 
+        for key in ('debug_to_console', 'debug_to_file'):
+            val = conf['logger_config'][key]
+            conf['logger_config'][key] = \
+                input('logger_config {}? (default `{}`): '.format(key, val)) \
+                or val
+
         val = conf['restore_server']['bind']
         conf['restore_server']['bind'] = \
             input('Restore Server {}? (default `{}`): '.format('bind', val)) \

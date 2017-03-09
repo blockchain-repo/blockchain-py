@@ -3,12 +3,11 @@ import os
 import datetime
 import logging.config
 import bigchaindb
-from bigchaindb.base_config import unichain_config
 
 app_service_name = bigchaindb.config['app']['service_name']
 app_setup_name = bigchaindb.config['app']['setup_name']
-debug_to_console = "DEBUG" if unichain_config['logger_config']['debug_to_console']==True else "INFO"
-debug_to_file = "DEBUG" if unichain_config['logger_config']['debug_to_file']==True else "INFO"
+debug_to_console = "DEBUG" if bigchaindb.config['logger_config']['debug_to_console']==True else "INFO"
+debug_to_file = "DEBUG" if bigchaindb.config['logger_config']['debug_to_file']==True else "INFO"
 
 ####log configure####
 BASE_DIR = os.path.expandvars('$HOME')

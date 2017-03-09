@@ -40,6 +40,10 @@ config = {
     'api_endpoint': os.environ.get('BIGCHAINDB_API_ENDPOINT') or 'http://localhost:{}/uniledger/v1'
         .format(unichain_config['server_config']['server_port']),
     'backlog_reassign_delay': 30,
+    'logger_config' : {
+            'debug_to_console' : False,
+            'debug_to_file' : False
+    },
     'restore_server': {
         'bind': os.environ.get('BIGCHAINDB_RESTORE_SERVER_BIND') or 'localhost:{}'
             .format(unichain_config['server_config']['restore_server_port']),

@@ -5,9 +5,5 @@ unichain_config = {
         'service_name': 'unichain',
         'setup_name': 'UnichainDB',
         'db_name':'bigchain'
-    },
-    'logger_config' : {
-        'debug_to_console' : False,
-        'debug_to_file' : False
     }
 }
