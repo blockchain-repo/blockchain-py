@@ -41,8 +41,12 @@ config = {
         .format(unichain_config['server_config']['server_port']),
     'backlog_reassign_delay': 30,
     'logger_config' : {
-            'debug_to_console' : False,
-            'debug_to_file' : False
+        'debug_to_console' : False,
+        'debug_to_file' : False
+    },
+    'argument_config' : {
+        'txs_length' : 1000,
+        'pipe_maxsize' : 2000
     },
     'restore_server': {
         'bind': os.environ.get('BIGCHAINDB_RESTORE_SERVER_BIND') or 'localhost:{}'
