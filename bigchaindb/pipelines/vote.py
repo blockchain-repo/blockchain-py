@@ -48,6 +48,7 @@ class Vote:
                                                    [([self.bigchain.me],1)])
 
     def validate_block(self, block):
+        logger.debug("start validationg block %s", block['id'])
         if not self.bigchain.has_previous_vote(block['id'], block['block']['voters']):
             try:
                 block = Block.from_dict(block)
@@ -92,7 +93,7 @@ class Vote:
             yields a transaction, block id, and the total number of
             transactions contained in the block otherwise.
         """
-
+        logger.debug("start ungroup block %s", block_id)
         num_tx = len(transactions)
         for tx in transactions:
             yield tx, block_id, num_tx
@@ -109,6 +110,7 @@ class Vote:
             Three values are returned, the validity of the transaction,
             ``block_id``, ``num_tx``.
         """
+        logger.debug("validate a tx in block %s", block_id)
         return bool(self.bigchain.is_valid_transaction(tx)), block_id, num_tx
 
     def vote(self, tx_validity, block_id, num_tx):
@@ -122,7 +124,7 @@ class Vote:
         Returns:
             None, or a vote if a decision has been reached.
         """
-
+        logger.debug("validated a tx block %s", block_id)
         self.counters[block_id] += 1
         self.validity[block_id] = tx_validity and self.validity.get(block_id,
                                                                     True)
