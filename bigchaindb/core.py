@@ -511,6 +511,9 @@ class Bigchain(object):
     def transaction_exists(self, transaction_id):
         return self.backend.has_transaction(transaction_id)
 
+    def transactions_list_exists(self, transactions):
+        return self.backend.has_transactions_list(transactions)
+
     def prepare_genesis_block(self):
         """Prepare a genesis block."""
 
@@ -917,3 +920,6 @@ class Bigchain(object):
 
     def update_assign_is_deal(self,tx_id):
         return self.backend.update_assign_is_deal(tx_id)
+
+    def update_assign_flag_limit(self,limit=1000):
+        return self.backend.update_assign_flag_limit(self.me,limit=limit)

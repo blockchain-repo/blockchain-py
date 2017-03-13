@@ -121,7 +121,7 @@ class RethinkDBBackend:
         return self.connection.run(
                 r.table('backlog')
                 .get(transaction_id)
-                .without('assignee', 'assignment_timestamp')
+                .without('assignee', 'assignment_timestamp','assignee_isdeal')
                 .default(None))
 
     def get_blocks_status_from_transaction(self, transaction_id):
@@ -272,6 +272,9 @@ class RethinkDBBackend:
         return bool(self.connection.run(
                 r.table('bigchain', read_mode=self.read_mode)
                 .get_all(transaction_id, index='transaction_id').count()))
+
+    def has_transactions_list(self,transactions):
+        return self.connection.run(r.table('bigchain').get_all(r.args(transactions), index='transaction_id').get_field(id))
 
     def count_blocks(self):
         """Count the number of blocks in the bigchain table.
@@ -576,3 +579,8 @@ class RethinkDBBackend:
                 .get(tx_id)
                 .update({'assignee_isdeal': True}))
         # return self.connection.run(r.table('backlog').filter({'id': tx_id}).update({'assignee_isdeal': True}))
+
+    def update_assign_flag_limit(self,key,limit=1000):
+        return self.connection.run(r.table('backlog').filter({"assignee":key,"assignee_isdeal":False}).limit(limit).update({'assignee_isdeal': True},return_changes=True))
+
+

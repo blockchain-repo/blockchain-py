@@ -2,6 +2,7 @@
 
 
 import time
+import datetime
 import rethinkdb as r
 import logging
 from multipipes import Node
@@ -32,16 +33,24 @@ class BacklogTxToQueue(Node):
         while True:
             try:
                 self.get_tx_in_backlog()
-                #TODO no data
-                # print('utiles run forever done ,now break!!???')
             except (r.ReqlDriverError, r.ReqlOpFailedError) as exc:
                 logger.exception(exc)
                 time.sleep(1)
 
 
     def get_tx_in_backlog(self):
-        for tx in self.bigchain.get_tx_from_backlog():
-            self.outqueue.put(tx)
-            self.bigchain.update_assign_is_deal(tx['id'])
+        # count = 0
+        # logger.info('%s before update', datetime.datetime.now().strftime('%Y-%m-%d %H:%M:%S.%f'))
+        result = self.bigchain.update_assign_flag_limit(limit=5000)
+        # logger.info('%s end update', datetime.datetime.now().strftime('%Y-%m-%d %H:%M:%S.%f'))
+        if ('changes' in result) and len(result['changes'])>0:
+            for tx in result['changes']:
+                # count = count + 1
+                # if count == 1:
+                #     logger.info('%s in', datetime.datetime.now().strftime('%Y-%m-%d %H:%M:%S.%f'))
+                self.outqueue.put(tx['new_val'])
+            # if count > 0:
+            #     logger.info('%s :%s ', datetime.datetime.now().strftime('%Y-%m-%d %H:%M:%S.%f'), count)
+
 
 
