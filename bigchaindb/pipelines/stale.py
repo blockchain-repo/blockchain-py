@@ -22,7 +22,7 @@ class StaleTransactionMonitor:
         Methods of this class will be executed in different processes.
     """
 
-    def __init__(self, timeout=5, backlog_reassign_delay=None):
+    def __init__(self, timeout=10, backlog_reassign_delay=None):
         """Initialize StaleTransaction monitor
 
         Args:
@@ -57,7 +57,7 @@ class StaleTransactionMonitor:
         else:
             monitor.gauge('tx_queue_gauge', value=0)
             # 如果当前节点没有reassignee权限，则需要判断有reassignee权限的节点是否down掉
-            isalive = self.bigchain.is_assignee_alive(assigneekey, 10)
+            isalive = self.bigchain.is_assignee_alive(assigneekey, 20)
             if not isalive:
                 # print("i am not the reassignee node. the assign node is dead! %d" % (time()))
                 # 更新reassign的节点。
@@ -79,7 +79,7 @@ class StaleTransactionMonitor:
         """
         # tx被指派的节点
         txpublickey = tx["assignee"]
-        isalive = self.bigchain.is_node_alive(txpublickey,10)
+        isalive = self.bigchain.is_node_alive(txpublickey,20)
         if not isalive:
             # print("i am the reassignee node. the tx node is dead. need to be reassignee!")
             # node down ，需要reassign tx
@@ -91,7 +91,7 @@ class StaleTransactionMonitor:
         return
 
 
-def create_pipeline(timeout=5, backlog_reassign_delay=5):
+def create_pipeline(timeout=10, backlog_reassign_delay=30):
     """Create and return the pipeline of operations to be distributed
     on different processes."""
 
@@ -106,7 +106,7 @@ def create_pipeline(timeout=5, backlog_reassign_delay=5):
     return monitor_pipeline
 
 
-def start(timeout=5, backlog_reassign_delay=5):
+def start(timeout=10, backlog_reassign_delay=20):
     """Create, start, and return the block pipeline."""
     pipeline = create_pipeline(timeout=timeout,
                                backlog_reassign_delay=backlog_reassign_delay)
