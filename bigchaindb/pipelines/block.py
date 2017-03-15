@@ -31,6 +31,7 @@ class BlockPipeline:
         """Initialize the BlockPipeline creator"""
         self.bigchain = Bigchain()
         self.txs = []
+        self.txsId = []
         self.starttime = 0
         self.block_size = config['argument_config']['txs_length'] + self.bigchain.nodelist.index(self.bigchain.me) * 100
         self.block_timeout = 15
@@ -70,7 +71,8 @@ class BlockPipeline:
         tx.pop('assignment_timestamp')
         tx.pop('assignee_isdeal')
         tx = Transaction.from_dict(tx)
-        if self.bigchain.transaction_exists(tx.id):
+        # if self.bigchain.transaction_exists(tx.id):
+        if False:
             # if the transaction already exists, we must check whether
             # it's in a valid or undecided block
             tx, status = self.bigchain.get_transaction(tx.id,
@@ -115,20 +117,23 @@ class BlockPipeline:
             :class:`~bigchaindb.models.Block`: The block,
             if a block is ready, or ``None``.
         """
-        if not tx:
-            self.bigchain.updateHeartbeat(time.time())
         if tx:
             self.txs.append(tx)
+            self.txsId.append(tx.id)
             logger.debug("Validated transaction %s, txs.len = %d", tx.id,len(self.txs))
+        else:
+            self.bigchain.updateHeartbeat(time.time())
+
         if len(self.txs) == 1:
             # 心跳机制，写Node，时间戳。
             self.bigchain.updateHeartbeat(time.time())
             self.starttime = time.time()
         if len(self.txs) == self.block_size or (timeout and self.txs) or (((time.time()-self.starttime) > self.block_timeout) and self.txs):
-        #if len(self.txs) == 1000 or (timeout and self.txs) or (((time.time()-self.starttime) > 7) and self.txs):
-        # if len(self.txs) == 1000 or (timeout and self.txs):
+            req_result = self.bigchain.get_exist_txs(self.txsId)
+            logger.info(req_result)
             block = self.bigchain.create_block(self.txs)
             self.txs = []
+            self.txsId = []
             return block
 
     def write(self, block):

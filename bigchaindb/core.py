@@ -923,3 +923,7 @@ class Bigchain(object):
 
     def update_assign_flag_limit(self,limit=1000):
         return self.backend.update_assign_flag_limit(self.me,limit=limit)
+
+    def get_exist_txs(self,tx_ids):
+        tx_ids_all = self.backend.is_exist_txs(tx_ids)
+        return list(set(tx_ids_all).intersection(set(tx_ids)))

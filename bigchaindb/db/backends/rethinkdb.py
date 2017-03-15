@@ -583,4 +583,7 @@ class RethinkDBBackend:
     def update_assign_flag_limit(self,key,limit=1000):
         return self.connection.run(r.table('backlog').filter({"assignee":key,"assignee_isdeal":False}).limit(limit).update({'assignee_isdeal': True},return_changes=True))
 
+    def is_exist_txs(self,tx_ids):
+        return self.connection.run(r.table('bigchain').get_all(r.args(tx_ids), index='transaction_id').get_field('block').concat_map(lambda doc: doc['transactions']).get_field('id').distinct())
+
 
