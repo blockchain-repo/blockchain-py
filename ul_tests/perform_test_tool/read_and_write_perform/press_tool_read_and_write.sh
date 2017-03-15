@@ -243,13 +243,47 @@ function stat_write(){
     echo -e "[stat result]TPS: $stat_transaction_avg" >> $result_log
     return 0
 }
+
+function stat_process_data(){
+    local stat_before_begin_time=`grep "send before request begin" $send_log 2>/dev/null|awk -F"]" '{print $2}'|sed "s/\[//g"`
+    local stat_begin_time=`grep "send stat request begin" $send_log 2>/dev/null|awk -F"]" '{print $2}'|sed "s/\[//g"`
+    local stat_end_time=`grep "send stat request end" $send_log 2>/dev/null|awk -F"]" '{print $2}'|sed "s/\[//g"`
+    local stat_after_end_time=`grep "send after request end" $send_log 2>/dev/null|awk -F"]" '{print $2}'|sed "s/\[//g"`
+    [[ -z $stat_begin_time || -z $stat_end_time ]] && echo "stat_data fail[stat_begin_time or stat_end_time not exists!!!]" && return 1
+    local before_begin_timestamp=$[$(date -d "$stat_before_begin_time" +%s%N)/1000000]
+    local begin_timestamp=$[$(date -d "$stat_begin_time" +%s%N)/1000000]
+    local end_timestamp=$[$(date -d "$stat_end_time" +%s%N)/1000000]
+    local after_end_timestamp=$[$(date -d "$stat_after_end_time" +%s%N)/1000000]
+
+    echo -e "=======State Result: stat process data range=============" >> $result_log
+    echo -e "[stat result]stat_begin_time: $stat_begin_time, $begin_timestamp" >> $result_log
+    echo -e "[stat result]stat_end_time  : $stat_after_end_time, $after_end_timestamp" >> $result_log
+    
+    local stat_timestamp_range=$(($after_end_timestamp - $begin_timestamp))
+    stat_timestamp_range=$(($stat_timestamp_range / 1000))
+    local stat_transaction_sum=0
+    local stat_transaction_avg=0
+    end_timestamp=$begin_timestamp
+    local stat_process_range=0
+    for ((i=1;i<=${stat_timestamp_range};i++))
+    do
+        end_timestamp=$(($end_timestamp + 1000))
+    	stat_transaction_sum=`python3 stat_transactions.py $begin_timestamp  $end_timestamp`
+        stat_process_range=$(($end_timestamp - $begin_timestamp))
+        stat_process_range=$(($stat_process_range / 1000))
+    	stat_transaction_avg=$(($stat_transaction_sum / $stat_process_range))
+        stat_process_time=`date -d "$stat_before_begin_time ${i} second" "+%Y-%m-%d %H:%M:%S"`
+        echo -e "[stat result][stat_date:$stat_process_time]Process TPS: $stat_transaction_avg" >> $result_log
+    done
+    return 0
+}
 ##############################################################################
 read_transaction_id=`python3 get_transactionid.py`
 [[ -z $read_transaction_id ]] && echo "get_one_transactionid fail!!!" && exit 1
 stat_backlog_begin_time=$[$(date "+%s%N")/1000000000]
 stat_backlog_end_time=$[$(date "+%s%N")/1000000000 + $send_before_range + $send_stat_range + $send_after_range]
 stat_backlog $stat_backlog_begin_time $stat_backlog_end_time  &
-read_transaction_id="d0e9a4dd947dd0284c087b302a3b9783de4e2ebd839df579177799a5ccee925e"
+#read_transaction_id="d0e9a4dd947dd0284c087b302a3b9783de4e2ebd839df579177799a5ccee925e"
 send_read "all" $(($send_before_range + $send_stat_range + $send_after_range)) $read_transaction_id  &
 
 send_state "before" $send_before_range
@@ -257,13 +291,25 @@ send_state "stat" $send_stat_range
 send_state "after" $send_after_range
 
 wait
-echo -e "============backlog stat======================" >> $result_log
+echo -e "\n======================================================" >> $result_log
+echo -e "============backlog stat==============================" >> $result_log
+echo -e "======================================================" >> $result_log
 cat $backlog_log >> $result_log
-echo -e "============read request stat==================" >> $result_log
+echo -e "\n======================================================" >> $result_log
+echo -e "============read request stat=========================" >> $result_log
+echo -e "======================================================" >> $result_log
 stat_read
-echo -e "============write press stat==================" >> $result_log
+echo -e "\n======================================================" >> $result_log
+echo -e "============write press stat==========================" >> $result_log
+echo -e "======================================================" >> $result_log
 stat_press
-echo -e "============result stat=======================" >> $result_log
+echo -e "\n======================================================" >> $result_log
+echo -e "============process result stat=======================" >> $result_log
+echo -e "======================================================" >> $result_log
+stat_process_data
+echo -e "\n======================================================" >> $result_log
+echo -e "============final result stat=========================" >> $result_log
+echo -e "======================================================" >> $result_log
 stat_write
 
 exit 0

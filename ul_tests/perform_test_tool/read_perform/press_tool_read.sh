@@ -57,9 +57,9 @@ function send_req_read(){
         now_date=`date "+%Y-%m-%d %H:%M:%S"`
         echo "[$now_date]send $s_state read a request..." >> $read_log
         if [[ $s_state == "stat" ]];then
-            curl -i -H "Content-Type:application/json" -X POST -d '{"tx_id":"'${s_tx_id}'","type":"1"}' -w "['$now_date'] %{http_code}" http://$send_host:$send_port/uniledger/v1/transaction/queryByID >> $read_log  2>&1 &
+            curl -i -H "Content-Type:application/json" -X POST -d '{"tx_id":"'${s_tx_id}'","type":"1"}' -w "{'$now_date'} %{http_code}" http://$send_host:$send_port/uniledger/v1/transaction/queryByID >> $read_log  2>&1 &
         else
-            curl -i -H "Content-Type:application/json" -X POST -d '{"tx_id":"'${s_tx_id}'","type":"1"}' -w "['$now_date'] %{http_code}" http://$send_host:$send_port/uniledger/v1/transaction/queryByID >> /dev/null  2>&1 &
+            curl -i -H "Content-Type:application/json" -X POST -d '{"tx_id":"'${s_tx_id}'","type":"1"}' -w "{'$now_date'} %{http_code}" http://$send_host:$send_port/uniledger/v1/transaction/queryByID >> /dev/null  2>&1 &
         fi
     done
     return 0
@@ -117,7 +117,12 @@ function get_req_loop_info(){
 }
 
 function stat_read(){
-    cat $read_log 2>/dev/null | grep -o "send stat read a request" |awk -F"]" '{print $1}'|sed "s/\[//g"|sort|uniq -c >> $result_log
+    echo -e "=========before stat request press==========" >> $result_log
+    cat $read_log 2>/dev/null | grep -o "\[.*\]send before read a request" |awk -F"]" '{print $1}'|sed "s/\[//g"|sort|uniq -c >> $result_log
+    echo -e "=========stat request press=================" >> $result_log
+    cat $read_log 2>/dev/null | grep -o "\[.*\]send stat read a request" |awk -F"]" '{print $1}'|sed "s/\[//g"|sort|uniq -c >> $result_log
+    echo -e "=========after stat request press===========" >> $result_log
+    cat $read_log 2>/dev/null | grep -o "\[.*\]send after read a request" |awk -F"]" '{print $1}'|sed "s/\[//g"|sort|uniq -c >> $result_log
     return 0
 }
 
@@ -135,7 +140,7 @@ function stat_result(){
     echo -e "[stat result]stat_end_time  : $stat_end_time, $end_timestamp" >> $result_log
     local stat_timestamp_range=$(($end_timestamp - $begin_timestamp))
     stat_timestamp_range=$(($stat_timestamp_range / 1000))
-    local stat_transaction_sum=`cat $read_log 2>/dev/null | grep "}\[.*\] 200"|wc -l`
+    local stat_transaction_sum=`cat $read_log 2>/dev/null | grep "}\{.*\} 200"|wc -l`
     local stat_transaction_avg=$(($stat_transaction_sum / $stat_timestamp_range))
     echo -e "[stat result]stat_transaction_sum: $stat_transaction_sum" >> $result_log
     echo -e "[stat result]stat_timestamp_range: $stat_timestamp_range" >> $result_log
@@ -147,9 +152,11 @@ function stat_result(){
 read_transaction_id=`python3 get_transactionid.py`
 [[ -z $read_transaction_id ]] && echo "get_one_transactionid fail!!!" && exit 1
 read_transaction_id="d0e9a4dd947dd0284c087b302a3b9783de4e2ebd839df579177799a5ccee925e"
-send_read "before" $send_before_range $read_transaction_id &
-send_read "stat" $send_stat_range $read_transaction_id &
-send_read "after" $send_after_range $read_transaction_id &
+send_read "before" $send_before_range $read_transaction_id 
+wait
+send_read "stat" $send_stat_range $read_transaction_id 
+wait
+send_read "after" $send_after_range $read_transaction_id 
 wait
 echo -e "============read request stat==================" >> $result_log
 stat_read
