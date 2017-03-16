@@ -15,7 +15,7 @@ from bigchaindb.common import exceptions
 from bigchaindb.consensus import BaseConsensusRules
 from bigchaindb.models import Transaction, Block
 from bigchaindb.pipelines.utils import ChangeFeed
-from bigchaindb import Bigchain
+from bigchaindb import Bigchain,config
 
 monitor = Monitor()
 
@@ -173,7 +173,7 @@ def create_pipeline():
     vote_pipeline = Pipeline([
         Node(voter.validate_block),
         Node(voter.ungroup),
-        Node(voter.validate_tx, fraction_of_cores=1),
+        Node(voter.validate_tx, fraction_of_cores=config['argument_config']['fraction_of_cores']),
         Node(voter.vote),
         Node(voter.write_vote)
     ])
