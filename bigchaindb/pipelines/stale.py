@@ -46,6 +46,7 @@ class StaleTransactionMonitor:
 
         # 有reassignee权限的node key
         nodeid, assigneekey = self.bigchain.getAssigneekey()
+        # TODO update ,1st check nodes 2st check txs
         if mykey == assigneekey:
             # print("i am the reassignee node. select need reassign tx")
             # 记录assignee心跳，并取出要处理的tx

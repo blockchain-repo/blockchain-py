@@ -411,7 +411,7 @@ class RethinkDBBackend:
         return self.connection.run(r.table('reassignnode').insert(data))
 
     def updateHeartbeat(self,node_pubkey,time):
-        return self.connection.run(r.table('heartbeat').filter({'node_publickey': node_pubkey}).update({'timestamp':time}))
+        return self.connection.run(r.table('heartbeat').filter({'node_publickey': node_pubkey}).update({'timestamp':time},durability='hard'))
 
     def getAssigneekey(self):
         return self.connection.run(r.table('reassignnode'))
@@ -423,7 +423,7 @@ class RethinkDBBackend:
         return self.connection.run(r.table('reassignnode').filter({'node_publickey': assigneekey}))
 
     def is_node_alive(self,txpublickey):
-        return self.connection.run(r.table('heartbeat').filter({'node_publickey': txpublickey}))
+        return self.connection.run(r.table('heartbeat', read_mode=self.read_mode).filter({'node_publickey': txpublickey}))
 
     def update_assign_node(self,updateid,next_assign_node):
         return self.connection.run(r.table('reassignnode').update({"nodeid":updateid,'node_publickey':next_assign_node,'timestamp':time()}))

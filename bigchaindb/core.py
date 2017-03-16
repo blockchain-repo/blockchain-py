@@ -132,7 +132,7 @@ class Bigchain(object):
         # print("reassign:"+str(transaction['id']))
         return self.backend.update_transaction(
                 transaction['id'],
-                {'assignee': new_assignee, 'assignment_timestamp': time()})
+                {'assignee': new_assignee, 'assignment_timestamp': time(),'assignee_isdeal': False})
 
     def delete_transaction(self, *transaction_id):
         """Delete a transaction from the backlog.
