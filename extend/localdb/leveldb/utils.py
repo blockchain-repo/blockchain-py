@@ -4,11 +4,13 @@
 import plyvel as l
 import os
 from extend.localdb import config
+from extend.localdb.leveldb.aes_utils import AESUtils
 
 import logging
 
 logger = logging.getLogger(__name__)
 
+aesutils = AESUtils()
 
 class LocalBlock(object):
     """Singleton LocalBlock encapsulates leveldb`s base ops base on plyvel.
@@ -195,7 +197,11 @@ def insert(conn, key, value, sync=False):
     """
 
     # logger.info('leveldb insert...' + str(key) + ":" +str(value))
-    conn.put(bytes(str(key), config['encoding']), bytes(str(value), config['encoding']), sync=sync)
+    content = aesutils.encrypt_base64(str(value))
+    content = bytes(str(value), config['encoding'])
+    content = aesutils.encrypt_base64(content)
+
+    conn.put(bytes(str(key), config['encoding']), content, sync=sync)
 
 
 def batch_insertOrUpdate(conn, dict, transaction=False, sync=False):
@@ -215,7 +221,10 @@ def batch_insertOrUpdate(conn, dict, transaction=False, sync=False):
     with conn.write_batch(transaction=transaction, sync=sync) as b:
         for key in dict:
             # logger.warn('key: ' + str(key) + ' --- value: ' + str(dict[key]))
-            b.put(bytes(str(key), config['encoding']), bytes(str(dict[key]), config['encoding']))
+            content = bytes(str(dict[key]), config['encoding'])
+            content = aesutils.encrypt_base64(content)
+
+            b.put(bytes(str(key), config['encoding']), content)
 
 
 def delete(conn, key, sync=False):
@@ -267,7 +276,10 @@ def update(conn, key, value, sync=False):
     """
 
     # logger.info('leveldb update...' + str(key) + ":" +str(value))
-    conn.put(bytes(str(key), config['encoding']), bytes(str(value), config['encoding']), sync=sync)
+    content = bytes(str(value), config['encoding'])
+    content = aesutils.encrypt_base64(content)
+
+    conn.put(bytes(str(key), config['encoding']), content, sync=sync)
 
 
 def get(conn, key):
@@ -286,6 +298,7 @@ def get(conn, key):
     # bytes_val = conn.get_property(bytes(key, config['encoding']))
     bytes_val = conn.get(bytes(str(key), config['encoding']))
     if bytes_val:
+        content = aesutils.decrypt_base64(bytes_val)
         return bytes(bytes_val).decode(config['encoding'])
     else:
         return None
@@ -313,6 +326,7 @@ def get_with_prefix(conn, prefix):
         result = {}
         for key, value in conn.iterator(prefix=bytes(str(prefix), config['encoding'])):
             key = bytes(key).decode(config['encoding'])
+            value = aesutils.decrypt_base64(value)
             value = bytes(value).decode(config['encoding'])
             result[key] = value
         return result
@@ -335,6 +349,7 @@ def get_withdefault(conn, key, default_value):
     # logger.info('leveldb get...' + str(key) + ",default_value=" + str(default_value))
     # get the value for the bytes_key,if not exists return defaule_value
     bytes_val = conn.get(bytes(str(key), config['encoding']), bytes(str(default_value), config['encoding']))
+
     # return bytes(bytes_val).decode(config['encoding'])
     # logger.info('leveldb get...' + str(key) + ",default_value=" + bytes(bytes_val).decode(config['encoding']))
     return bytes(bytes_val).decode(config['encoding'])
