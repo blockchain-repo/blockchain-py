@@ -173,7 +173,7 @@ def create_pipeline():
     vote_pipeline = Pipeline([
         Node(voter.validate_block),
         Node(voter.ungroup),
-        Node(voter.validate_tx, fraction_of_cores=config['argument_config']['fraction_of_cores']),
+        Node(voter.validate_tx, fraction_of_cores=config['argument_config']['vote_pipeline.fraction_of_cores']),
         Node(voter.vote),
         Node(voter.write_vote)
     ])
