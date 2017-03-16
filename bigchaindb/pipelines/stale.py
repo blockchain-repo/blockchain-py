@@ -79,7 +79,7 @@ class StaleTransactionMonitor:
         """
         # tx被指派的节点
         txpublickey = tx["assignee"]
-        isalive = self.bigchain.is_node_alive(txpublickey,config['argument_config']['stale_pipeline.heartbeet_timeout'])
+        isalive = self.bigchain.is_node_alive(txpublickey,config['argument_config']['stale_pipeline.heartbeat_timeout'])
         if not isalive:
             # print("i am the reassignee node. the tx node is dead. need to be reassignee!")
             # node down ，需要reassign tx

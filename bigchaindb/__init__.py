@@ -54,7 +54,7 @@ config = {
         'election_pipeline.wait_time':10,
         'stale_pipeline.timeout':10,
         'stale_pipeline.assignee_timeout':20,
-        'stale_pipeline.heartbeet_timeout':20,
+        'stale_pipeline.heartbeat_timeout':20,
         'vote_pipeline.fraction_of_cores':1
     },
     'restore_server': {
