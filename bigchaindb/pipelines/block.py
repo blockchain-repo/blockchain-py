@@ -33,8 +33,8 @@ class BlockPipeline:
         self.txs = []
         self.txsId = []
         self.starttime = 0
-        self.block_size = config['argument_config']['txs_length'] + self.bigchain.nodelist.index(self.bigchain.me) * 100
-        self.block_timeout = 15
+        self.block_size = config['argument_config']['block_pipeline.block_size']+self.bigchain.nodelist.index(self.bigchain.me)*config['argument_config']['block_pipeline.block_size_detal']
+        self.block_timeout = config['argument_config']['block_pipeline.block_timeout']
 
     def filter_tx(self, tx):
         """Filter a transaction.
@@ -202,10 +202,10 @@ def create_pipeline():
     block_pipeline = BlockPipeline()
 
     pipeline = Pipeline([
-        Pipe(maxsize = config['argument_config']['pipe_maxsize']),
+        Pipe(maxsize = config['argument_config']['block_pipeline.pipe_maxsize']),
         # Node(block_pipeline.filter_tx),
-        Node(block_pipeline.validate_tx, fraction_of_cores=1),
-        Node(block_pipeline.create, timeout=1),
+        Node(block_pipeline.validate_tx, fraction_of_cores=config['argument_config']['block_pipeline.fraction_of_cores']),
+        Node(block_pipeline.create, timeout=config['argument_config']['block_pipeline.timeout']),
         Node(block_pipeline.write),
         Node(block_pipeline.delete_tx),
     ])

@@ -45,8 +45,17 @@ config = {
         'debug_to_file' : False
     },
     'argument_config' : {
-        'txs_length' : 1000,
-        'pipe_maxsize' : 2000
+        'block_pipeline.block_size' : 1000,
+        'block_pipeline.pipe_maxsize' : 2000,
+        'block_pipeline.fraction_of_cores':1,
+        'block_pipeline.timeout':1,
+        'block_pipeline.block_timeout':15,
+        'block_pipeline.block_size_detal':100,
+        'election_pipeline.wait_time':10,
+        'stale_pipeline.timeout':10,
+        'stale_pipeline.assignee_timeout':20,
+        'stale_pipeline.heartbeet_timeout':20,
+        'vote_pipeline.fraction_of_cores':1
     },
     'restore_server': {
         'bind': os.environ.get('BIGCHAINDB_RESTORE_SERVER_BIND') or 'localhost:{}'

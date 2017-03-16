@@ -7,7 +7,7 @@ remain in the backlog past a certain amount of time.
 import logging
 from bigchaindb.monitor import Monitor
 from multipipes import Pipeline, Node
-from bigchaindb import Bigchain
+from bigchaindb import Bigchain,config
 from time import sleep,time
 
 
@@ -32,7 +32,7 @@ class StaleTransactionMonitor:
                 the Bigchain default value.
         """
         self.bigchain = Bigchain(backlog_reassign_delay=backlog_reassign_delay)
-        self.timeout = timeout
+        self.timeout = config['argument_config']['stale_pipeline.timeout']
 
     def check_transactions(self):
         """Poll backlog for stale transactions
@@ -57,7 +57,7 @@ class StaleTransactionMonitor:
         else:
             monitor.gauge('tx_queue_gauge', value=0)
             # 如果当前节点没有reassignee权限，则需要判断有reassignee权限的节点是否down掉
-            isalive = self.bigchain.is_assignee_alive(assigneekey, 20)
+            isalive = self.bigchain.is_assignee_alive(assigneekey, config['argument_config']['stale_pipeline.assignee_timeout'])
             if not isalive:
                 # print("i am not the reassignee node. the assign node is dead! %d" % (time()))
                 # 更新reassign的节点。
@@ -79,7 +79,7 @@ class StaleTransactionMonitor:
         """
         # tx被指派的节点
         txpublickey = tx["assignee"]
-        isalive = self.bigchain.is_node_alive(txpublickey,20)
+        isalive = self.bigchain.is_node_alive(txpublickey,config['argument_config']['stale_pipeline.heartbeet_timeout'])
         if not isalive:
             # print("i am the reassignee node. the tx node is dead. need to be reassignee!")
             # node down ，需要reassign tx
