@@ -344,7 +344,7 @@ class Condition(object):
                     the users that should be able to fulfill the Condition
                     that is being created.
                 amount (:obj:`int`): The amount locked by the Output.
-
+                
             Returns:
                 An Output that can be used in a Transaction.
 
@@ -352,6 +352,7 @@ class Condition(object):
                 TypeError: If `public_keys` is not an instance of `list`.
                 ValueError: If `public_keys` is an empty list.
         """
+        #TODO  amout issue see: https://github.com/bigchaindb/bigchaindb/pull/1286
         threshold = len(public_keys)
         if not isinstance(amount, int):
             raise TypeError('`amount` must be a int')
