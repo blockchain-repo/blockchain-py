@@ -122,7 +122,7 @@ def run_configure(args, skip_if_exists=False):
                 input('logger_config {}? (default `{}`): '.format(key, val)) \
                 or val
 
-        for key in ('txs_length', 'pipe_maxsize'):
+        for key in ('block_pipeline.block_size', 'block_pipeline.pipe_maxsize'):
             val = conf['argument_config'][key]
             conf['argument_config'][key] = \
                 input('argument_config {}? (default `{}`): '.format(key, val)) \

@@ -5,7 +5,9 @@ import plyvel as l
 import rapidjson
 
 from extend.localdb import config
+from extend.localdb.leveldb.aes_cipher import AESCipher
 
+aesutils = AESCipher("uni-ledger 12345unichain12345678")
 
 class LocaldbUtils():
     """To test the localdb
@@ -54,7 +56,8 @@ class LocaldbUtils():
         if conn:
             bytes_val = conn.get(bytes(str(key), config['encoding']))
             if bytes_val:
-                return bytes(bytes_val).decode(config['encoding'])
+                decrypt_content = aesutils.decrypt(bytes_val)
+                return decrypt_content
             else:
                 return None
 
@@ -73,8 +76,9 @@ class LocaldbUtils():
             result = {}
             for key, value in conn.iterator(prefix=bytes(str(prefix), config['encoding'])):
                 key = bytes(key).decode(config['encoding'])
-                value = bytes(value).decode(config['encoding'])
-                result[key] = value
+                decrypt_content = aesutils.decrypt(value)
+
+                result[key] = decrypt_content
             return result
         else:
             return None
@@ -95,13 +99,16 @@ class LocaldbUtils():
         key = json_str_bytes[0]
         val = json_str_bytes[1]
 
+        val = aesutils.decrypt(val)
+
         key = bytes(key).decode('utf-8')
         if json_str_bytes:
             try:
-                return key,rapidjson.loads(bytes(val).decode('utf-8'))
+                return key, rapidjson.loads(val)
+                # return key, rapidjson.loads(bytes(val).decode('utf-8'))
             except Exception as convet_ex:
                 is_obj = False
-                return key,bytes(val).decode('utf-8')
+                return key, val
 
     @staticmethod
     def get_records_count(conn):
@@ -133,7 +140,7 @@ class LocaldbUtils():
 
         return count
 
-    def get_all_records(self,conn,show_only=False,limit=None):
+    def get_all_records(self, conn, show_only=False, limit=None):
         if not conn:
             return None
 
@@ -180,8 +187,8 @@ class LocaldbUtils():
                 while raw_iterator.valid() and raw_iterator.item():
                     count = count + 1
                     item = raw_iterator.item()  # json_str_bytes,k-v
-                    item_key,item_val = self.__convert_to_obj(item)
-                    print('The current record {}th,  [{}={}]\n'.format(count,item_key,item_val))
+                    item_key, item_val = self.__convert_to_obj(item)
+                    print('The current record {}th,  [{}={}]\n'.format(count, item_key, item_val))
                     # Only move ,no returnVal
                     raw_iterator.next()
                 print('The total records is: {}'.format(count))
