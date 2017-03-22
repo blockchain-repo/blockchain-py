@@ -11,7 +11,7 @@ debug_to_file = "DEBUG" if bigchaindb.config['logger_config']['debug_to_file']==
 
 ####log configure####
 BASE_DIR = os.path.expandvars('$HOME')
-LOG_DIR = os.path.join(BASE_DIR, "{}_log".format(app_service_name))
+LOG_DIR = os.path.join(BASE_DIR, "{}-log".format(app_service_name))
 if not os.path.exists(LOG_DIR):
     os.makedirs(LOG_DIR) 
 PRO_LOG_FILE = "{}.log.{}".format(app_service_name, datetime.datetime.now().strftime("%Y%m%d%H%M%S"))
