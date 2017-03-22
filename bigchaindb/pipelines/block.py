@@ -75,10 +75,8 @@ class BlockPipeline:
         if False:
             # if the transaction already exists, we must check whether
             # it's in a valid or undecided block
-            tx, status = self.bigchain.get_transaction(tx.id,
-                                                       include_status=True)
-            if status == self.bigchain.TX_VALID \
-                    or status == self.bigchain.TX_UNDECIDED:
+            tx, status = self.bigchain.get_transaction(tx.id,include_status=True)
+            if status == self.bigchain.TX_VALID or status == self.bigchain.TX_UNDECIDED:
                 # if the tx is already in a valid or undecided block,
                 # then it no longer should be in the backlog, or added
                 # to a new block. We can delete and drop it.
@@ -130,7 +128,14 @@ class BlockPipeline:
             self.starttime = time.time()
         if len(self.txs) == self.block_size or (timeout and self.txs) or (((time.time()-self.starttime) > self.block_timeout) and self.txs):
             req_result = self.bigchain.get_exist_txs(self.txsId)
-            logger.info(req_result)
+            exist_tx = list(set(req_result).intersection(set(self.txsId)))
+            if exist_tx:
+                for txid in exist_tx:
+                    tx, status = self.bigchain.get_transaction(txid, include_status=True)
+                    if status == self.bigchain.TX_VALID or status == self.bigchain.TX_UNDECIDED:
+                        index = self.txsId.index(txid)
+                        self.txsId.remove(self.txsId[index])
+                        self.txs.remove(self.txs[index])
             block = self.bigchain.create_block(self.txs)
             self.txs = []
             self.txsId = []
