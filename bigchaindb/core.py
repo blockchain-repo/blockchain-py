@@ -838,6 +838,8 @@ class Bigchain(object):
     def get_tx_by_id(self,tx_id):
         return self.backend.get_tx_by_id(tx_id)
 
+    def get_transaction_no_valid(self,tx_id):
+        return self.backend.get_transaction_no_valid(tx_id)
 
     def get_outputs(self, owner):
         """Retrieve a list of links to transaction outputs for a given public

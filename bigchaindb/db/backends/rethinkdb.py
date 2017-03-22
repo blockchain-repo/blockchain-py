@@ -557,6 +557,8 @@ class RethinkDBBackend:
     def get_tx_by_id(self,tx_id):
         return self.connection.run(r.table('bigchain').get_all(tx_id,index='transaction_id'))
 
+    def get_transaction_no_valid(self,tx_id):
+        return self.connection.run(r.table('bigchain').get_all(tx_id,index='transaction_id').concat_map(lambda block: block['block']['transactions']).filter(lambda transaction: transaction['id'] == tx_id))
 
 
     def get_tx_record_by_pubkey(self,pubkey):

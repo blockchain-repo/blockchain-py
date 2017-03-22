@@ -79,11 +79,17 @@ class ApiQueryByID(Resource):
 
         pool = current_app.config['bigchain_pool']
         with pool() as b:
+            if type == '0':
+                # get single tx by txid without vaildate
+                tx = list(b.get_transaction_no_valid(tx_id))
             if type == '1':
+                # get all block which contains the tx without validate.
                 tx = list(b.get_tx_by_id(tx_id))
             elif type == '2':
+                # get block status which contains the tx
                 tx = b.get_blocks_status_containing_tx(tx_id)
             elif type == '3':
+                # get signle validate tx in validate block
                 tx = b.get_transaction(tx_id)
                 tx = tx.to_dict()
 
