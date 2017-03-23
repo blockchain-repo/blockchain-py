@@ -24,8 +24,8 @@ class ApiPublickeySet(Resource):
             try:
                 pubkeyList = b.get_allPublicKey()
             except:
-                return make_response(constant.RESPONSE_STATUS_ERROR,
-                                     constant.RESPONSE_CODE_ERROR,
+                return make_response(constant.RESPONSE_STATUS_SERVER_ERROR,
+                                     constant.RESPONSE_CODE_SERVER_ERROR,
                                      "None")
         return make_response(constant.RESPONSE_STATUS_SUCCESS,
                              constant.RESPONSE_CODE_SUCCESS,

@@ -22,8 +22,8 @@ class ApiQueryByID(Resource):
     def post(self):
     # 根据区块ID获取区块
         if not check_request(request, "block_id"):
-            return make_response(constant.RESPONSE_STATUS_FAIL,
-                                 constant.RESPONSE_CODE_FAIL,
+            return make_response(constant.RESPONSE_STATUS_PARAM_ERROE,
+                                 constant.RESPONSE_CODE_PARAM_ERROE,
                                  "param block id not exist")
         block_id = request.get_json()["block_id"]
         pool = current_app.config['bigchain_pool']
@@ -31,8 +31,8 @@ class ApiQueryByID(Resource):
             try:
                 block = b.get_block(block_id)
             except:
-                return make_response(constant.RESPONSE_STATUS_ERROR,
-                                     constant.RESPONSE_CODE_ERROR,
+                return make_response(constant.RESPONSE_STATUS_SERVER_ERROR,
+                                     constant.RESPONSE_CODE_SERVER_ERROR,
                                      "None")
         return make_response(constant.RESPONSE_STATUS_SUCCESS,
                              constant.RESPONSE_CODE_SUCCESS,
@@ -43,8 +43,8 @@ class ApiQueryTxsByID(Resource):
     def post(self):
     # 根据区块ID获取区块中的交易
         if not check_request(request, "block_id"):
-            return make_response(constant.RESPONSE_STATUS_FAIL,
-                                 constant.RESPONSE_CODE_FAIL,
+            return make_response(constant.RESPONSE_STATUS_PARAM_ERROE,
+                                 constant.RESPONSE_CODE_PARAM_ERROE,
                                  "param block id not exist")
         block_id = request.get_json()["block_id"]
         pool = current_app.config['bigchain_pool']
@@ -52,8 +52,8 @@ class ApiQueryTxsByID(Resource):
             try:
                 block = b.get_block(block_id)
             except:
-                return make_response(constant.RESPONSE_STATUS_ERROR,
-                                     constant.RESPONSE_CODE_ERROR,
+                return make_response(constant.RESPONSE_STATUS_SERVER_ERROR,
+                                     constant.RESPONSE_CODE_SERVER_ERROR,
                                      "None")
         print(block)
         txList = block["block"]['transactions']
@@ -66,8 +66,8 @@ class ApiQueryTxsCountByID(Resource):
     def post(self):
     # 根据区块ID获取区块中的交易条数
         if not check_request(request, "block_id"):
-            return make_response(constant.RESPONSE_STATUS_FAIL,
-                                 constant.RESPONSE_CODE_FAIL,
+            return make_response(constant.RESPONSE_STATUS_PARAM_ERROE,
+                                 constant.RESPONSE_CODE_PARAM_ERROE,
                                  "param block id not exist")
         block_id = request.get_json()["block_id"]
         pool = current_app.config['bigchain_pool']
@@ -75,8 +75,8 @@ class ApiQueryTxsCountByID(Resource):
             try:
                 number = b.get_txNumber(block_id)
             except:
-                return make_response(constant.RESPONSE_STATUS_ERROR,
-                                 constant.RESPONSE_CODE_ERROR,
+                return make_response(constant.RESPONSE_STATUS_SERVER_ERROR,
+                                 constant.RESPONSE_CODE_SERVER_ERROR,
                                  "None")
         return make_response(constant.RESPONSE_STATUS_SUCCESS,
                              constant.RESPONSE_CODE_SUCCESS,
@@ -91,8 +91,8 @@ class ApiQueryBlockCount(Resource):
             try:
                 number = b.get_BlockNumber()
             except:
-                return make_response(constant.RESPONSE_STATUS_ERROR,
-                                 constant.RESPONSE_CODE_ERROR,
+                return make_response(constant.RESPONSE_STATUS_SERVER_ERROR,
+                                 constant.RESPONSE_CODE_SERVER_ERROR,
                                  "None")
         return make_response(constant.RESPONSE_STATUS_SUCCESS,
                              constant.RESPONSE_CODE_SUCCESS,
@@ -103,12 +103,12 @@ class ApiQueryBlocksByRange(Resource):
     def post(self):
     # 根据指定时间区间获取区块集
         if not check_request(request, "beginTime"):
-            return make_response(constant.RESPONSE_STATUS_FAIL,
-                                 constant.RESPONSE_CODE_FAIL,
+            return make_response(constant.RESPONSE_STATUS_PARAM_ERROE,
+                                 constant.RESPONSE_CODE_PARAM_ERROE,
                                  "param beginTime not exist")
         if not check_request(request, "endTime"):
-            return make_response(constant.RESPONSE_STATUS_FAIL,
-                                 constant.RESPONSE_CODE_FAIL,
+            return make_response(constant.RESPONSE_STATUS_PARAM_ERROE,
+                                 constant.RESPONSE_CODE_PARAM_ERROE,
                                  "param endTime not exist")
 
         startTime = request.json.get("beginTime")
@@ -119,8 +119,8 @@ class ApiQueryBlocksByRange(Resource):
             try:
                 blockIdList = b.get_BlockIdList(startTime, endTime)
             except:
-                return make_response(constant.RESPONSE_STATUS_ERROR,
-                                     constant.RESPONSE_CODE_ERROR,
+                return make_response(constant.RESPONSE_STATUS_SERVER_ERROR,
+                                     constant.RESPONSE_CODE_SERVER_ERROR,
                                      "None")
         return make_response(constant.RESPONSE_STATUS_SUCCESS,
                              constant.RESPONSE_CODE_SUCCESS,
@@ -135,8 +135,8 @@ class ApiQueryInvalidBlockTotal(Resource):
             try:
                 invalidBlockIdList = b.get_invalidBlockIdList()
             except:
-                return make_response(constant.RESPONSE_STATUS_ERROR,
-                                     constant.RESPONSE_CODE_ERROR,
+                return make_response(constant.RESPONSE_STATUS_SERVER_ERROR,
+                                     constant.RESPONSE_CODE_SERVER_ERROR,
                                      "None")
         return make_response(constant.RESPONSE_STATUS_SUCCESS,
                              constant.RESPONSE_CODE_SUCCESS,
@@ -147,12 +147,12 @@ class ApiQueryInvalidBlockByRange(Resource):
     def post(self):
     # 获取指定时间区间内的无效区块集
         if not check_request(request, "beginTime"):
-            return make_response(constant.RESPONSE_STATUS_FAIL,
-                                 constant.RESPONSE_CODE_FAIL,
+            return make_response(constant.RESPONSE_STATUS_PARAM_ERROE,
+                                 constant.RESPONSE_CODE_PARAM_ERROE,
                                  "param beginTime not exist")
         if not check_request(request, "endTime"):
-            return make_response(constant.RESPONSE_STATUS_FAIL,
-                                 constant.RESPONSE_CODE_FAIL,
+            return make_response(constant.RESPONSE_STATUS_PARAM_ERROE,
+                                 constant.RESPONSE_CODE_PARAM_ERROE,
                                  "param endTime not exist")
 
         startTime = request.json.get("beginTime")
@@ -162,8 +162,8 @@ class ApiQueryInvalidBlockByRange(Resource):
             try:
                 invalidBlockIdList = b.get_invalidBlockIdList(startTime=startTime, endTime=endTime)
             except:
-                return make_response(constant.RESPONSE_STATUS_ERROR,
-                                     constant.RESPONSE_CODE_ERROR,
+                return make_response(constant.RESPONSE_STATUS_SERVER_ERROR,
+                                     constant.RESPONSE_CODE_SERVER_ERROR,
                                      "None")
         return make_response(constant.RESPONSE_STATUS_SUCCESS,
                              constant.RESPONSE_CODE_SUCCESS,

@@ -68,13 +68,13 @@ class ApiQueryByID(Resource):
         type = request.get_json()["type"]
 
         if not check_request(request, "type"):
-            return make_response(constant.RESPONSE_STATUS_FAIL,
-                                 constant.RESPONSE_CODE_FAIL,
-                                 "param type not exist")
+            return make_response(constant.RESPONSE_STATUS_PARAM_ERROE,
+                                 constant.RESPONSE_CODE_PARAM_ERROE,
+                                 "param type not exist.")
         tx_id = request.get_json()["tx_id"]
         if not check_request(request, "tx_id"):
-            return make_response(constant.RESPONSE_STATUS_FAIL,
-                             constant.RESPONSE_CODE_FAIL,
+            return make_response(constant.RESPONSE_STATUS_PARAM_ERROE,
+                             constant.RESPONSE_CODE_PARAM_ERROE,
                              "param tx_id not exist")
 
         pool = current_app.config['bigchain_pool']
@@ -95,15 +95,17 @@ class ApiQueryByID(Resource):
 
         if not tx:
             tx = {}
-            result_messages = "tx not exist!"
+            return make_response(constant.RESPONSE_STATUS_SUCCESS_NODATA,
+                                 constant.RESPONSE_CODE_SUCCESS_NODATA,
+                                 "tx not exist!",
+                                 tx)
         else:
             # tx_result = tx.to_dict()
-            result_messages = "query success"
+            return make_response(constant.RESPONSE_STATUS_SUCCESS,
+                                 constant.RESPONSE_CODE_SUCCESS,
+                                 "query success",
+                                 tx)
 
-        return make_response(constant.RESPONSE_STATUS_SUCCESS,
-                             constant.RESPONSE_CODE_SUCCESS,
-                             result_messages,
-                             tx)
 
 class ApiQueryTxsTotal(Resource):
     def post(self):
@@ -125,14 +127,14 @@ class ApiQueryTxsByRange(Resource):
     # def getTxsByTime():
         startTime = request.get_json()['beginTime']
         if not check_request(request, "beginTime"):
-            return make_response(constant.RESPONSE_STATUS_FAIL,
-                             constant.RESPONSE_CODE_FAIL,
+            return make_response(constant.RESPONSE_STATUS_PARAM_ERROE,
+                             constant.RESPONSE_CODE_PARAM_ERROE,
                              "param beginTime not exist")
 
         endTime = request.get_json()['endTime']
         if not check_request(request, "endTime"):
-            return make_response(constant.RESPONSE_STATUS_FAIL,
-                                 constant.RESPONSE_CODE_FAIL,
+            return make_response(constant.RESPONSE_STATUS_PARAM_ERROE,
+                                 constant.RESPONSE_CODE_PARAM_ERROE,
                                  "param endTime not exist")
 
         pool = current_app.config['bigchain_pool']

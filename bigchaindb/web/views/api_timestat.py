@@ -21,12 +21,12 @@ class ApiTxCreateAvgTimeByRange(Resource):
     def post(self):
         print("txCreateAvgTime")
         if not check_request(request, "beginTime"):
-            return make_response(constant.RESPONSE_STATUS_FAIL,
-                                 constant.RESPONSE_CODE_FAIL,
+            return make_response(constant.RESPONSE_STATUS_PARAM_ERROE,
+                                 constant.RESPONSE_CODE_PARAM_ERROE,
                                  "param beginTime not exist")
         if not check_request(request, "endTime"):
-            return make_response(constant.RESPONSE_STATUS_FAIL,
-                                 constant.RESPONSE_CODE_FAIL,
+            return make_response(constant.RESPONSE_STATUS_PARAM_ERROE,
+                                 constant.RESPONSE_CODE_PARAM_ERROE,
                                  "param endTime not exist")
         begintime = request.json.get("beginTime")
         endtime = request.json.get("endTime")
@@ -35,8 +35,8 @@ class ApiTxCreateAvgTimeByRange(Resource):
         with pool() as unichain:
             avgtime,status = unichain.get_txCreateAvgTimeByRange(begintime, endtime)
         if not status:
-            return make_response(constant.RESPONSE_STATUS_FAIL,
-                                 constant.RESPONSE_CODE_FAIL,
+            return make_response(constant.RESPONSE_STATUS_SERVER_ERROR,
+                                 constant.RESPONSE_CODE_SERVER_ERROR,
                                  "response is none")
         avgtime_dict= {'avgTime':avgtime}
         return make_response(constant.RESPONSE_STATUS_SUCCESS,
@@ -47,12 +47,12 @@ class ApiTxCreateAvgTimeByRange(Resource):
 class ApiBlockCreateAvgTimeByRange(Resource):
     def post(self):
         if not check_request(request, "beginTime"):
-            return make_response(constant.RESPONSE_STATUS_FAIL,
-                                 constant.RESPONSE_CODE_FAIL,
+            return make_response(constant.RESPONSE_STATUS_PARAM_ERROE,
+                                 constant.RESPONSE_CODE_PARAM_ERROE,
                                  "param beginTime not exist")
         if not check_request(request, "endTime"):
-            return make_response(constant.RESPONSE_STATUS_FAIL,
-                                 constant.RESPONSE_CODE_FAIL,
+            return make_response(constant.RESPONSE_STATUS_PARAM_ERROE,
+                                 constant.RESPONSE_CODE_PARAM_ERROE,
                                  "param endTime not exist")
         begintime = request.json.get("beginTime")
         endtime = request.json.get("endTime")
@@ -61,8 +61,8 @@ class ApiBlockCreateAvgTimeByRange(Resource):
         with pool() as unichain:
             avgtime,status = unichain.get_blockCreateAvgTimeByRange(begintime, endtime)
         if not status:
-            return make_response(constant.RESPONSE_STATUS_FAIL,
-                                 constant.RESPONSE_CODE_FAIL,
+            return make_response(constant.RESPONSE_STATUS_SUCCESS_NODATA,
+                                 constant.RESPONSE_CODE_SUCCESS_NODATA,
                                  "response is none")
         avgtime_dict = {'avgTime':avgtime}
         return make_response(constant.RESPONSE_STATUS_SUCCESS,
@@ -73,8 +73,8 @@ class ApiBlockCreateAvgTimeByRange(Resource):
 class ApiVoteTimeByBlockID(Resource):
     def post(self):
         if not check_request(request, "block_id"):
-            return make_response(constant.RESPONSE_STATUS_FAIL,
-                                 constant.RESPONSE_CODE_FAIL,
+            return make_response(constant.RESPONSE_STATUS_PARAM_ERROE,
+                                 constant.RESPONSE_CODE_PARAM_ERROE,
                                  "param block id not exist")
         block_id = request.json.get("block_id")
 
@@ -82,8 +82,8 @@ class ApiVoteTimeByBlockID(Resource):
         with pool() as unichain:
             avgtime,status = unichain.get_voteTimeByBlockID(block_id)
         if not status:
-            return make_response(constant.RESPONSE_STATUS_FAIL,
-                                 constant.RESPONSE_CODE_FAIL,
+            return make_response(constant.RESPONSE_STATUS_SUCCESS_NODATA,
+                                 constant.RESPONSE_CODE_SUCCESS_NODATA,
                                  "response is none")
         avgtime_dict = {'avgTime':avgtime}
         return make_response(constant.RESPONSE_STATUS_SUCCESS,
@@ -94,12 +94,12 @@ class ApiVoteTimeByBlockID(Resource):
 class ApiVoteAvgTimeByRange(Resource):
     def post(self):
         if not check_request(request, "beginTime"):
-            return make_response(constant.RESPONSE_STATUS_FAIL,
-                                 constant.RESPONSE_CODE_FAIL,
+            return make_response(constant.RESPONSE_STATUS_PARAM_ERROE,
+                                 constant.RESPONSE_CODE_PARAM_ERROE,
                                  "param beginTime not exist")
         if not check_request(request, "endTime"):
-            return make_response(constant.RESPONSE_STATUS_FAIL,
-                                 constant.RESPONSE_CODE_FAIL,
+            return make_response(constant.RESPONSE_STATUS_PARAM_ERROE,
+                                 constant.RESPONSE_CODE_PARAM_ERROE,
                                  "param endTime not exist")
         begintime = request.json.get("beginTime")
         endtime = request.json.get("endTime")
@@ -108,8 +108,8 @@ class ApiVoteAvgTimeByRange(Resource):
         with pool() as unichain:
             avgtime,status = unichain.get_voteAvgTimeByRange(begintime, endtime)
         if not status:
-            return make_response(constant.RESPONSE_STATUS_FAIL,
-                                 constant.RESPONSE_CODE_FAIL,
+            return make_response(constant.RESPONSE_STATUS_SUCCESS_NODATA,
+                                 constant.RESPONSE_CODE_SUCCESS_NODATA,
                                  "response is none")
         avgtime_dict = {'avgTime':avgtime}
         return make_response(constant.RESPONSE_STATUS_SUCCESS,
