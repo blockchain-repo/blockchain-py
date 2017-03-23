@@ -14,8 +14,8 @@ def check_request(request, key=None):
 
 def make_response(res_status, res_code, res_message=None, res_data=None):
     if not res_status or not res_code:
-        res_status = constant.RESPONSE_STATUS_FAIL
-        res_code = constant.RESPONSE_CODE_FAIL
+        res_status = constant.RESPONSE_STATUS_SERVER_ERROR
+        res_code = constant.RESPONSE_CODE_SERVER_ERROR
     response = jsonify({
         'status':res_status,
         'code':res_code,
