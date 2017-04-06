@@ -66,7 +66,7 @@ class Transaction(Transaction):
         input_conditions = []
         inputs_defined = all([ffill.tx_input for ffill in self.fulfillments])
 
-        if self.operation in (Transaction.CREATE, Transaction.GENESIS):
+        if self.operation in (Transaction.CREATE, Transaction.GENESIS,Transaction.CONTRACT):
             # validate inputs
             if inputs_defined:
                 raise ValueError('A CREATE operation has no inputs')

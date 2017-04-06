@@ -10,7 +10,7 @@ import rethinkdb as r
 from multipipes import Pipeline, Node
 from bigchaindb.pipelines.utils import ChangeFeed
 from bigchaindb.models import Block
-from bigchaindb import Bigchain
+from bigchaindb import Bigchain,config
 from time import sleep,time
 
 

@@ -471,8 +471,6 @@ class RethinkDBBackend:
     def get_vote_time_by_blockid(self, block_id):
         vote_begin_time = self.connection.run(r.table('bigchain', read_mode=self.read_mode).get(block_id).get_field('block').get_field('timestamp'))
         vote_end_time = self.connection.run(r.table('votes').filter(r.row['vote']['voting_for_block'] == block_id).max(r.row['vote']['timestamp']).get_field('vote').get_field('timestamp'))
-        print(vote_begin_time)
-        print(vote_end_time)
         vote_time = int(vote_end_time) - int(vote_begin_time)
         if not vote_time:
             vote_time = 1

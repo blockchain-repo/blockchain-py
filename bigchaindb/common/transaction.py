@@ -616,11 +616,14 @@ class Transaction(object):
     CREATE = 'CREATE'
     TRANSFER = 'TRANSFER'
     GENESIS = 'GENESIS'
-    ALLOWED_OPERATIONS = (CREATE, TRANSFER, GENESIS)
+    CONTRACT = 'CONTRACT'
+    CONTRACTTX = 'CONTRACTTX'
+
+    ALLOWED_OPERATIONS = (CREATE, TRANSFER, GENESIS, CONTRACT, CONTRACTTX)
     VERSION = 1
 
     def __init__(self, operation, asset, fulfillments=None, conditions=None,
-                 metadata=None, timestamp=None, version=None):
+                 metadata=None, timestamp=None, version=None,relaction=None,contracts=None,):
         """The constructor allows to create a customizable Transaction.
 
             Note:
@@ -650,7 +653,7 @@ class Transaction(object):
 
         # Only assets for 'CREATE' operations can be un-defined.
         if (asset and not isinstance(asset, Asset) or
-                not asset and operation != Transaction.CREATE):
+                not asset and operation != Transaction.CREATE and operation != Transaction.CONTRACT):
             raise TypeError('`asset` must be an Asset instance')
 
         if conditions and not isinstance(conditions, list):
@@ -662,6 +665,12 @@ class Transaction(object):
         if metadata is not None and not isinstance(metadata, Metadata):
             raise TypeError('`metadata` must be a Metadata instance or None')
 
+        if relaction is not None and not isinstance(relaction, dict):
+            raise TypeError('`relaction` must be a dict instance or None')
+
+        if contracts is not None and not isinstance(contracts, dict):
+            raise TypeError('`contracts` must be a dict instance or None')
+
         self.version = version if version is not None else self.VERSION
         self.timestamp = timestamp if timestamp else gen_timestamp()
         self.operation = operation
@@ -669,96 +678,12 @@ class Transaction(object):
         self.conditions = conditions if conditions else []
         self.fulfillments = fulfillments if fulfillments else []
         self.metadata = metadata
-    #
-    # @classmethod
-    # def create(cls, owners_before, owners_after, metadata=None, asset=None,
-    #            secret=None, time_expire=None):
-    #     """A simple way to generate a `CREATE` transaction.
-    #
-    #         Note:
-    #             This method currently supports the following Cryptoconditions
-    #             use cases:
-    #                 - Ed25519
-    #                 - ThresholdSha256
-    #                 - PreimageSha256.
-    #
-    #             Additionally, it provides support for the following BigchainDB
-    #             use cases:
-    #                 - Multiple inputs and outputs.
-    #
-    #         Args:
-    #             owners_before (:obj:`list` of :obj:`str`): A list of keys that
-    #                 represent the creators of this asset.
-    #             owners_after (:obj:`list` of :obj:`str`): A list of keys that
-    #                 represent the receivers of this Transaction.
-    #             metadata (dict): Python dictionary to be stored along with the
-    #                 Transaction.
-    #             asset (:class:`~bigchaindb.common.transaction.Asset`): An Asset
-    #                 to be created in this Transaction.
-    #             secret (binarystr, optional): A secret string to create a hash-
-    #                 lock Condition.
-    #             time_expire (int, optional): The UNIX time a Transaction is
-    #                 valid.
-    #
-    #         Returns:
-    #             :class:`~bigchaindb.common.transaction.Transaction`
-    #     """
-    #     if not isinstance(owners_before, list):
-    #         raise TypeError('`owners_before` must be a list instance')
-    #     if not isinstance(owners_after, list):
-    #         raise TypeError('`owners_after` must be a list instance')
-    #
-    #     metadata = Metadata(metadata)
-    #     if len(owners_before) == len(owners_after) and len(owners_after) == 1:
-    #         # NOTE: Standard case, one owner before, one after.
-    #         # NOTE: For this case its sufficient to use the same
-    #         #       fulfillment for the fulfillment and condition.
-    #         ffill = Ed25519Fulfillment(public_key=owners_before[0])
-    #         ffill_tx = Fulfillment(ffill, owners_before)
-    #         cond_tx = Condition.generate(owners_after)
-    #         return cls(cls.CREATE, asset, [ffill_tx], [cond_tx], metadata)
-    #
-    #     elif len(owners_before) == len(owners_after) and len(owners_after) > 1:
-    #         raise NotImplementedError('Multiple inputs and outputs not'
-    #                                   'available for CREATE')
-    #         # NOTE: Multiple inputs and outputs case. Currently not supported.
-    #         ffills = [Fulfillment(Ed25519Fulfillment(public_key=owner_before),
-    #                               [owner_before])
-    #                   for owner_before in owners_before]
-    #         conds = [Condition.generate(owners) for owners in owners_after]
-    #         return cls(cls.CREATE, asset, ffills, conds, metadata)
-    #
-    #     elif len(owners_before) == 1 and len(owners_after) > 1:
-    #         # NOTE: Multiple owners case
-    #         cond_tx = Condition.generate(owners_after)
-    #         ffill = Ed25519Fulfillment(public_key=owners_before[0])
-    #         ffill_tx = Fulfillment(ffill, owners_before)
-    #         return cls(cls.CREATE, asset, [ffill_tx], [cond_tx], metadata)
-    #
-    #     elif (len(owners_before) == 1 and len(owners_after) == 0 and
-    #           secret is not None):
-    #         # NOTE: Hashlock condition case
-    #         hashlock = PreimageSha256Fulfillment(preimage=secret)
-    #         cond_tx = Condition(hashlock.condition_uri)
-    #         ffill = Ed25519Fulfillment(public_key=owners_before[0])
-    #         ffill_tx = Fulfillment(ffill, owners_before)
-    #         return cls(cls.CREATE, asset, [ffill_tx], [cond_tx], metadata)
-    #
-    #     elif (len(owners_before) > 0 and len(owners_after) == 0 and
-    #           time_expire is not None):
-    #         raise NotImplementedError('Timeout conditions will be implemented '
-    #                                   'later')
-    #
-    #     elif (len(owners_before) > 0 and len(owners_after) == 0 and
-    #           secret is None):
-    #         raise ValueError('Define a secret to create a hashlock condition')
-    #
-    #     else:
-    #         raise ValueError("These are not the cases you're looking for ;)")
+        self.relaction = relaction
+        self.contracts = contracts
 
 
     @classmethod
-    def create(cls, tx_signers, recipients, metadata=None, asset=None):
+    def create(cls, tx_signers, recipients,operation=CREATE, metadata=None, asset=None,relaction=None,contracts=None,version=None):
         """A simple way to generate a `CREATE` transaction.
 
             Note:
@@ -810,7 +735,7 @@ class Transaction(object):
         # generate inputs
         inputs.append(Fulfillment.generate(tx_signers))
 
-        return cls(cls.CREATE, asset, inputs, conditions, metadata)
+        return cls(operation, asset, fulfillments=inputs, conditions=conditions, metadata=metadata,relaction=relaction,contracts=contracts,version=version)
 
 
     @classmethod
@@ -983,7 +908,7 @@ class Transaction(object):
         metadata = Metadata(metadata)
         inputs = deepcopy(inputs)
 
-        return cls(cls.TRANSFER, asset, inputs, conditions, metadata)
+        return cls(cls.TRANSFER, asset=asset, fulfillments=inputs, conditions=conditions, metadata=metadata)
 
 
     def __eq__(self, other):
@@ -1100,9 +1025,9 @@ class Transaction(object):
             # NOTE: We clone the current transaction but only add the condition
             #       and fulfillment we're currently working on plus all
             #       previously signed ones.
-            tx_partial = Transaction(self.operation, self.asset, [fulfillment],
-                                     [condition], self.metadata,
-                                     self.timestamp, self.version)
+            tx_partial = Transaction(self.operation, self.asset, fulfillments=[fulfillment],
+                                     conditions=[condition], metadata=self.metadata,
+                                     timestamp=self.timestamp, version=self.version,relaction=self.relaction,contracts=self.contracts)
 
             tx_partial_dict = tx_partial.to_dict()
             tx_partial_dict = Transaction._remove_signatures(tx_partial_dict)
@@ -1228,7 +1153,7 @@ class Transaction(object):
             Returns:
                 bool: If all Fulfillments are valid.
         """
-        if self.operation in (Transaction.CREATE, Transaction.GENESIS):
+        if self.operation in (Transaction.CREATE, Transaction.GENESIS,Transaction.CONTRACT):
             # NOTE: Since in the case of a `CREATE`-transaction we do not have
             #       to check for input_conditions, we're just submitting dummy
             #       values to the actual method. This simplifies it's logic
@@ -1265,9 +1190,9 @@ class Transaction(object):
             """Splits multiple IO Transactions into partial single IO
             Transactions.
             """
-            tx = Transaction(self.operation, self.asset, [fulfillment],
-                             [condition], self.metadata, self.timestamp,
-                             self.version)
+            tx = Transaction(self.operation, self.asset, fulfillments=[fulfillment],
+                             conditions=[condition], metadata=self.metadata, timestamp=self.timestamp,
+                             version=self.version,relaction=self.relaction,contracts=self.contracts)
             tx_dict = tx.to_dict()
             tx_dict = Transaction._remove_signatures(tx_dict)
             tx_serialized = Transaction._to_str(tx_dict)
@@ -1312,7 +1237,7 @@ class Transaction(object):
         except (TypeError, ValueError, ParsingError):
             return False
 
-        if operation in (Transaction.CREATE, Transaction.GENESIS):
+        if operation in (Transaction.CREATE, Transaction.GENESIS,Transaction.CONTRACT):
             # NOTE: In the case of a `CREATE` or `GENESIS` transaction, the
             #       input condition is always validate to `True`.
             input_cond_valid = True
@@ -1354,6 +1279,8 @@ class Transaction(object):
             'timestamp': self.timestamp,
             'metadata': metadata,
             'asset': asset,
+            'relaction': self.relaction,
+            'contracts': self.contracts,
         }
         tx = {
             'version': self.version,
@@ -1442,6 +1369,11 @@ class Transaction(object):
                           in tx['conditions']]
             metadata = Metadata.from_dict(tx['metadata'])
             asset = Asset.from_dict(tx['asset'])
-
-            return cls(tx['operation'], asset, fulfillments, conditions,
-                       metadata, tx['timestamp'], tx_body['version'])
+            if tx_body['version'] != 1:
+                relaction = tx['relaction']
+                contracts = tx['contracts']
+            else:
+                relaction = None
+                contracts = None
+            return cls(tx['operation'], asset=asset, fulfillments=fulfillments, conditions=conditions, metadata=metadata,
+                       timestamp=tx['timestamp'], version=tx_body['version'],relaction=relaction,contracts=contracts)
