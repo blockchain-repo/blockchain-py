@@ -257,7 +257,20 @@ def _run_load(tx_left, stats):
             tx_left -= 1
             if tx_left == 0:
                 break
-
+    # while True:
+    #     relation = {'tets': 'relation'}!!!!!!
+    #     contracts = {'tets': 'contracts'}
+    #     tx = Transaction.create([b.me], [([b.me],1)],operation='CONTRACT',relation=relation,contracts=contracts,version=2)
+    #     tx = tx.sign([b.me_private])
+    #     with monitor.timer('write_transaction', rate=0.01):
+    #         b.write_transaction(tx)
+    #         time.sleep(0.01*random.randint(1,100))
+    #     stats['transactions'] += 1
+    #
+    #     if tx_left is not None:
+    #         tx_left -= 1
+    #         if tx_left == 0:
+    #             break
 
 def run_load(args):
     bigchaindb.config_utils.autoconfigure(filename=args.config, force=True)

@@ -623,7 +623,7 @@ class Transaction(object):
     VERSION = 1
 
     def __init__(self, operation, asset, fulfillments=None, conditions=None,
-                 metadata=None, timestamp=None, version=None,relaction=None,contracts=None,):
+                 metadata=None, timestamp=None, version=None,relation=None,contracts=None):
         """The constructor allows to create a customizable Transaction.
 
             Note:
@@ -665,8 +665,8 @@ class Transaction(object):
         if metadata is not None and not isinstance(metadata, Metadata):
             raise TypeError('`metadata` must be a Metadata instance or None')
 
-        if relaction is not None and not isinstance(relaction, dict):
-            raise TypeError('`relaction` must be a dict instance or None')
+        if relation is not None and not isinstance(relation, dict):
+            raise TypeError('`relation` must be a dict instance or None')
 
         if contracts is not None and not isinstance(contracts, dict):
             raise TypeError('`contracts` must be a dict instance or None')
@@ -678,12 +678,12 @@ class Transaction(object):
         self.conditions = conditions if conditions else []
         self.fulfillments = fulfillments if fulfillments else []
         self.metadata = metadata
-        self.relaction = relaction
+        self.relation = relation
         self.contracts = contracts
 
 
     @classmethod
-    def create(cls, tx_signers, recipients,operation=CREATE, metadata=None, asset=None,relaction=None,contracts=None,version=None):
+    def create(cls, tx_signers, recipients,operation=CREATE, metadata=None, asset=None,relation=None,contracts=None,version=None):
         """A simple way to generate a `CREATE` transaction.
 
             Note:
@@ -735,7 +735,7 @@ class Transaction(object):
         # generate inputs
         inputs.append(Fulfillment.generate(tx_signers))
 
-        return cls(operation, asset, fulfillments=inputs, conditions=conditions, metadata=metadata,relaction=relaction,contracts=contracts,version=version)
+        return cls(operation, asset, fulfillments=inputs, conditions=conditions, metadata=metadata,relation=relation,contracts=contracts,version=version)
 
 
     @classmethod
@@ -1027,7 +1027,7 @@ class Transaction(object):
             #       previously signed ones.
             tx_partial = Transaction(self.operation, self.asset, fulfillments=[fulfillment],
                                      conditions=[condition], metadata=self.metadata,
-                                     timestamp=self.timestamp, version=self.version,relaction=self.relaction,contracts=self.contracts)
+                                     timestamp=self.timestamp, version=self.version,relation=self.relation,contracts=self.contracts)
 
             tx_partial_dict = tx_partial.to_dict()
             tx_partial_dict = Transaction._remove_signatures(tx_partial_dict)
@@ -1192,7 +1192,7 @@ class Transaction(object):
             """
             tx = Transaction(self.operation, self.asset, fulfillments=[fulfillment],
                              conditions=[condition], metadata=self.metadata, timestamp=self.timestamp,
-                             version=self.version,relaction=self.relaction,contracts=self.contracts)
+                             version=self.version,relation=self.relation,contracts=self.contracts)
             tx_dict = tx.to_dict()
             tx_dict = Transaction._remove_signatures(tx_dict)
             tx_serialized = Transaction._to_str(tx_dict)
@@ -1279,7 +1279,7 @@ class Transaction(object):
             'timestamp': self.timestamp,
             'metadata': metadata,
             'asset': asset,
-            'relaction': self.relaction,
+            'relation': self.relation,
             'contracts': self.contracts,
         }
         tx = {
@@ -1370,10 +1370,10 @@ class Transaction(object):
             metadata = Metadata.from_dict(tx['metadata'])
             asset = Asset.from_dict(tx['asset'])
             if tx_body['version'] != 1:
-                relaction = tx['relaction']
+                relation = tx['relation']
                 contracts = tx['contracts']
             else:
-                relaction = None
+                relation = None
                 contracts = None
             return cls(tx['operation'], asset=asset, fulfillments=fulfillments, conditions=conditions, metadata=metadata,
-                       timestamp=tx['timestamp'], version=tx_body['version'],relaction=relaction,contracts=contracts)
+                       timestamp=tx['timestamp'], version=tx_body['version'],relation=relation,contracts=contracts)

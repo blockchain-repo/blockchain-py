@@ -111,11 +111,60 @@ class Transaction(Transaction):
             raise TypeError('`operation`: `{}` must be either {}.'
                             .format(self.operation, allowed_operations))
 
+        if self.operation in (Transaction.CONTRACT):
+            # validate contract signature
+
+            # 1.validate the nodes signature
+            relation = self.relation_to_dict(self.relation)["voters"]
+            voters = relation["voters"]
+            signatures = relation["signatures"]
+            # TODO get the data of needed to verfiy
+            detail_serialized = ""
+            if len(voters) < len(signatures):
+                # TODO mutil-contract-node-signatures
+                raise
+            for sign in signatures:
+                contract_node_pubkey = sign["contract_node_pubkey"]
+                signature = sign["signature"]
+                if not self.is_signature_valid(detail_serialized, contract_node_pubkey, signature):
+                    raise InvalidSignature()
+
+            # 2.validate the contract users signture
+            contracts = self.contracts_to_dict(self.contracts)
+            contract_owners = contracts["contract"]["contract_owners"]
+            contract_signatures =contracts["contract"]["contract_signatures"]
+            # TODO get the data of needed to verfiy
+            detail_serialized = ""
+            if len(contract_owners) < len(contract_signatures):
+                # TODO mutil-contract-owner-signatures
+                raise
+            for contract_sign in contract_signatures:
+                owner_pubkey = contract_sign["owner_pubkey"]
+                signature = contract_sign["signature"]
+                if not self.is_signature_valid(detail_serialized, owner_pubkey, signature):
+                    raise InvalidSignature()
+
         if not self.fulfillments_valid(input_conditions):
             raise InvalidSignature()
         else:
             return self
 
+    def is_signature_valid(self,detail,verify_key,signature):
+        # cc only accepts bytesting messages
+        detail_serialized = serialize(detail).encode()
+        verifying_key = VerifyingKey(verify_key)
+        try:
+            return verifying_key.verify(detail_serialized, signature)
+        except (ValueError, AttributeError):
+            return False
+
+    def relation_to_dict(self,relation):
+        #TODO
+        return
+
+    def contracts_to_dict(self,contracts):
+        #TODO
+        return
 
 class Block(object):
     def __init__(self, transactions=None, node_pubkey=None, timestamp=None,
