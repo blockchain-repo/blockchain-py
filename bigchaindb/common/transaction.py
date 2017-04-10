@@ -910,6 +910,35 @@ class Transaction(object):
 
         return cls(cls.TRANSFER, asset=asset, fulfillments=inputs, conditions=conditions, metadata=metadata)
 
+    @classmethod
+    def freeze_asset(cls, inputs, recipients, asset, metadata=None):
+        """A simple way to frezee_asset transaction.
+        """
+        if not isinstance(inputs, list):
+            raise TypeError('`inputs` must be a list instance')
+        if len(inputs) == 0:
+            raise ValueError('`inputs` must contain at least one item')
+
+        if not isinstance(recipients, list):
+            raise TypeError('`recipients` must be a list instance')
+        if len(recipients) == 0:
+            raise ValueError('`recipients` list cannot be empty')
+
+        conditions = []
+        for recipient in recipients:
+            if not isinstance(recipient, tuple) or len(recipient) != 2:
+                raise ValueError(('Each `recipient` in the list must be a'
+                                  ' <amount>)`'))
+            pub_keys, amount = recipient
+            conditions.append(Condition.generate(pub_keys, amount))
+
+        # if not isinstance(asset_id, str):
+        #     raise TypeError('`asset_id` must be a string')
+
+        metadata = Metadata(metadata)
+        inputs = deepcopy(inputs)
+
+        return cls(cls.TRANSFER, asset=asset, fulfillments=inputs, conditions=conditions, metadata=metadata)
 
     def __eq__(self, other):
         try:
