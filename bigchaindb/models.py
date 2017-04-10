@@ -114,21 +114,6 @@ class Transaction(Transaction):
         if self.operation in (Transaction.CONTRACT):
             # validate contract signature
 
-            # 1.validate the nodes signature
-            relation = self.relation_to_dict(self.relation)["voters"]
-            voters = relation["voters"]
-            signatures = relation["signatures"]
-            # TODO get the data of needed to verfiy
-            detail_serialized = ""
-            if len(voters) < len(signatures):
-                # TODO mutil-contract-node-signatures
-                raise
-            for sign in signatures:
-                contract_node_pubkey = sign["contract_node_pubkey"]
-                signature = sign["signature"]
-                if not self.is_signature_valid(detail_serialized, contract_node_pubkey, signature):
-                    raise InvalidSignature()
-
             # 2.validate the contract users signture
             contracts = self.contracts_to_dict(self.contracts)
             contract_owners = contracts["contract"]["contract_owners"]
@@ -144,13 +129,30 @@ class Transaction(Transaction):
                 if not self.is_signature_valid(detail_serialized, owner_pubkey, signature):
                     raise InvalidSignature()
 
+        if self.version == 2:
+            # 1.validate the nodes signature
+            relation = self.relation_to_dict(self.relation)["voters"]
+            voters = relation["voters"]
+            signatures = relation["signatures"]
+            # TODO get the data of needed to verfiy
+            detail_serialized = ""
+            if len(voters) < len(signatures):
+                # TODO mutil-contract-node-signatures
+                raise
+            for sign in signatures:
+                contract_node_pubkey = sign["contract_node_pubkey"]
+                signature = sign["signature"]
+                if not self.is_signature_valid(detail_serialized, contract_node_pubkey, signature):
+                    raise InvalidSignature()
+            return self
+
         if not self.fulfillments_valid(input_conditions):
             raise InvalidSignature()
         else:
             return self
 
     def is_signature_valid(self,detail,verify_key,signature):
-        # cc only accepts bytesting messages
+        # only accepts bytesting messages
         detail_serialized = serialize(detail).encode()
         verifying_key = VerifyingKey(verify_key)
         try:
