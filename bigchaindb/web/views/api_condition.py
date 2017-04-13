@@ -23,7 +23,7 @@ class ApiGetUnspentTxs(Resource):
         include_spent = not args['unspent']
 
         with pool() as bigchain:
-            outputs = bigchain.get_outputs_filtered(args['public_key'], include_spent)
+            outputs = bigchain.get_outputs_filtered_not_include_freeze(args['public_key'], include_spent)
             # NOTE: We pass '..' as a path to create a valid relative URI
             return outputs
             # return [u.to_uri('..') for u in outputs]

@@ -208,7 +208,7 @@ class Condition(object):
                 owners before a Transaction was confirmed.
     """
 
-    def __init__(self, fulfillment, owners_after=None, amount=1):
+    def __init__(self, fulfillment, owners_after=None, amount=1,isfreeze=False):
         """Condition shims a Cryptocondition condition for BigchainDB.
 
             Args:
@@ -229,6 +229,7 @@ class Condition(object):
         # TODO: Not sure if we should validate for value here
         self.amount = amount
         self.owners_after = owners_after
+        self.isfreeze = isfreeze
 
     def __eq__(self, other):
         # TODO: If `other !== Condition` return `False`
@@ -266,7 +267,8 @@ class Condition(object):
         cond = {
             'owners_after': self.owners_after,
             'condition': condition,
-            'amount': self.amount
+            'amount': self.amount,
+            'isfreeze':self.isfreeze
         }
         if cid is not None:
             cond['cid'] = cid
@@ -329,7 +331,7 @@ class Condition(object):
     #         return cls(threshold_cond, owners_after)
 
     @classmethod
-    def generate(cls, public_keys, amount):
+    def generate(cls, public_keys, amount,isfreeze=False):
         """Generates a Output from a specifically formed tuple or list.
 
             Note:
@@ -374,7 +376,7 @@ class Condition(object):
             initial_cond = ThresholdSha256Fulfillment(threshold=threshold)
             threshold_cond = reduce(cls._gen_condition, public_keys,
                                     initial_cond)
-            return cls(threshold_cond, public_keys, amount=amount)
+            return cls(threshold_cond, public_keys, amount=amount,isfreeze=isfreeze)
 
     @classmethod
     def _gen_condition(cls, initial, current):
@@ -447,7 +449,7 @@ class Condition(object):
         except KeyError:
             # NOTE: Hashlock condition case
             fulfillment = cond['condition']['uri']
-        return cls(fulfillment, cond['owners_after'], cond['amount'])
+        return cls(fulfillment, cond['owners_after'], cond['amount'],isfreeze=cond['isfreeze'])
 
 
 
@@ -616,10 +618,12 @@ class Transaction(object):
     CREATE = 'CREATE'
     TRANSFER = 'TRANSFER'
     GENESIS = 'GENESIS'
-    CONTRACT = 'CONTRACT'
-    CONTRACTTX = 'CONTRACTTX'
 
-    ALLOWED_OPERATIONS = (CREATE, TRANSFER, GENESIS, CONTRACT, CONTRACTTX)
+    CONTRACT = 'CONTRACT'
+    FREEZEASSET = 'FREEZE'
+    UNFREEZEASSET = 'UNFREEZE'
+
+    ALLOWED_OPERATIONS = (CREATE, TRANSFER, GENESIS, CONTRACT, FREEZEASSET,UNFREEZEASSET)
     VERSION = 1
 
     def __init__(self, operation, asset, fulfillments=None, conditions=None,
