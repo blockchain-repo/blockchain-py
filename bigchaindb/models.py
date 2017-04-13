@@ -3,7 +3,9 @@ from bigchaindb.common.exceptions import (InvalidHash, InvalidSignature,
                                           OperationError, DoubleSpend,
                                           TransactionDoesNotExist,
                                           FulfillmentNotInValidBlock,
-                                          AssetIdMismatch)
+                                          AssetIdMismatch,
+                                          MutilContractOwner,
+                                          MutilcontractNode)
 from bigchaindb.common.transaction import Transaction, Asset
 from bigchaindb.common.util import gen_timestamp, serialize
 
@@ -118,11 +120,12 @@ class Transaction(Transaction):
             contracts = self.contracts_to_dict(self.contracts)
             contract_owners = contracts["contract"]["contract_owners"]
             contract_signatures =contracts["contract"]["contract_signatures"]
-            # TODO get the data of needed to verfiy
-            detail_serialized = ""
+            contracts.pop('contract_owners')
+            contracts.pop('contract_signatures')
+            detail_serialized = contracts
+            print('conract--detail_serialized:',detail_serialized)
             if len(contract_owners) < len(contract_signatures):
-                # TODO mutil-contract-owner-signatures
-                raise
+                raise MutilContractOwner
             for contract_sign in contract_signatures:
                 owner_pubkey = contract_sign["owner_pubkey"]
                 signature = contract_sign["signature"]
@@ -134,11 +137,13 @@ class Transaction(Transaction):
             relation = self.relation_to_dict(self.relation)["voters"]
             voters = relation["voters"]
             signatures = relation["signatures"]
-            # TODO get the data of needed to verfiy
-            detail_serialized = ""
+            tx = self.to_dict()
+            tx.pop('relation')
+            tx.pop('contracts')
+            detail_serialized = tx
+            print('tx--detail_serialized:',detail_serialized)
             if len(voters) < len(signatures):
-                # TODO mutil-contract-node-signatures
-                raise
+                raise MutilcontractNode
             for sign in signatures:
                 contract_node_pubkey = sign["contract_node_pubkey"]
                 signature = sign["signature"]
