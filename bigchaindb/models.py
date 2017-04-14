@@ -1,3 +1,4 @@
+from copy import deepcopy
 from bigchaindb.common.crypto import hash_data, VerifyingKey, SigningKey
 from bigchaindb.common.exceptions import (InvalidHash, InvalidSignature,
                                           OperationError, DoubleSpend,
@@ -117,15 +118,19 @@ class Transaction(Transaction):
             # validate contract signature
 
             # 2.validate the contract users signture
-            contracts = self.contracts_to_dict(self.contracts)
+            contracts = deepcopy(self.contracts)
+
             contract_owners = contracts["contract"]["contract_owners"]
             contract_signatures =contracts["contract"]["contract_signatures"]
-            contracts.pop('contract_owners')
-            contracts.pop('contract_signatures')
+
+            contracts["contract"].pop('contract_owners')
+            contracts["contract"].pop('contract_signatures')
+
             detail_serialized = contracts
-            print('conract--detail_serialized:',detail_serialized)
+
             if len(contract_owners) < len(contract_signatures):
                 raise MutilContractOwner
+            # print(contract_signatures)
             for contract_sign in contract_signatures:
                 owner_pubkey = contract_sign["owner_pubkey"]
                 signature = contract_sign["signature"]
@@ -134,14 +139,16 @@ class Transaction(Transaction):
 
         if self.version == 2:
             # 1.validate the nodes signature
-            relation = self.relation_to_dict(self.relation)["voters"]
-            voters = relation["voters"]
-            signatures = relation["signatures"]
-            tx = self.to_dict()
-            tx.pop('relation')
-            tx.pop('contracts')
-            detail_serialized = tx
-            print('tx--detail_serialized:',detail_serialized)
+            voters = self.relation["voters"]
+            signatures = self.relation["signatures"]
+
+            tx_dict = deepcopy(self.to_dict())
+
+            tx_dict["transaction"].pop('relation')
+            tx_dict["transaction"].pop('contracts')
+
+            detail_serialized = tx_dict
+
             if len(voters) < len(signatures):
                 raise MutilcontractNode
             for sign in signatures:
@@ -165,13 +172,6 @@ class Transaction(Transaction):
         except (ValueError, AttributeError):
             return False
 
-    def relation_to_dict(self,relation):
-        #TODO
-        return
-
-    def contracts_to_dict(self,contracts):
-        #TODO
-        return
 
 class Block(object):
     def __init__(self, transactions=None, node_pubkey=None, timestamp=None,

@@ -1051,3 +1051,15 @@ class Bigchain(object):
     def get_exist_txs(self,tx_ids):
         tx_ids_all = self.backend.is_exist_txs(tx_ids)
         return list(set(tx_ids_all).intersection(set(tx_ids)))
+
+    def get_contract_by_id(self,tx_id):
+
+        pass
+
+    def get_contract_txs_by_contract_id(self):
+
+        pass
+
+    def get_contract_record_by_contract_id(self):
+
+        pass

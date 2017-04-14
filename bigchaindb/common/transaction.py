@@ -1069,6 +1069,45 @@ class Transaction(object):
                                    key_pairs)
         return self
 
+    def signNode(self,signing_key):
+        contracts = deepcopy(self.contracts)
+
+        contract_owners = contracts["contract"]["contract_owners"]
+        contract_signatures = []
+        print(contracts)
+
+        contracts["contract"].pop('contract_owners')
+        contracts["contract"].pop('contract_signatures')
+
+        signing_str = serialize(contracts)
+        signing_key = SigningKey(signing_key)
+
+        for contract_owner in contract_owners:
+            contract_signature = signing_key.sign(signing_str.encode()).decode()
+            contract_signatures.append(contract_signature)
+            print(contract_signature)
+        self.contracts["contract"]["contract_signatures"] = contract_signatures
+        print(self.contracts)
+        return self
+
+    def signOwner(self,signing_key):
+        voters = self.relation["voters"]
+        signatures = []
+
+        tx_dict = deepcopy(self.to_dict())["transaction"]
+        tx_dict.pop('relation')
+        tx_dict.pop('contracts')
+
+        signing_str = serialize(tx_dict)
+        signing_key = SigningKey(signing_key)
+
+        for voter in voters:
+            signature = signing_key.sign(signing_str.encode()).decode()
+            signatures.append(signature)
+
+        self.relation["signatures"] = signatures
+        return self
+
     def _sign_fulfillment(self, fulfillment, index, tx_serialized, key_pairs):
         """Signs a single Fulfillment with a partial Transaction as message.
 

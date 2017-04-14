@@ -192,9 +192,8 @@ class ApiFreezeAsset(Resource):
                 return make_response(constant.RESPONSE_STATUS_PARAM_ERROE,
                                      constant.RESPONSE_CODE_PARAM_ERROE,
                                      "invalidate freeze asset transaction.")
-            else:
-                tx_result = bigchain.write_transaction(freezeTx_obj)
-                result_messages = "freeze asset success"
+            tx_result = bigchain.write_transaction(freezeTx_obj)
+            result_messages = "freeze asset success"
 
         return make_response(constant.RESPONSE_STATUS_SUCCESS,
                              constant.RESPONSE_CODE_SUCCESS,
@@ -226,9 +225,8 @@ class ApiUnfreeezeAsset(Resource):
                 return make_response(constant.RESPONSE_STATUS_PARAM_ERROE,
                                      constant.RESPONSE_CODE_PARAM_ERROE,
                                      "invalidate freeze asset transaction.")
-            else:
-                tx_result = bigchain.write_transaction(freezeTx_obj)
-                result_messages = "freeze asset success"
+            tx_result = bigchain.write_transaction(freezeTx_obj)
+            result_messages = "freeze asset success"
 
         return make_response(constant.RESPONSE_STATUS_SUCCESS,
                              constant.RESPONSE_CODE_SUCCESS,
@@ -239,9 +237,37 @@ class ApiUnfreeezeAsset(Resource):
 class ApiFrozenAsset(Resource):
     def post(self):
         print("frozenAsset")
-        # the asset frozen by contract
+        public_key = request.get_json()["public_key"]
+        if not check_request(request, "public_key"):
+            return make_response(constant.RESPONSE_STATUS_PARAM_ERROE,
+                                 constant.RESPONSE_CODE_PARAM_ERROE,
+                                 "param public_key not exist")
+        unspent = request.get_json()["unspent"]
+        if not check_request(request, "unspent"):
+            return make_response(constant.RESPONSE_STATUS_PARAM_ERROE,
+                                 constant.RESPONSE_CODE_PARAM_ERROE,
+                                 "param unspent not exist")
 
-        return
+        pool = current_app.config['bigchain_pool']
+        # the asset frozen by contract
+        with pool() as bigchain:
+            try:
+                result = bigchain.get_freeze_output(public_key,unspent=unspent)
+            except(Exception):
+                return make_response(constant.RESPONSE_STATUS_SERVER_ERROE,
+                                     constant.RESPONSE_CODE_SERVER_ERROR,
+                                     "get frozen asset failed.")
+            if not result:
+                result = {}
+                return make_response(constant.RESPONSE_STATUS_SUCCESS_NODATA,
+                                     constant.RESPONSE_CODE_SUCCESS_NODATA,
+                                     "no asset exist!",
+                                     result)
+            else:
+                return make_response(constant.RESPONSE_STATUS_SUCCESS,
+                                     constant.RESPONSE_CODE_SUCCESS,
+                                     "query success",
+                                     result)
 
 
 class ApiGetCanSpend(Resource):
