@@ -627,7 +627,7 @@ class Transaction(object):
     VERSION = 1
 
     def __init__(self, operation, asset, fulfillments=None, conditions=None,
-                 metadata=None, timestamp=None, version=None,relation=None,contracts=None):
+                 metadata=None, timestamp=None, version=None,Relation=None,Contract=None):
         """The constructor allows to create a customizable Transaction.
 
             Note:
@@ -669,11 +669,11 @@ class Transaction(object):
         if metadata is not None and not isinstance(metadata, Metadata):
             raise TypeError('`metadata` must be a Metadata instance or None')
 
-        if relation is not None and not isinstance(relation, dict):
-            raise TypeError('`relation` must be a dict instance or None')
+        if Relation is not None and not isinstance(Relation, dict):
+            raise TypeError('`Relation` must be a dict instance or None')
 
-        if contracts is not None and not isinstance(contracts, dict):
-            raise TypeError('`contracts` must be a dict instance or None')
+        if Contract is not None and not isinstance(Contract, dict):
+            raise TypeError('`Contract` must be a dict instance or None')
 
         self.version = version if version is not None else self.VERSION
         self.timestamp = timestamp if timestamp else gen_timestamp()
@@ -682,12 +682,12 @@ class Transaction(object):
         self.conditions = conditions if conditions else []
         self.fulfillments = fulfillments if fulfillments else []
         self.metadata = metadata
-        self.relation = relation
-        self.contracts = contracts
+        self.Relation = Relation
+        self.Contract = Contract
 
 
     @classmethod
-    def create(cls, tx_signers, recipients,operation=CREATE, metadata=None, asset=None,relation=None,contracts=None,version=None):
+    def create(cls, tx_signers, recipients,operation=CREATE, metadata=None, asset=None,Relation=None,Contract=None,version=None):
         """A simple way to generate a `CREATE` transaction.
 
             Note:
@@ -739,7 +739,7 @@ class Transaction(object):
         # generate inputs
         inputs.append(Fulfillment.generate(tx_signers))
 
-        return cls(operation, asset, fulfillments=inputs, conditions=conditions, metadata=metadata,relation=relation,contracts=contracts,version=version)
+        return cls(operation, asset, fulfillments=inputs, conditions=conditions, metadata=metadata,Relation=Relation,Contract=Contract,version=version)
 
 
     @classmethod
@@ -1060,7 +1060,7 @@ class Transaction(object):
             #       previously signed ones.
             tx_partial = Transaction(self.operation, self.asset, fulfillments=[fulfillment],
                                      conditions=[condition], metadata=self.metadata,
-                                     timestamp=self.timestamp, version=self.version,relation=self.relation,contracts=self.contracts)
+                                     timestamp=self.timestamp, version=self.version,Relation=self.Relation,Contract=self.Contract)
 
             tx_partial_dict = tx_partial.to_dict()
             tx_partial_dict = Transaction._remove_signatures(tx_partial_dict)
@@ -1070,33 +1070,33 @@ class Transaction(object):
         return self
 
     def signNode(self,signing_key):
-        contracts = deepcopy(self.contracts)
+        Contract = deepcopy(self.Contract)
 
-        contract_owners = contracts["contract"]["contract_owners"]
+        contract_owners = Contract["ContractBody"]["ContractOwners"]
         contract_signatures = []
-        print(contracts)
+        print(Contract)
 
-        contracts["contract"].pop('contract_owners')
-        contracts["contract"].pop('contract_signatures')
+        Contract["Contract"].pop('ContractOwners')
+        Contract["Contract"].pop('ContractSignatures')
 
-        signing_str = serialize(contracts)
+        signing_str = serialize(Contract)
         signing_key = SigningKey(signing_key)
 
         for contract_owner in contract_owners:
             contract_signature = signing_key.sign(signing_str.encode()).decode()
             contract_signatures.append(contract_signature)
             print(contract_signature)
-        self.contracts["contract"]["contract_signatures"] = contract_signatures
-        print(self.contracts)
+        self.Contract["Contract"]["ContractSignatures"] = contract_signatures
+        print(self.Contract)
         return self
 
     def signOwner(self,signing_key):
-        voters = self.relation["voters"]
+        voters = self.Relation["voters"]
         signatures = []
 
         tx_dict = deepcopy(self.to_dict())["transaction"]
-        tx_dict.pop('relation')
-        tx_dict.pop('contracts')
+        tx_dict.pop('Relation')
+        tx_dict.pop('Contract')
 
         signing_str = serialize(tx_dict)
         signing_key = SigningKey(signing_key)
@@ -1105,7 +1105,7 @@ class Transaction(object):
             signature = signing_key.sign(signing_str.encode()).decode()
             signatures.append(signature)
 
-        self.relation["signatures"] = signatures
+        self.Relation["Signatures"] = signatures
         return self
 
     def _sign_fulfillment(self, fulfillment, index, tx_serialized, key_pairs):
@@ -1264,7 +1264,7 @@ class Transaction(object):
             """
             tx = Transaction(self.operation, self.asset, fulfillments=[fulfillment],
                              conditions=[condition], metadata=self.metadata, timestamp=self.timestamp,
-                             version=self.version,relation=self.relation,contracts=self.contracts)
+                             version=self.version,Relation=self.Relation,Contract=self.Contract)
             tx_dict = tx.to_dict()
             tx_dict = Transaction._remove_signatures(tx_dict)
             tx_serialized = Transaction._to_str(tx_dict)
@@ -1351,8 +1351,8 @@ class Transaction(object):
             'timestamp': self.timestamp,
             'metadata': metadata,
             'asset': asset,
-            'relation': self.relation,
-            'contracts': self.contracts,
+            'Relation': self.Relation,
+            'Contract': self.Contract,
         }
         tx = {
             'version': self.version,
@@ -1426,11 +1426,18 @@ class Transaction(object):
             proposed_tx_id = tx_body.pop('id')
         except KeyError:
             raise InvalidHash()
+        if tx_body["version"]==2:
+            tx_body['transaction']['Relaction']['Votes'] = None
+            tx_body['transaction']['Contract']['ContractHead'] = None
+            tx_body['transaction']['timestamp'] = None
 
         tx_body_no_signatures = Transaction._remove_signatures(tx_body)
         tx_body_serialized = Transaction._to_str(tx_body_no_signatures)
-        valid_tx_id = Transaction._to_hash(tx_body_serialized)
 
+        print("tx_body_serialized: ",tx_body_serialized)
+        valid_tx_id = Transaction._to_hash(tx_body_serialized)
+        print("proposed_tx_id: ",proposed_tx_id)
+        print("valid_tx_id: ", valid_tx_id)
         if proposed_tx_id != valid_tx_id:
             raise InvalidHash()
         else:
@@ -1442,10 +1449,10 @@ class Transaction(object):
             metadata = Metadata.from_dict(tx['metadata'])
             asset = Asset.from_dict(tx['asset'])
             if tx_body['version'] != 1:
-                relation = tx['relation']
-                contracts = tx['contracts']
+                Relation = tx['Relation']
+                Contract = tx['Contract']
             else:
-                relation = None
-                contracts = None
+                Relation = None
+                Contract = None
             return cls(tx['operation'], asset=asset, fulfillments=fulfillments, conditions=conditions, metadata=metadata,
-                       timestamp=tx['timestamp'], version=tx_body['version'],relation=relation,contracts=contracts)
+                       timestamp=tx['timestamp'], version=tx_body['version'],Relation=Relation,Contract=Contract)

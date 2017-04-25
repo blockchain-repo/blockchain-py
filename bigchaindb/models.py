@@ -118,15 +118,15 @@ class Transaction(Transaction):
             # validate contract signature
 
             # 2.validate the contract users signture
-            contracts = deepcopy(self.contracts)
+            Contract = deepcopy(self.Contract)
 
-            contract_owners = contracts["contract"]["contract_owners"]
-            contract_signatures =contracts["contract"]["contract_signatures"]
+            contract_owners = Contract["contract"]["contract_owners"]
+            contract_signatures =Contract["contract"]["contract_signatures"]
 
-            contracts["contract"].pop('contract_owners')
-            contracts["contract"].pop('contract_signatures')
+            Contract["contract"].pop('contract_owners')
+            Contract["contract"].pop('contract_signatures')
 
-            detail_serialized = contracts
+            detail_serialized = Contract
 
             if len(contract_owners) < len(contract_signatures):
                 raise MutilContractOwner
@@ -139,13 +139,13 @@ class Transaction(Transaction):
 
         if self.version == 2:
             # 1.validate the nodes signature
-            voters = self.relation["voters"]
-            signatures = self.relation["signatures"]
+            voters = self.Relation["voters"]
+            signatures = self.Relation["signatures"]
 
             tx_dict = deepcopy(self.to_dict())
 
-            tx_dict["transaction"].pop('relation')
-            tx_dict["transaction"].pop('contracts')
+            tx_dict["transaction"].pop('Relation')
+            tx_dict["transaction"].pop('Contract')
 
             detail_serialized = tx_dict
 
