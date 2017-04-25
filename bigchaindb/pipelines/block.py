@@ -70,7 +70,9 @@ class BlockPipeline:
         tx.pop('assignee')
         tx.pop('assignment_timestamp')
         tx.pop('assignee_isdeal')
+        print("fromdict--",tx)
         tx = Transaction.from_dict(tx)
+        print("fromdict++",tx)
         # if self.bigchain.transaction_exists(tx.id):
         if False:
             # if the transaction already exists, we must check whether

@@ -60,8 +60,9 @@ class ApiCreateContractTx(Resource):
 
         pool = current_app.config['bigchain_pool']
         contractTx = request.get_json(force=True)
+        print("from_dict before: ",contractTx)
         contractTx_obj = Transaction.from_dict(contractTx)
-
+        print("from_dict  after: ",contractTx_obj)
         # TODO validate data structure /version=2;opercation=create/transfer;    has relation and contact?
 
         with pool() as bigchain:
