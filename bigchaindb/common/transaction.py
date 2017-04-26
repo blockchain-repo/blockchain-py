@@ -1429,7 +1429,7 @@ class Transaction(object):
         if tx_body["version"]==2:
             tx_body['transaction']['Relaction']['Votes'] = None
             tx_body['transaction']['Contract']['ContractHead'] = None
-            tx_body['transaction']['timestamp'] = None
+            tx_body['transaction']['timestamp'] = ""
 
         tx_body_no_signatures = Transaction._remove_signatures(tx_body)
         tx_body_serialized = Transaction._to_str(tx_body_no_signatures)
