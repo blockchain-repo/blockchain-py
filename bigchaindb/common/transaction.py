@@ -1074,7 +1074,7 @@ class Transaction(object):
 
         contract_owners = Contract["ContractBody"]["ContractOwners"]
         contract_signatures = []
-        print(Contract)
+        # print(Contract)
 
         Contract["Contract"].pop('ContractOwners')
         Contract["Contract"].pop('ContractSignatures')
@@ -1085,9 +1085,9 @@ class Transaction(object):
         for contract_owner in contract_owners:
             contract_signature = signing_key.sign(signing_str.encode()).decode()
             contract_signatures.append(contract_signature)
-            print(contract_signature)
+            # print(contract_signature)
         self.Contract["Contract"]["ContractSignatures"] = contract_signatures
-        print(self.Contract)
+        # print(self.Contract)
         return self
 
     def signOwner(self,signing_key):
@@ -1336,7 +1336,7 @@ class Transaction(object):
             # NOTE: metadata can be None and that's OK
             metadata = None
 
-        if self.operation in (self.__class__.GENESIS, self.__class__.CREATE):
+        if self.operation in (self.__class__.GENESIS, self.__class__.CREATE,self.__class__.CONTRACT):
             asset = self.asset.to_dict()
         else:
             # NOTE: An `asset` in a `TRANSFER` only contains the asset's id
@@ -1359,7 +1359,13 @@ class Transaction(object):
             'transaction': tx_body,
         }
 
-        tx_no_signatures = Transaction._remove_signatures(tx)
+        txtmp = deepcopy(tx)
+        if txtmp["version"]==2:
+            txtmp['transaction']['Relation']['Votes'] = None
+            txtmp['transaction']['Contract']['ContractHead'] = None
+            txtmp['transaction']['timestamp'] = ""
+
+        tx_no_signatures = Transaction._remove_signatures(txtmp)
         tx_serialized = Transaction._to_str(tx_no_signatures)
         tx_id = Transaction._to_hash(tx_serialized)
 
@@ -1427,20 +1433,20 @@ class Transaction(object):
         except KeyError:
             raise InvalidHash()
         if tx_body["version"]==2:
-            tx_body['transaction']['Relaction']['Votes'] = None
+            tx_body['transaction']['Relation']['Votes'] = None
             tx_body['transaction']['Contract']['ContractHead'] = None
             tx_body['transaction']['timestamp'] = ""
 
         tx_body_no_signatures = Transaction._remove_signatures(tx_body)
         tx_body_serialized = Transaction._to_str(tx_body_no_signatures)
 
-        print("tx_body_serialized: ",tx_body_serialized)
+        # print("tx_body_serialized: ",tx_body_serialized)
         valid_tx_id = Transaction._to_hash(tx_body_serialized)
-        print("proposed_tx_id: ",proposed_tx_id)
-        print("valid_tx_id: ", valid_tx_id)
-        # if proposed_tx_id != valid_tx_id:
-        #     raise InvalidHash()
-        if True:
+        # print("proposed_tx_id: ",proposed_tx_id)
+        # print("valid_tx_id: ", valid_tx_id)
+        if proposed_tx_id != valid_tx_id:
+            raise InvalidHash()
+        else:
             tx = tx_body['transaction']
             fulfillments = [Fulfillment.from_dict(fulfillment) for fulfillment
                             in tx['fulfillments']]
@@ -1450,11 +1456,11 @@ class Transaction(object):
             metadata = Metadata.from_dict(tx['metadata'])
             asset = Asset.from_dict(tx['asset'])
             if tx_body['version'] == 2:
-                print("version====================2")
-                Relation = tx_body_old['transaction']['Relaction']
+                # print("version====================2")
+                Relation = tx_body_old['transaction']['Relation']
                 Contract = tx_body_old['transaction']['Contract']
                 timestamp = tx_body_old['transaction']['timestamp']
-                print("time------------",timestamp)
+                # print("time------------",timestamp)
             else:
                 Relation = None
                 Contract = None

@@ -114,40 +114,38 @@ class Transaction(Transaction):
             raise TypeError('`operation`: `{}` must be either {}.'
                             .format(self.operation, allowed_operations))
 
+        # print("validate in=2========",self.operation)
         if self.operation in (Transaction.CONTRACT):
             # validate contract signature
-
-            # 2.validate the contract users signture
-            Contract = deepcopy(self.Contract)
-
-            contract_owners = Contract["contract"]["contract_owners"]
-            contract_signatures =Contract["contract"]["contract_signatures"]
-
-            Contract["contract"].pop('contract_owners')
-            Contract["contract"].pop('contract_signatures')
-
-            detail_serialized = Contract
-
+            # 1.validate the contract users signture
+            ContractBody = deepcopy(self.Contract["ContractBody"])
+            contract_owners = ContractBody["ContractOwners"]
+            contract_signatures =ContractBody["ContractSignatures"]
+            ContractBody["ContractSignatures"] = None
+            detail_serialized = serialize(ContractBody)
             if len(contract_owners) < len(contract_signatures):
                 raise MutilContractOwner
-            # print(contract_signatures)
-            for contract_sign in contract_signatures:
-                owner_pubkey = contract_sign["owner_pubkey"]
-                signature = contract_sign["signature"]
+            for index,contract_sign in enumerate(contract_signatures):
+                owner_pubkey = contract_owners[index]
+                signature = contract_sign["Signature"]
                 if not self.is_signature_valid(detail_serialized, owner_pubkey, signature):
                     raise InvalidSignature()
+            # TODO 2.validate the contract votes
 
+            return self
+
+        # print("validate in=3========",self.operation,"==",self.version)
         if self.version == 2:
             # 1.validate the nodes signature
-            voters = self.Relation["voters"]
-            signatures = self.Relation["signatures"]
+            voters = self.Relation["Voters"]
+            signatures = self.Relation["Votes"]
 
             tx_dict = deepcopy(self.to_dict())
 
             tx_dict["transaction"].pop('Relation')
             tx_dict["transaction"].pop('Contract')
 
-            detail_serialized = tx_dict
+            detail_serialized = serialize(tx_dict)
 
             if len(voters) < len(signatures):
                 raise MutilcontractNode
@@ -165,7 +163,7 @@ class Transaction(Transaction):
 
     def is_signature_valid(self,detail,verify_key,signature):
         # only accepts bytesting messages
-        detail_serialized = serialize(detail).encode()
+        detail_serialized = detail.encode()
         verifying_key = VerifyingKey(verify_key)
         try:
             return verifying_key.verify(detail_serialized, signature)

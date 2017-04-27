@@ -77,11 +77,20 @@ def get_txNumberById(block_id):
     # s = r.table('bigchain').get_all('39d8d3d29554d209a1283b20a1e3e198bdd27c099b8df9042195d7bb0728219f', index='transaction_id').run(conn)
 
     pubkey = 'Gvexu49oskc6ptYwzqP9q8sL9jLxjNZNMBWgVVhUtPmD'
+    #s = r.table('bigchain').concat_map(lambda doc: doc['block']['transactions'])\
+        # .filter(lambda tx: (tx['transaction']['conditions'].contains(lambda c: c['owners_after'].contains(pubkey)))
+        #                 or (tx['transaction']['fulfillments'].contains(lambda f: f['owners_before'].contains(pubkey))))\
+        # .order_by(r.row['timestamp']).map({'id':r.row['id'],'owner_before':r.row['transaction']['fulfillments']['owners_before'],'operation':r.row['transaction']['operation'],'conditions':r.row['transaction']['conditions'],'timestamp':r.row['transaction']['timestamp']}).run(conn)
+    owner = '5XAJvuRGb8B3hUesjREL7zdZ82ahZqHuBV6ttf3UEhyL'
     s = r.table('bigchain').concat_map(lambda doc: doc['block']['transactions'])\
-        .filter(lambda tx: (tx['transaction']['conditions'].contains(lambda c: c['owners_after'].contains(pubkey)))
-                        or (tx['transaction']['fulfillments'].contains(lambda f: f['owners_before'].contains(pubkey))))\
-        .order_by(r.row['timestamp']).map({'id':r.row['id'],'owner_before':r.row['transaction']['fulfillments']['owners_before'],'operation':r.row['transaction']['operation'],'conditions':r.row['transaction']['conditions'],'timestamp':r.row['transaction']['timestamp']}).run(conn)
+        .filter(lambda tx: tx['transaction']['conditions'].contains(lambda c: c['owners_after'].contains(owner))).run(conn)
 
+    # s = r.table('bigchain').get_all('2e83319bb7377f94a795a098ee626cddcb244fac28d2444d7555ab3feb22bcc8', index='transaction_id')\
+    #     .get_field('block').get_field('transactions')[0].get_field('transaction')\
+    #     .get_field('conditions')[0][1].update({"isfreeze":True}).run(conn)
+
+    # {"contact": {"phone": {"cell": "408-555-4242"}
+    # .update({'isfreeze': True})
 
     # s = r.table('rewrite').between('', '', index='block_timestamp').get_field('id').run(conn)
     print(s)

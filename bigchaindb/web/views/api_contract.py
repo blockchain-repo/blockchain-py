@@ -60,9 +60,7 @@ class ApiCreateContractTx(Resource):
 
         pool = current_app.config['bigchain_pool']
         contractTx = request.get_json(force=True)
-        print("from_dict before: ",contractTx)
         contractTx_obj = Transaction.from_dict(contractTx)
-        print("from_dict  after: ",contractTx_obj)
         # TODO validate data structure /version=2;opercation=create/transfer;    has relation and contact?
 
         with pool() as bigchain:
@@ -80,9 +78,8 @@ class ApiCreateContractTx(Resource):
                 return make_response(constant.RESPONSE_STATUS_PARAM_ERROE,
                                      constant.RESPONSE_CODE_PARAM_ERROE,
                                      "invalidate contract transaction.")
-            else:
-                tx_result = bigchain.write_transaction(contractTx_obj)
-                result_messages = "add contract transaction success"
+            tx_result = bigchain.write_transaction(contractTx_obj)
+            result_messages = "add contract transaction success"
 
         return make_response(constant.RESPONSE_STATUS_SUCCESS,
                              constant.RESPONSE_CODE_SUCCESS,
