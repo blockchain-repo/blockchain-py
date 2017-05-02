@@ -140,19 +140,19 @@ class Transaction(Transaction):
             voters = self.Relation["Voters"]
             signatures = self.Relation["Votes"]
 
-            tx_dict = deepcopy(self.to_dict())
-
-            tx_dict["transaction"].pop('Relation')
-            tx_dict["transaction"].pop('Contract')
-
-            detail_serialized = serialize(tx_dict)
+            # tx_dict = deepcopy(self.to_dict())
+            # tx_dict["transaction"].pop('Relation')
+            # tx_dict["transaction"].pop('Contract')
+            # detail_serialized = serialize(tx_dict)
 
             if len(voters) < len(signatures):
                 raise MutilcontractNode
-            for sign in signatures:
-                contract_node_pubkey = sign["contract_node_pubkey"]
-                signature = sign["signature"]
-                if not self.is_signature_valid(detail_serialized, contract_node_pubkey, signature):
+
+            for index,vote in enumerate(signatures):
+                owner_pubkey = voters[index]
+                signature = vote["Signature"]
+                detail_serialized = serialize(vote["Voting_For"])
+                if not self.is_signature_valid(detail_serialized, owner_pubkey, signature):
                     raise InvalidSignature()
             return self
 
