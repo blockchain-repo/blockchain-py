@@ -11,9 +11,15 @@ bash press_tool_write.sh \$1 \$2 \$3 \$4
 press_tool_write.sh中配置链接参数:
   send_host=192.168.0.249       ##api访问host
   send_port=40                  ##api访问port
+  send_method=POST
+  send_content_type=application/json
+  send_url=/xxxxxx
+
   rethinkdb_host=192.168.0.240  ##rethinkdb访问host
   rethinkdb_port=28015          ##rethinkdb访问port
   rethinkdb_db=bigchain         ##rethinkdb访问db
+
+  chain_node_num=6  #集群节点个数，用于统计投票 1/2原则时使用
 ###############################################
 
 ##########统计结果#############################

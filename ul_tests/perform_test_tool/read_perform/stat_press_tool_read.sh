@@ -26,7 +26,7 @@ process_log="log/press_process.log"
 result_log="log/press_result.log"
 
 mkdir -p log
-rm -rf log/* 2>/dev/null
+#rm -rf log/* 2>/dev/null
 send_total=$(($send_press * $send_stat_range))
 ############################################################################
 echo -e "============press param info==================" > $result_log
@@ -51,10 +51,9 @@ function send_req_read(){
     for((i=0;i<=$s_press;i++))
     do
         now_date=`date "+%Y-%m-%d %H:%M:%S"`
-        #echo "[$now_date]send $s_state read a request..." >> $out_file
+        echo "[$now_date]send $s_state read a request..." >> $out_file
         if [[ $s_state == "stat" ]];then
-            #curl -i -H "Content-Type:application/json" -X POST -d '{"tx_id":"'${s_tx_id}'","type":"1"}' -w "['$now_date'] %{http_code}\n" http://$send_host:$send_port/uniledger/v1/transaction/queryByID >> $out_file  2>/dev/null  &
-            curl -i -H "Content-Type:application/json" -X POST -d '{"tx_id":"'${s_tx_id}'","type":"1"}' -w "['$now_date'] %{http_code}\n" http://$send_host:$send_port/uniledger/v1/transaction/queryByID  2>/dev/null  &
+            curl -i -H "Content-Type:application/json" -X POST -d '{"tx_id":"'${s_tx_id}'","type":"1"}' -w "['$now_date'] %{http_code}\n" http://$send_host:$send_port/uniledger/v1/transaction/queryByID >> $out_file  2>/dev/null  &
         else
             curl -i -H "Content-Type:application/json" -X POST -d '{"tx_id":"'${s_tx_id}'","type":"1"}' -w "['$now_date'] %{http_code}\n" http://$send_host:$send_port/uniledger/v1/transaction/queryByID >> /dev/null  2>&1 &
         fi
@@ -151,9 +150,9 @@ function stat_result(){
 ##############################################################################
 #read_transaction_id=`python3 get_transactionid.py`
 #[[ -z $read_transaction_id ]] && echo "get_one_transactionid fail!!!" && exit 1
-read_transaction_id="87567a1c61a559b4d878b234d42aba0302b7f527ff3f2f88aebf86c9a74a4e22"
-send_read "stat" $send_stat_range $read_transaction_id >> $read_log  &
-wait
+read_transaction_id="af73445a1c32ffba45644477eb304f728be184aa8a335e39c0611b4a42c56a57"
+#send_read "stat" $send_stat_range $read_transaction_id &
+#wait
 for tmp_read_file in `ls ./log|grep "press_read_thread"`
 do
     cat ./log/$tmp_read_file >> $read_log
