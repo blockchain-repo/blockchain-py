@@ -65,15 +65,17 @@ class Transaction(Transaction):
         """
         if len(self.fulfillments) == 0:
             raise ValueError('Transaction contains no fulfillments')
-
+        # print("3")
         input_conditions = []
         inputs_defined = all([ffill.tx_input for ffill in self.fulfillments])
-
+        # print("4")
         if self.operation in (Transaction.CREATE, Transaction.GENESIS,Transaction.CONTRACT):
+            # print("5")
             # validate inputs
             if inputs_defined:
                 raise ValueError('A CREATE operation has no inputs')
             # validate asset
+            # print("6")
             self.asset._validate_asset()
         elif self.operation == Transaction.TRANSFER:
             if not inputs_defined:
@@ -138,21 +140,26 @@ class Transaction(Transaction):
         if self.version == 2:
             # 1.validate the nodes signature
             voters = self.Relation["Voters"]
-            signatures = self.Relation["Votes"]
+            votes = self.Relation["Votes"]
 
             # tx_dict = deepcopy(self.to_dict())
             # tx_dict["transaction"].pop('Relation')
             # tx_dict["transaction"].pop('Contract')
             # detail_serialized = serialize(tx_dict)
 
-            if len(voters) < len(signatures):
+            if len(voters) < len(votes):
                 raise MutilcontractNode
 
-            for index,vote in enumerate(signatures):
+            for index,vote in enumerate(votes):
+                # print(index)
                 owner_pubkey = voters[index]
                 signature = vote["Signature"]
-                detail_serialized = serialize(vote["Voting_For"])
+                detail_serialized = self.id
+                # print(detail_serialized)
+                # print(owner_pubkey)
+                # print(signature)
                 if not self.is_signature_valid(detail_serialized, owner_pubkey, signature):
+                    # print("InvalidSignature")
                     raise InvalidSignature()
             return self
 

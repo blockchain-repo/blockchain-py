@@ -572,8 +572,10 @@ class Metadata(object):
                 :class:`~bigchaindb.common.transaction.Metadata`
         """
         try:
+            # print(data['data'],"---",data['id'])
             return cls(data['data'], data['id'])
         except TypeError:
+            # print("error================")
             return cls()
 
     def to_dict(self):
@@ -1052,7 +1054,7 @@ class Transaction(object):
 
         key_pairs = {gen_public_key(SigningKey(private_key)):
                      SigningKey(private_key) for private_key in private_keys}
-
+        # TODO 'important' sign to fulfillments. the len(fulfillments) != the len(conditons).  cause by divisible assets
         zippedIO = enumerate(zip(self.fulfillments, self.conditions))
         for index, (fulfillment, condition) in zippedIO:
             # NOTE: We clone the current transaction but only add the condition
@@ -1393,6 +1395,8 @@ class Transaction(object):
             #       case could yield incorrect signatures. This is why we only
             #       set it to `None` if it's set in the dict.
             fulfillment['fulfillment'] = None
+        for condition in tx_dict['transaction']['conditions']:
+            condition['condition']['uri'] = ""
         return tx_dict
 
     @staticmethod
@@ -1453,7 +1457,9 @@ class Transaction(object):
             conditions = [Condition.from_dict(condition) for condition
                           in tx['conditions']]
             #TODO  metadata & asset missing
+            # print("1--",tx['metadata'])
             metadata = Metadata.from_dict(tx['metadata'])
+            # print("2--",metadata.data)
             asset = Asset.from_dict(tx['asset'])
             if tx_body['version'] == 2:
                 # print("version====================2")

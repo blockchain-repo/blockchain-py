@@ -1,5 +1,7 @@
 from flask import current_app, request, Blueprint
 from flask_restful import reqparse, Resource, Api
+from bigchaindb.web.views.base import make_response,check_request,make_error
+from bigchaindb.web.views import constant,parameters
 
 from bigchaindb.web.views import parameters
 
@@ -25,7 +27,10 @@ class ApiGetUnspentTxs(Resource):
         with pool() as bigchain:
             outputs = bigchain.get_outputs_filtered_not_include_freeze(args['public_key'], include_spent)
             # NOTE: We pass '..' as a path to create a valid relative URI
-            return outputs
+            return make_response(constant.RESPONSE_STATUS_SUCCESS,
+                            constant.RESPONSE_CODE_SUCCESS,
+                            "sucess",
+                            outputs)
             # return [u.to_uri('..') for u in outputs]
 
 
