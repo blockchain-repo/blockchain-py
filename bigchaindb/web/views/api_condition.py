@@ -34,6 +34,29 @@ class ApiGetUnspentTxs(Resource):
             # return [u.to_uri('..') for u in outputs]
 
 
+class ApiGetFreezeUnspentTx(Resource):
+    def get(self):
+        parser = reqparse.RequestParser()
+        parser.add_argument('public_key', type=parameters.valid_ed25519, required=True)
+        parser.add_argument('unspent', type=parameters.valid_bool)
+        parser.add_argument('contractId')
+        args = parser.parse_args()
+
+        include_spent = not args['unspent']
+        contract_id = args['contractId']
+        pub_key = args['public_key']
+
+        pool = current_app.config['bigchain_pool']
+        with pool() as bigchain:
+            outputs = bigchain.get_freeze_output(pub_key,contract_id,include_spent)
+            return make_response(constant.RESPONSE_STATUS_SUCCESS,
+                            constant.RESPONSE_CODE_SUCCESS,
+                            "sucess",
+                            outputs)
+
+
+
 condition_api.add_resource(ApiGetUnspentTxs,
                           '/getUnspentTxs',
                           strict_slashes=False)
+condition_api.add_resource(ApiGetFreezeUnspentTx,'/getFreezeUnspentTx',strict_slashes=False)

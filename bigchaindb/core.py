@@ -904,7 +904,6 @@ class Bigchain(object):
                 """
         # get all transactions in which owner is in the `owners_after` list
         response = self.backend.get_owned_ids(owner)
-
         links = []
         for tx in response:
             # disregard transactions from invalid blocks
@@ -943,7 +942,7 @@ class Bigchain(object):
 
         return links
 
-    def get_outputs_freeze(self, owner):
+    def get_outputs_freeze(self, owner,contract_id):
         """Retrieve a list of links to transaction outputs for a given public
                    key.
 
@@ -1002,7 +1001,7 @@ class Bigchain(object):
                    if not self.get_spent(o['txid'], o['cid'])]
         return outputs
 
-    def get_outputs_filtered_include_freeze(self, owner, include_spent=True):
+    def get_outputs_filtered_include_freeze(self, owner, contract_id, include_spent=True):
         """
         Get a list of output links filtered on some criteria
         """
@@ -1022,9 +1021,9 @@ class Bigchain(object):
         # return [u.to_dict() for u in outputs]
         return outputs
 
-    def get_freeze_output(self, owner, include_spent=True):
+    def get_freeze_output(self, owner, contract_id, include_spent=True):
 
-        outputs = self.get_outputs_freeze(owner)
+        outputs = self.get_outputs_freeze(owner,contract_id)
         if not include_spent:
             outputs = self.filter_unspent(outputs)
         return outputs
@@ -1052,9 +1051,8 @@ class Bigchain(object):
         tx_ids_all = self.backend.is_exist_txs(tx_ids)
         return list(set(tx_ids_all).intersection(set(tx_ids)))
 
-    def get_contract_by_id(self,tx_id):
-
-        pass
+    def get_contract_by_id(self,contract_id):
+        return self.backend.get_contract_by_id(contract_id)
 
     def get_contract_txs_by_contract_id(self):
 

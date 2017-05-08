@@ -1067,6 +1067,7 @@ class Transaction(object):
             tx_partial_dict = tx_partial.to_dict()
             tx_partial_dict = Transaction._remove_signatures(tx_partial_dict)
             tx_serialized = Transaction._to_str(tx_partial_dict)
+            print("tx_serialized==",tx_serialized)
             self._sign_fulfillment(fulfillment, index, tx_serialized,
                                    key_pairs)
         return self
@@ -1369,8 +1370,10 @@ class Transaction(object):
 
         tx_no_signatures = Transaction._remove_signatures(txtmp)
         tx_serialized = Transaction._to_str(tx_no_signatures)
-        tx_id = Transaction._to_hash(tx_serialized)
 
+        tx_id = Transaction._to_hash(tx_serialized)
+        print("tx_serialized====",tx_serialized)
+        print("id=",tx_id)
         tx['id'] = tx_id
         return tx
 
@@ -1432,6 +1435,8 @@ class Transaction(object):
         """
         # NOTE: Remove reference to avoid side effects
         tx_body = deepcopy(tx_body_old)
+        # print("tx_body_old: ",tx_body_old)
+        # print("tx_body :  ",tx_body)
         try:
             proposed_tx_id = tx_body.pop('id')
         except KeyError:
@@ -1444,10 +1449,10 @@ class Transaction(object):
         tx_body_no_signatures = Transaction._remove_signatures(tx_body)
         tx_body_serialized = Transaction._to_str(tx_body_no_signatures)
 
-        # print("tx_body_serialized: ",tx_body_serialized)
+        # print("1tx_body_serialized: ",tx_body_serialized)
         valid_tx_id = Transaction._to_hash(tx_body_serialized)
-        # print("proposed_tx_id: ",proposed_tx_id)
-        # print("valid_tx_id: ", valid_tx_id)
+        # print("2proposed_tx_id: ",proposed_tx_id)
+        # print("3valid_tx_id: ", valid_tx_id)
         if proposed_tx_id != valid_tx_id:
             raise InvalidHash()
         else:
@@ -1457,13 +1462,14 @@ class Transaction(object):
             conditions = [Condition.from_dict(condition) for condition
                           in tx['conditions']]
             #TODO  metadata & asset missing
-            # print("1--",tx['metadata'])
+            print("1--",tx['metadata'])
             metadata = Metadata.from_dict(tx['metadata'])
-            # print("2--",metadata.data)
+            print("2--",metadata.data)
             asset = Asset.from_dict(tx['asset'])
             if tx_body['version'] == 2:
                 # print("version====================2")
                 Relation = tx_body_old['transaction']['Relation']
+                print("task_id------------",Relation["TaskId"])
                 Contract = tx_body_old['transaction']['Contract']
                 timestamp = tx_body_old['transaction']['timestamp']
                 # print("time------------",timestamp)

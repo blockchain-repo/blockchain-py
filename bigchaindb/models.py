@@ -65,22 +65,25 @@ class Transaction(Transaction):
         """
         if len(self.fulfillments) == 0:
             raise ValueError('Transaction contains no fulfillments')
-        # print("3")
+        print("3")
+        # print("self::",self)
+        # print(self.id)
         input_conditions = []
         inputs_defined = all([ffill.tx_input for ffill in self.fulfillments])
-        # print("4")
+        print("4")
         if self.operation in (Transaction.CREATE, Transaction.GENESIS,Transaction.CONTRACT):
-            # print("5")
+            print("5")
             # validate inputs
             if inputs_defined:
                 raise ValueError('A CREATE operation has no inputs')
             # validate asset
-            # print("6")
+
             self.asset._validate_asset()
         elif self.operation == Transaction.TRANSFER:
             if not inputs_defined:
                 raise ValueError('Only `CREATE` transactions can have null '
                                  'inputs')
+            print("6")
             # check inputs
             # store the inputs so that we can check if the asset ids match
             input_txs = []
@@ -120,6 +123,7 @@ class Transaction(Transaction):
         if self.operation in (Transaction.CONTRACT):
             # validate contract signature
             # 1.validate the contract users signture
+            print("7")
             ContractBody = deepcopy(self.Contract["ContractBody"])
             contract_owners = ContractBody["ContractOwners"]
             contract_signatures =ContractBody["ContractSignatures"]
@@ -141,7 +145,7 @@ class Transaction(Transaction):
             # 1.validate the nodes signature
             voters = self.Relation["Voters"]
             votes = self.Relation["Votes"]
-
+            print("taskid 146 --- ",self.Relation["TaskId"])
             # tx_dict = deepcopy(self.to_dict())
             # tx_dict["transaction"].pop('Relation')
             # tx_dict["transaction"].pop('Contract')
@@ -155,11 +159,11 @@ class Transaction(Transaction):
                 owner_pubkey = voters[index]
                 signature = vote["Signature"]
                 detail_serialized = self.id
-                # print(detail_serialized)
-                # print(owner_pubkey)
-                # print(signature)
+                print(detail_serialized)
+                print(owner_pubkey)
+                print(signature)
                 if not self.is_signature_valid(detail_serialized, owner_pubkey, signature):
-                    # print("InvalidSignature")
+                    print("InvalidSignature")
                     raise InvalidSignature()
             return self
 

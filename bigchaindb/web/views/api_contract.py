@@ -60,15 +60,18 @@ class ApiCreateContractTx(Resource):
 
         pool = current_app.config['bigchain_pool']
         contractTx = request.get_json(force=True)
-        # print(contractTx)
+        print(111)
+        print(contractTx)
+
         contractTx_obj = Transaction.from_dict(contractTx)
         # TODO validate data structure /version=2;opercation=create/transfer;    has relation and contact?
-
+        print(222)
+        print(contractTx_obj)
         with pool() as bigchain:
             try:
-                # print("1")
+                print("333")
                 bigchain.validate_transaction(contractTx_obj)
-                # print("2")
+                print("444")
             except (ValueError,
                     OperationError,
                     TransactionDoesNotExist,
@@ -103,18 +106,18 @@ class ApiGetContract(Resource):
         pool = current_app.config['bigchain_pool']
         with pool() as bigchain:
             contract = bigchain.get_contract_by_id(contract_id)
-
         if not contract:
             contract = {}
             return make_response(constant.RESPONSE_STATUS_SUCCESS_NODATA,
                                  constant.RESPONSE_CODE_SUCCESS_NODATA,
                                  "contract not exist!",
-                                 contract)
+                                 list(contract))
         else:
+            print("getContract return")
             return make_response(constant.RESPONSE_STATUS_SUCCESS,
                                  constant.RESPONSE_CODE_SUCCESS,
                                  "query success",
-                                 contract)
+                                 list(contract))
 
 
 class ApiGetContractTx(Resource):

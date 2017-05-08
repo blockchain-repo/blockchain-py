@@ -212,7 +212,7 @@ class RethinkDBBackend:
         Returns:
             A cursor for the matching transactions.
         """
-
+        # print(owner)
         # TODO: use index!
         return self.connection.run(
                 r.table('bigchain', read_mode=self.read_mode)
@@ -587,3 +587,7 @@ class RethinkDBBackend:
         return self.connection.run(r.table('bigchain').get_all(r.args(tx_ids), index='transaction_id').get_field('block').concat_map(lambda doc: doc['transactions']).get_field('id').distinct())
 
 
+    def get_contract_by_id(self,contract_id):
+        return self.connection.run(r.table('bigchain').concat_map(lambda doc: doc['block']['transactions'])
+                                   .filter(r.row["transaction"]["Contract"]["ContractBody"]["ContractId"] == "feca0672-4ad7-4d9a-ad57-83d48db2269b").limit(1)
+                                   .get_field("transaction").get_field("Contract"))
