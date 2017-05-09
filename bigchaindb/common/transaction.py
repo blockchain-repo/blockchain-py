@@ -1339,11 +1339,11 @@ class Transaction(object):
             # NOTE: metadata can be None and that's OK
             metadata = None
 
-        if self.operation in (self.__class__.GENESIS, self.__class__.CREATE,self.__class__.CONTRACT):
-            asset = self.asset.to_dict()
-        else:
+        # if self.operation in (self.__class__.GENESIS, self.__class__.CREATE,self.__class__.CONTRACT):
+        asset = self.asset.to_dict()
+        # else:
             # NOTE: An `asset` in a `TRANSFER` only contains the asset's id
-            asset = {'id': self.asset.data_id}
+            # asset = {'id': self.asset.data_id}
 
         tx_body = {
             'fulfillments': [fulfillment.to_dict(fid) for fid, fulfillment
