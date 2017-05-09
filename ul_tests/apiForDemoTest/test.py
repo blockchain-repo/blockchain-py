@@ -82,8 +82,11 @@ def get_txNumberById(block_id):
         #                 or (tx['transaction']['fulfillments'].contains(lambda f: f['owners_before'].contains(pubkey))))\
         # .order_by(r.row['timestamp']).map({'id':r.row['id'],'owner_before':r.row['transaction']['fulfillments']['owners_before'],'operation':r.row['transaction']['operation'],'conditions':r.row['transaction']['conditions'],'timestamp':r.row['transaction']['timestamp']}).run(conn)
     owner = '5XAJvuRGb8B3hUesjREL7zdZ82ahZqHuBV6ttf3UEhyL'
+    # s = r.table('bigchain').concat_map(lambda doc: doc['block']['transactions'])\
+    #     .filter(lambda tx: tx['transaction']['conditions'].contains(lambda c: c['owners_after'].contains(owner))).run(conn)
     s = r.table('bigchain').concat_map(lambda doc: doc['block']['transactions'])\
-        .filter(lambda tx: tx['transaction']['conditions'].contains(lambda c: c['owners_after'].contains(owner))).run(conn)
+        .filter(r.row["transaction"]["Contract"]["ContractBody"]["ContractId"] == "feca0672-4ad7-4d9a-ad57-83d48db2269b").limit(1) \
+        .get_field("transaction").get_field("Contract").run(conn)
 
     # s = r.table('bigchain').get_all('2e83319bb7377f94a795a098ee626cddcb244fac28d2444d7555ab3feb22bcc8', index='transaction_id')\
     #     .get_field('block').get_field('transactions')[0].get_field('transaction')\

@@ -39,16 +39,18 @@ class ApiGetFreezeUnspentTx(Resource):
         parser = reqparse.RequestParser()
         parser.add_argument('public_key', type=parameters.valid_ed25519, required=True)
         parser.add_argument('unspent', type=parameters.valid_bool)
-        parser.add_argument('contractId')
+        parser.add_argument('contract_id')
+        parser.add_argument('task_id')
         args = parser.parse_args()
 
         include_spent = not args['unspent']
-        contract_id = args['contractId']
+        contract_id = args['contract_id']
+        task_id = args['task_id']
         pub_key = args['public_key']
 
         pool = current_app.config['bigchain_pool']
         with pool() as bigchain:
-            outputs = bigchain.get_freeze_output(pub_key,contract_id,include_spent)
+            outputs = bigchain.get_freeze_output(pub_key,contract_id,task_id,include_spent)
             return make_response(constant.RESPONSE_STATUS_SUCCESS,
                             constant.RESPONSE_CODE_SUCCESS,
                             "sucess",

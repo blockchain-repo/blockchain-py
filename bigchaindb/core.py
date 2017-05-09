@@ -1025,8 +1025,9 @@ class Bigchain(object):
 
         outputs = self.get_outputs_freeze(owner,contract_id)
         if not include_spent:
-            outputs = self.filter_unspent(outputs)
-        return outputs
+            outputs_after = self.filter_unspent(outputs)
+
+        return outputs_after
 
     def gettxRecordByPubkey(self,pubkey):
 
