@@ -942,7 +942,7 @@ class Bigchain(object):
 
         return links
 
-    def get_outputs_freeze(self, owner,contract_id):
+    def get_outputs_freeze(self, owner,contract_id,task_id,task_num):
         """Retrieve a list of links to transaction outputs for a given public
                    key.
 
@@ -1001,6 +1001,14 @@ class Bigchain(object):
                    if not self.get_spent(o['txid'], o['cid'])]
         return outputs
 
+    # todo check the output is transfer or unfreeze
+    def check_output_unfreeze(self,outputs):
+        flag = False
+
+
+
+        return flag
+
     def get_outputs_filtered_include_freeze(self, owner, contract_id, include_spent=True):
         """
         Get a list of output links filtered on some criteria
@@ -1021,13 +1029,40 @@ class Bigchain(object):
         # return [u.to_dict() for u in outputs]
         return outputs
 
-    def get_freeze_output(self, owner, contract_id, include_spent=True):
+    def get_freeze_output(self, owner, contract_id,task_id, task_num,include_spent=True):
+        """
+        :param owner:
+        :param contract_id:
+        :param task_id:
+        :param task_num:
+        :param include_spent:
+        :return: outputs,
+                flag(
+                    0:no asset was frozen;
+                    1:the asset was frozen;
+                    2:the frozen asset had unfreeze
+                    3:the frozen asset had transfer
+                    4:has muti-frozen asset
+                    )
+        """
+        outputs = self.get_outputs_freeze(owner,contract_id,task_id,task_num)
+        if len(outputs) == 0:
+            return 0,outputs
 
-        outputs = self.get_outputs_freeze(owner,contract_id)
         if not include_spent:
             outputs_after = self.filter_unspent(outputs)
 
-        return outputs_after
+        if len(outputs_after) == 1:
+            return 1,outputs_after
+
+        if len(outputs_after) == 0:
+            flag = self.check_output_unfreeze(outputs)
+            if flag:
+                # TODO return the outputs_after or outputs?
+                return 2, outputs_after
+            return 3,outputs_after
+        return 4,outputs_after
+
 
     def gettxRecordByPubkey(self,pubkey):
 

@@ -60,18 +60,18 @@ class ApiCreateContractTx(Resource):
 
         pool = current_app.config['bigchain_pool']
         contractTx = request.get_json(force=True)
-        print(111)
-        print(contractTx)
+        # print(111)
+        # print(contractTx)
 
         contractTx_obj = Transaction.from_dict(contractTx)
         # TODO validate data structure /version=2;opercation=create/transfer;    has relation and contact?
-        print(222)
-        print(contractTx_obj)
+        # print(222)
+        # print(contractTx_obj)
         with pool() as bigchain:
             try:
-                print("333")
+                # print("333")
                 bigchain.validate_transaction(contractTx_obj)
-                print("444")
+                # print("444")
             except (ValueError,
                     OperationError,
                     TransactionDoesNotExist,
@@ -113,11 +113,12 @@ class ApiGetContract(Resource):
                                  "contract not exist!",
                                  list(contract))
         else:
-            print("getContract return")
+            res = list(contract)
+            # print("getContract return", res)
             return make_response(constant.RESPONSE_STATUS_SUCCESS,
                                  constant.RESPONSE_CODE_SUCCESS,
                                  "query success",
-                                 list(contract))
+                                 res)
 
 
 class ApiGetContractTx(Resource):
@@ -292,7 +293,7 @@ class ApiGetUnSpend(Resource):
         return
 
 
-contract_api.add_resource(ApiCreateContract, '/createContract', strict_slashes=False)
+# contract_api.add_resource(ApiCreateContract, '/createContract', strict_slashes=False)
 contract_api.add_resource(ApiCreateContractTx, '/createContractTx', strict_slashes=False)
 contract_api.add_resource(ApiGetContract, '/getContract', strict_slashes=False)
 contract_api.add_resource(ApiGetContractTx, '/getContractTx', strict_slashes=False)

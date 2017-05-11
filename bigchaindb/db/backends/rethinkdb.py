@@ -589,5 +589,6 @@ class RethinkDBBackend:
 
     def get_contract_by_id(self,contract_id):
         return self.connection.run(r.table('bigchain').concat_map(lambda doc: doc['block']['transactions'])
-                                   .filter(r.row["transaction"]["Contract"]["ContractBody"]["ContractId"] == "feca0672-4ad7-4d9a-ad57-83d48db2269b").limit(1)
+                                   .filter(r.row["transaction"]["operation"]=="CONTRACT")
+                                   .filter(r.row["transaction"]["Contract"]["ContractBody"]["ContractId"] == contract_id).limit(1)
                                    .get_field("transaction").get_field("Contract"))
