@@ -841,56 +841,6 @@ class Bigchain(object):
     def get_transaction_no_valid(self,tx_id):
         return self.backend.get_transaction_no_valid(tx_id)
 
-    def get_outputs_include_freeze(self, owner):
-        """Retrieve a list of links to transaction outputs for a given public
-           key.
-
-        Args:
-            owner (str): base58 encoded public key.
-
-        Returns:
-            :obj:`list` of TransactionLink: list of ``txid`` s and ``output`` s
-            pointing to another transaction's condition
-        """
-        # get all transactions in which owner is in the `owners_after` list
-        response = self.backend.get_owned_ids(owner)
-
-        links = []
-        for tx in response:
-            # disregard transactions from invalid blocks
-            validity = self.get_blocks_status_containing_tx(tx['id'])
-            if Bigchain.BLOCK_VALID not in validity.values():
-                if Bigchain.BLOCK_UNDECIDED not in validity.values():
-                    continue
-
-            # NOTE: It's OK to not serialize the transaction here, as we do not
-            # use it after the execution of this function.
-            # a transaction can contain multiple outputs so we need to iterate over all of them
-            # to get a list of outputs available to spend
-            for index, output in enumerate(tx['transaction']['conditions']):
-                # for simple signature conditions there are no subfulfillments
-                # check if the owner is in the condition `owners_after`
-                details = output['condition']['details']
-                amount = output['amount']
-                merged = {'details':details,'amount':amount}
-
-                if len(output['owners_after']) == 1:
-                    if output['condition']['details']['public_key'] == owner:
-                        tx_link = TransactionLink(tx['id'], index)
-                        links.append(dict(tx_link.to_dict(), **merged))
-
-                else:
-                    # for transactions with multiple `public_keys` there will be several subfulfillments nested
-                    # in the condition. We need to iterate the subfulfillments to make sure there is a
-                    # subfulfillment for `owner`
-                    if util.condition_details_has_owner(output['condition']['details'], owner):
-                        tx_link = TransactionLink(tx['id'], index)
-                        links.append(dict(tx_link.to_dict(), **merged))
-
-                # linksAmount.append(amount)
-
-        return links
-
     def get_outputs_not_include_freeze(self, owner):
         """Retrieve a list of links to transaction outputs for a given public
                    key.
@@ -939,6 +889,56 @@ class Bigchain(object):
                         links.append(dict(tx_link.to_dict(), **merged))
 
                         # linksAmount.append(amount)
+
+        return links
+
+    def get_outputs_include_freeze(self, owner):
+        """Retrieve a list of links to transaction outputs for a given public
+           key.
+
+        Args:
+            owner (str): base58 encoded public key.
+
+        Returns:
+            :obj:`list` of TransactionLink: list of ``txid`` s and ``output`` s
+            pointing to another transaction's condition
+        """
+        # get all transactions in which owner is in the `owners_after` list
+        response = self.backend.get_owned_ids(owner)
+
+        links = []
+        for tx in response:
+            # disregard transactions from invalid blocks
+            validity = self.get_blocks_status_containing_tx(tx['id'])
+            if Bigchain.BLOCK_VALID not in validity.values():
+                if Bigchain.BLOCK_UNDECIDED not in validity.values():
+                    continue
+
+            # NOTE: It's OK to not serialize the transaction here, as we do not
+            # use it after the execution of this function.
+            # a transaction can contain multiple outputs so we need to iterate over all of them
+            # to get a list of outputs available to spend
+            for index, output in enumerate(tx['transaction']['conditions']):
+                # for simple signature conditions there are no subfulfillments
+                # check if the owner is in the condition `owners_after`
+                details = output['condition']['details']
+                amount = output['amount']
+                merged = {'details':details,'amount':amount}
+
+                if len(output['owners_after']) == 1:
+                    if output['condition']['details']['public_key'] == owner:
+                        tx_link = TransactionLink(tx['id'], index)
+                        links.append(dict(tx_link.to_dict(), **merged))
+
+                else:
+                    # for transactions with multiple `public_keys` there will be several subfulfillments nested
+                    # in the condition. We need to iterate the subfulfillments to make sure there is a
+                    # subfulfillment for `owner`
+                    if util.condition_details_has_owner(output['condition']['details'], owner):
+                        tx_link = TransactionLink(tx['id'], index)
+                        links.append(dict(tx_link.to_dict(), **merged))
+
+                # linksAmount.append(amount)
 
         return links
 
@@ -1001,12 +1001,40 @@ class Bigchain(object):
                    if not self.get_spent(o['txid'], o['cid'])]
         return outputs
 
+    def is_asset_transfer(self, txid, cid):
+        transactions = list(self.backend.get_spent(txid, cid))
+        if transactions:
+            num_valid_transactions =0
+            for transaction in transactions:
+                if self.get_transaction(transaction['id']):
+                    num_valid_transactions += 1
+                if num_valid_transactions > 1:
+                    raise exceptions.DoubleSpend('`{}` was spent more then once. There is a problem with the chain'.format(txid))
+            if num_valid_transactions:
+                # only one
+                txDict = transactions[0]
+                tx =  Transaction.from_dict(txDict)
+                con = tx.conditions
+                ful = tx.fulfillments
+                if len(ful) == len(con):
+                    ownerbefore = transactions[0]["transaction"]["fulfillments"][0]["owners_before"][0]
+                    ownerafter = transactions[0]["transaction"]["conditions"][0]["owners_after"][0]
+                    # print(ownerbefore,ownerafter)
+                    # print(ownerbefore == ownerafter)
+                    if ownerbefore != ownerafter :
+                        return True
+                    return False
+                else:
+                    return True
+        return False
+
     # todo check the output is transfer or unfreeze
-    def check_output_unfreeze(self,outputs):
+    def check_output_transfer(self,outputs):
         flag = False
-
-
-
+        outputsafter = [o for o in outputs if self.is_asset_transfer(o['txid'], o['cid'])]
+        # print("len(outputs)-->",len(outputs))
+        if len(outputsafter)!=0:
+            flag = True
         return flag
 
     def get_outputs_filtered_include_freeze(self, owner, contract_id, include_spent=True):
@@ -1056,11 +1084,12 @@ class Bigchain(object):
             return 1,outputs_after
 
         if len(outputs_after) == 0:
-            flag = self.check_output_unfreeze(outputs)
+            flag = self.check_output_transfer(outputs)
+            # print("flag-->",flag)
             if flag:
                 # TODO return the outputs_after or outputs?
-                return 2, outputs_after
-            return 3,outputs_after
+                return 3, outputs_after
+            return 2,outputs_after
         return 4,outputs_after
 
 
