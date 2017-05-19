@@ -954,7 +954,7 @@ class Bigchain(object):
                     pointing to another transaction's condition
                 """
         # get all transactions in which owner is in the `owners_after` list
-        response = self.backend.get_owned_ids(owner)
+        response = self.backend.get_owned_ids_by_task(owner,contract_id,task_id,task_num)
 
         links = []
         for tx in response:
@@ -1119,9 +1119,8 @@ class Bigchain(object):
     def get_contract_by_id(self,contract_id):
         return self.backend.get_contract_by_id(contract_id)
 
-    def get_contract_txs_by_contract_id(self):
-
-        pass
+    def get_contract_txs_by_tx_id(self,tx_id):
+        return self.backend.get_contract_txs_by_id(tx_id)
 
     def get_contract_record_by_contract_id(self):
 

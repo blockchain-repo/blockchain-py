@@ -125,26 +125,26 @@ class ApiGetContractTx(Resource):
     def post(self):
         print("getContractTx")
 
-        contract_id = request.get_json()["contract_id"]
-        if not check_request(request, "contract_id"):
+        tx_id = request.get_json()["tx_id"]
+        if not check_request(request, "tx_id"):
             return make_response(constant.RESPONSE_STATUS_PARAM_ERROE,
                                  constant.RESPONSE_CODE_PARAM_ERROE,
-                                 "param contract_id not exist")
+                                 "param tx_id not exist")
         pool = current_app.config['bigchain_pool']
         with pool() as bigchain:
-            txs = bigchain.get_contract_txs_by_contract_id(contract_id)
+            txs = bigchain.get_contract_txs_by_tx_id(tx_id)
 
         if not txs:
             txs = {}
             return make_response(constant.RESPONSE_STATUS_SUCCESS_NODATA,
                                  constant.RESPONSE_CODE_SUCCESS_NODATA,
                                  "contract or tx not exist!",
-                                 txs)
+                                 list(txs))
         else:
             return make_response(constant.RESPONSE_STATUS_SUCCESS,
                                  constant.RESPONSE_CODE_SUCCESS,
                                  "query success",
-                                 txs)
+                                 list(txs))
 
 
 class ApiGetContractRecord(Resource):

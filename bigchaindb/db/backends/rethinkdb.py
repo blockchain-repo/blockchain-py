@@ -219,6 +219,24 @@ class RethinkDBBackend:
                 .concat_map(lambda doc: doc['block']['transactions'])
                 .filter(lambda tx: tx['transaction']['conditions'].contains(
                     lambda c: c['owners_after'].contains(owner))))
+    def get_owned_ids_by_task(self, owner,contract_id,task_id,task_num):
+        """Retrieve a list of `txids` that can we used has inputs.
+
+        Args:
+            owner (str): base58 encoded public key.
+
+        Returns:
+            A cursor for the matching transactions.
+        """
+        # print(owner)
+        # TODO: use index!
+        return self.connection.run(
+                r.table('bigchain', read_mode=self.read_mode)
+                .concat_map(lambda doc: doc['block']['transactions']).filter(lambda tx: tx['transaction']['Relation']['ContractId']==contract_id)
+                .filter(lambda tx: tx['transaction']['Relation']['TaskId'] == task_id).filter(lambda tx: tx['transaction']['Relation']['TaskExecuteIdx'] == task_num)
+                .filter(lambda tx: tx['transaction']['conditions'].contains(
+                    lambda c: c['owners_after'].contains(owner))))
+
 
     def get_votes_by_block_id(self, block_id):
         """Get all the votes casted for a specific block.
@@ -592,3 +610,6 @@ class RethinkDBBackend:
                                    .filter(r.row["transaction"]["operation"]=="CONTRACT")
                                    .filter(r.row["transaction"]["Contract"]["ContractBody"]["ContractId"] == contract_id).limit(1)
                                    .get_field("transaction").get_field("Contract"))
+
+    def get_contract_txs_by_id(self,tx_id):
+        return self.connection.run(r.table('bigchain', read_mode=self.read_mode).get_all(tx_id, index='transaction_id'))
