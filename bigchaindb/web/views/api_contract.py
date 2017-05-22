@@ -275,6 +275,34 @@ class ApiFrozenAsset(Resource):
                                      "query success",
                                      result)
 
+class ApiGetTxByConHashId(Resource):
+    def post(self):
+        print("ApiGetTxByConHashId")
+        contract_hash_id = request.get_json()["contract_hash_id"]
+        if not check_request(request, "contract_hash_id"):
+            return make_response(constant.RESPONSE_STATUS_PARAM_ERROE,
+                                 constant.RESPONSE_CODE_PARAM_ERROE,
+                                 "param contract_hash_id not exist")
+        pool = current_app.config['bigchain_pool']
+        with pool() as bigchain:
+            try:
+                result = bigchain.get_tx_by_contract_hash_id(contract_hash_id)
+                print(result)
+            except(Exception):
+                return make_response(constant.RESPONSE_STATUS_SERVER_ERROE,
+                                     constant.RESPONSE_CODE_SERVER_ERROR,
+                                     "get frozen asset failed.")
+            if not result:
+                result = {}
+                return make_response(constant.RESPONSE_STATUS_SUCCESS_NODATA,
+                                     constant.RESPONSE_CODE_SUCCESS_NODATA,
+                                     "no asset exist!",
+                                     result)
+            else:
+                return make_response(constant.RESPONSE_STATUS_SUCCESS,
+                                     constant.RESPONSE_CODE_SUCCESS,
+                                     "query success",
+                                     list(result))
 
 class ApiGetCanSpend(Resource):
     def post(self):
@@ -297,6 +325,8 @@ class ApiGetUnSpend(Resource):
 contract_api.add_resource(ApiCreateContractTx, '/createContractTx', strict_slashes=False)
 contract_api.add_resource(ApiGetContract, '/getContract', strict_slashes=False)
 contract_api.add_resource(ApiGetContractTx, '/getContractTx', strict_slashes=False)
+contract_api.add_resource(ApiGetTxByConHashId,'/getTxByConHashId', strict_slashes=False)
+
 contract_api.add_resource(ApiGetContractRecord, '/getContractRecord', strict_slashes=False)
 contract_api.add_resource(ApiFreezeAsset, '/freezeAsset', strict_slashes=False)
 contract_api.add_resource(ApiUnfreeezeAsset, '/unfreezeAsset', strict_slashes=False)

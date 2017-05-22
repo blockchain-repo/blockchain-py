@@ -236,7 +236,20 @@ class RethinkDBBackend:
                 .filter(lambda tx: tx['transaction']['Relation']['TaskId'] == task_id).filter(lambda tx: tx['transaction']['Relation']['TaskExecuteIdx'] == task_num)
                 .filter(lambda tx: tx['transaction']['conditions'].contains(
                     lambda c: c['owners_after'].contains(owner))))
+    def get_tx_by_contract_hash_id(self, contract_hash_id):
+        """Retrieve a list of `txids` that can we used has inputs.
 
+        Args:
+            owner (str): base58 encoded public key.
+
+        Returns:
+            A cursor for the matching transactions.
+        """
+        # print(owner)
+        # TODO: use index!
+        return self.connection.run(
+                r.table('bigchain', read_mode=self.read_mode)
+                .concat_map(lambda doc: doc['block']['transactions']).filter(lambda tx: tx['transaction']['Relation']['ContractHashId']==contract_hash_id))
 
     def get_votes_by_block_id(self, block_id):
         """Get all the votes casted for a specific block.

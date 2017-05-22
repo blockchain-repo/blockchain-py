@@ -1122,6 +1122,8 @@ class Bigchain(object):
     def get_contract_txs_by_tx_id(self,tx_id):
         return self.backend.get_contract_txs_by_id(tx_id)
 
+    def get_tx_by_contract_hash_id(self,contract_hash_id):
+        return self.backend.get_tx_by_contract_hash_id(contract_hash_id)
     def get_contract_record_by_contract_id(self):
 
         pass
