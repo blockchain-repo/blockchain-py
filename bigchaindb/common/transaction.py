@@ -620,12 +620,12 @@ class Transaction(object):
     CREATE = 'CREATE'
     TRANSFER = 'TRANSFER'
     GENESIS = 'GENESIS'
-
+    INTERIM = 'INTERIM'
     CONTRACT = 'CONTRACT'
     FREEZEASSET = 'FREEZE'
     UNFREEZEASSET = 'UNFREEZE'
 
-    ALLOWED_OPERATIONS = (CREATE, TRANSFER, GENESIS, CONTRACT, FREEZEASSET,UNFREEZEASSET)
+    ALLOWED_OPERATIONS = (CREATE, TRANSFER, GENESIS, CONTRACT, FREEZEASSET,UNFREEZEASSET,INTERIM)
     VERSION = 1
 
     def __init__(self, operation, asset, fulfillments=None, conditions=None,
@@ -1372,8 +1372,8 @@ class Transaction(object):
         tx_serialized = Transaction._to_str(tx_no_signatures)
 
         tx_id = Transaction._to_hash(tx_serialized)
-        # print("tx_serialized====",tx_serialized)
-        # print("id=",tx_id)
+        # print("--tx_serialized====",tx_serialized)
+        # print("--id=",tx_id)
         tx['id'] = tx_id
         return tx
 
@@ -1457,11 +1457,7 @@ class Transaction(object):
             raise InvalidHash()
         else:
             tx = tx_body['transaction']
-            fulfillments = [Fulfillment.from_dict(fulfillment) for fulfillment
-                            in tx['fulfillments']]
-            conditions = [Condition.from_dict(condition) for condition
-                          in tx['conditions']]
-            #TODO  metadata & asset missing
+            # TODO  metadata & asset missing
             # print("1--",tx['metadata'])
             metadata = Metadata.from_dict(tx['metadata'])
             # print("2--",metadata.data)
@@ -1477,5 +1473,10 @@ class Transaction(object):
                 Relation = None
                 Contract = None
                 timestamp = tx['timestamp']
+            # print("3")
+            fulfillments = [Fulfillment.from_dict(fulfillment) for fulfillment
+                            in tx['fulfillments']]
+            conditions = [Condition.from_dict(condition) for condition
+                          in tx['conditions']]
             return cls(tx['operation'], asset=asset, fulfillments=fulfillments, conditions=conditions, metadata=metadata,
                        timestamp=timestamp, version=tx_body['version'],Relation=Relation,Contract=Contract)

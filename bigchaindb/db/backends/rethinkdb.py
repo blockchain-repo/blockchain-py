@@ -231,11 +231,13 @@ class RethinkDBBackend:
         # print(owner)
         # TODO: use index!
         return self.connection.run(
-                r.table('bigchain', read_mode=self.read_mode)
-                .concat_map(lambda doc: doc['block']['transactions']).filter(lambda tx: tx['transaction']['Relation']['ContractId']==contract_id)
-                .filter(lambda tx: tx['transaction']['Relation']['TaskId'] == task_id).filter(lambda tx: tx['transaction']['Relation']['TaskExecuteIdx'] == task_num)
-                .filter(lambda tx: tx['transaction']['conditions'].contains(
-                    lambda c: c['owners_after'].contains(owner))))
+            r.table('bigchain').concat_map(lambda var_1: var_1['block']['transactions']).filter(lambda var_2: (
+            var_2['transaction']['Relation']['ContractId'] == contract_id)).filter(
+                lambda var_3: (var_3['transaction']['Relation']['TaskId'] == task_id)).filter(
+                lambda var_4: (var_4['transaction']['Relation']['TaskExecuteIdx'] == int(task_num))).filter(
+                lambda var_5: var_5['transaction']['conditions'].contains(
+                    lambda var_6: var_6['owners_after'].contains(owner))))
+
     def get_tx_by_contract_hash_id(self, contract_hash_id):
         """Retrieve a list of `txids` that can we used has inputs.
 

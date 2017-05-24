@@ -37,6 +37,7 @@ class ApiGetUnspentTxs(Resource):
 
 class ApiGetFreezeUnspentTx(Resource):
     def get(self):
+        print('ApiGetFreezeUnspentTx')
         parser = reqparse.RequestParser()
         parser.add_argument('public_key', type=parameters.valid_ed25519, required=True)
         parser.add_argument('unspent', type=parameters.valid_bool)

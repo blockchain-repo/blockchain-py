@@ -955,15 +955,17 @@ class Bigchain(object):
                 """
         # get all transactions in which owner is in the `owners_after` list
         response = self.backend.get_owned_ids_by_task(owner,contract_id,task_id,task_num)
-
+        # print("1---",response)
         links = []
         for tx in response:
+            # print("2---")
             # disregard transactions from invalid blocks
             validity = self.get_blocks_status_containing_tx(tx['id'])
+            # print("3---",validity)
             if Bigchain.BLOCK_VALID not in validity.values():
                 if Bigchain.BLOCK_UNDECIDED not in validity.values():
                     continue
-
+            # print("4---")
             # NOTE: It's OK to not serialize the transaction here, as we do not
             # use it after the execution of this function.
             # a transaction can contain multiple outputs so we need to iterate over all of them
@@ -971,7 +973,7 @@ class Bigchain(object):
             for index, output in enumerate(tx['transaction']['conditions']):
                 # for simple signature conditions there are no subfulfillments
                 # check if the owner is in the condition `owners_after`
-
+                # print(index)
                 if not output['isfreeze']:
                     continue
 
@@ -1075,6 +1077,7 @@ class Bigchain(object):
         """
         outputs = self.get_outputs_freeze(owner,contract_id,task_id,task_num)
         if len(outputs) == 0:
+            print("0---")
             return 0,outputs
 
         if not include_spent:
@@ -1123,6 +1126,7 @@ class Bigchain(object):
         return self.backend.get_contract_txs_by_id(tx_id)
 
     def get_tx_by_contract_hash_id(self,contract_hash_id):
+        # need to check the tx is validate or not
         return self.backend.get_tx_by_contract_hash_id(contract_hash_id)
     def get_contract_record_by_contract_id(self):
 

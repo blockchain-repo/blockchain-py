@@ -19,39 +19,39 @@ contract_views = Blueprint('contract_views', __name__)
 contract_api = Api(contract_views)
 
 
-class ApiCreateContract(Resource):
-    def post(self):
-        print("createContract")
-        pool = current_app.config['bigchain_pool']
-
-        contract = request.get_json(force=True)
-        contract_obj = Transaction.from_dict(contract)
-
-        # TODO validate data structure /version=2;opercation=Contract;has relation and contact
-
-        with pool() as bigchain:
-            try:
-                bigchain.validate_transaction(contract_obj)
-            except (ValueError,
-                    OperationError,
-                    TransactionDoesNotExist,
-                    TransactionOwnerError,
-                    FulfillmentNotInValidBlock,
-                    DoubleSpend,
-                    InvalidHash,
-                    InvalidSignature,
-                    AmountError) as e:
-                return make_response(constant.RESPONSE_STATUS_PARAM_ERROE,
-                                 constant.RESPONSE_CODE_PARAM_ERROE,
-                                 "invalidate contract.")
-            else:
-                tx_result = bigchain.write_transaction(contract_obj)
-                result_messages = "add contract success"
-
-        return make_response(constant.RESPONSE_STATUS_SUCCESS,
-                             constant.RESPONSE_CODE_SUCCESS,
-                             result_messages,
-                             tx_result)
+# class ApiCreateContract(Resource):
+#     def post(self):
+#         print("createContract")
+#         pool = current_app.config['bigchain_pool']
+#
+#         contract = request.get_json(force=True)
+#         contract_obj = Transaction.from_dict(contract)
+#
+#         # TODO validate data structure /version=2;opercation=Contract;has relation and contact
+#
+#         with pool() as bigchain:
+#             try:
+#                 bigchain.validate_transaction(contract_obj)
+#             except (ValueError,
+#                     OperationError,
+#                     TransactionDoesNotExist,
+#                     TransactionOwnerError,
+#                     FulfillmentNotInValidBlock,
+#                     DoubleSpend,
+#                     InvalidHash,
+#                     InvalidSignature,
+#                     AmountError) as e:
+#                 return make_response(constant.RESPONSE_STATUS_PARAM_ERROE,
+#                                  constant.RESPONSE_CODE_PARAM_ERROE,
+#                                  "invalidate contract.")
+#             else:
+#                 tx_result = bigchain.write_transaction(contract_obj)
+#                 result_messages = "add contract success"
+#
+#         return make_response(constant.RESPONSE_STATUS_SUCCESS,
+#                              constant.RESPONSE_CODE_SUCCESS,
+#                              result_messages,
+#                              tx_result)
 
 
 class ApiCreateContractTx(Resource):
@@ -174,106 +174,106 @@ class ApiGetContractRecord(Resource):
                                  txs)
 
 
-class ApiFreezeAsset(Resource):
-    def post(self):
-        print("freezeAsset")
-        pool = current_app.config['bigchain_pool']
-        freezeTx = request.get_json(force=True)
-        freezeTx_obj = Transaction.from_dict(freezeTx)
-
-        # TODO validate data structure /version=2;opercation=freezeasset;    has relation and contact?
-
-        with pool() as bigchain:
-            try:
-                bigchain.validate_transaction(freezeTx_obj)
-            except (ValueError,
-                    OperationError,
-                    TransactionDoesNotExist,
-                    TransactionOwnerError,
-                    FulfillmentNotInValidBlock,
-                    DoubleSpend,
-                    InvalidHash,
-                    InvalidSignature,
-                    AmountError) as e:
-                return make_response(constant.RESPONSE_STATUS_PARAM_ERROE,
-                                     constant.RESPONSE_CODE_PARAM_ERROE,
-                                     "invalidate freeze asset transaction.")
-            tx_result = bigchain.write_transaction(freezeTx_obj)
-            result_messages = "freeze asset success"
-
-        return make_response(constant.RESPONSE_STATUS_SUCCESS,
-                             constant.RESPONSE_CODE_SUCCESS,
-                             result_messages,
-                             tx_result)
-
-
-class ApiUnfreeezeAsset(Resource):
-    def post(self):
-        print("unfreezeAsset")
-        pool = current_app.config['bigchain_pool']
-        freezeTx = request.get_json(force=True)
-        freezeTx_obj = Transaction.from_dict(freezeTx)
-
-        # TODO validate data structure /version=2;opercation=unfreezrasset;    has relation and contact?
-
-        with pool() as bigchain:
-            try:
-                bigchain.validate_transaction(freezeTx_obj)
-            except (ValueError,
-                    OperationError,
-                    TransactionDoesNotExist,
-                    TransactionOwnerError,
-                    FulfillmentNotInValidBlock,
-                    DoubleSpend,
-                    InvalidHash,
-                    InvalidSignature,
-                    AmountError) as e:
-                return make_response(constant.RESPONSE_STATUS_PARAM_ERROE,
-                                     constant.RESPONSE_CODE_PARAM_ERROE,
-                                     "invalidate freeze asset transaction.")
-            tx_result = bigchain.write_transaction(freezeTx_obj)
-            result_messages = "freeze asset success"
-
-        return make_response(constant.RESPONSE_STATUS_SUCCESS,
-                             constant.RESPONSE_CODE_SUCCESS,
-                             result_messages,
-                             tx_result)
+# class ApiFreezeAsset(Resource):
+#     def post(self):
+#         print("freezeAsset")
+#         pool = current_app.config['bigchain_pool']
+#         freezeTx = request.get_json(force=True)
+#         freezeTx_obj = Transaction.from_dict(freezeTx)
+#
+#         # TODO validate data structure /version=2;opercation=freezeasset;    has relation and contact?
+#
+#         with pool() as bigchain:
+#             try:
+#                 bigchain.validate_transaction(freezeTx_obj)
+#             except (ValueError,
+#                     OperationError,
+#                     TransactionDoesNotExist,
+#                     TransactionOwnerError,
+#                     FulfillmentNotInValidBlock,
+#                     DoubleSpend,
+#                     InvalidHash,
+#                     InvalidSignature,
+#                     AmountError) as e:
+#                 return make_response(constant.RESPONSE_STATUS_PARAM_ERROE,
+#                                      constant.RESPONSE_CODE_PARAM_ERROE,
+#                                      "invalidate freeze asset transaction.")
+#             tx_result = bigchain.write_transaction(freezeTx_obj)
+#             result_messages = "freeze asset success"
+#
+#         return make_response(constant.RESPONSE_STATUS_SUCCESS,
+#                              constant.RESPONSE_CODE_SUCCESS,
+#                              result_messages,
+#                              tx_result)
 
 
-class ApiFrozenAsset(Resource):
-    def post(self):
-        print("frozenAsset")
-        public_key = request.get_json()["public_key"]
-        if not check_request(request, "public_key"):
-            return make_response(constant.RESPONSE_STATUS_PARAM_ERROE,
-                                 constant.RESPONSE_CODE_PARAM_ERROE,
-                                 "param public_key not exist")
-        unspent = request.get_json()["unspent"]
-        if not check_request(request, "unspent"):
-            return make_response(constant.RESPONSE_STATUS_PARAM_ERROE,
-                                 constant.RESPONSE_CODE_PARAM_ERROE,
-                                 "param unspent not exist")
+# class ApiUnfreeezeAsset(Resource):
+#     def post(self):
+#         print("unfreezeAsset")
+#         pool = current_app.config['bigchain_pool']
+#         freezeTx = request.get_json(force=True)
+#         freezeTx_obj = Transaction.from_dict(freezeTx)
+#
+#         # TODO validate data structure /version=2;opercation=unfreezrasset;    has relation and contact?
+#
+#         with pool() as bigchain:
+#             try:
+#                 bigchain.validate_transaction(freezeTx_obj)
+#             except (ValueError,
+#                     OperationError,
+#                     TransactionDoesNotExist,
+#                     TransactionOwnerError,
+#                     FulfillmentNotInValidBlock,
+#                     DoubleSpend,
+#                     InvalidHash,
+#                     InvalidSignature,
+#                     AmountError) as e:
+#                 return make_response(constant.RESPONSE_STATUS_PARAM_ERROE,
+#                                      constant.RESPONSE_CODE_PARAM_ERROE,
+#                                      "invalidate freeze asset transaction.")
+#             tx_result = bigchain.write_transaction(freezeTx_obj)
+#             result_messages = "freeze asset success"
+#
+#         return make_response(constant.RESPONSE_STATUS_SUCCESS,
+#                              constant.RESPONSE_CODE_SUCCESS,
+#                              result_messages,
+#                              tx_result)
 
-        pool = current_app.config['bigchain_pool']
-        # the asset frozen by contract
-        with pool() as bigchain:
-            try:
-                result = bigchain.get_freeze_output(public_key,unspent=unspent)
-            except(Exception):
-                return make_response(constant.RESPONSE_STATUS_SERVER_ERROE,
-                                     constant.RESPONSE_CODE_SERVER_ERROR,
-                                     "get frozen asset failed.")
-            if not result:
-                result = {}
-                return make_response(constant.RESPONSE_STATUS_SUCCESS_NODATA,
-                                     constant.RESPONSE_CODE_SUCCESS_NODATA,
-                                     "no asset exist!",
-                                     result)
-            else:
-                return make_response(constant.RESPONSE_STATUS_SUCCESS,
-                                     constant.RESPONSE_CODE_SUCCESS,
-                                     "query success",
-                                     result)
+
+# class ApiFrozenAsset(Resource):
+#     def post(self):
+#         print("frozenAsset")
+#         public_key = request.get_json()["public_key"]
+#         if not check_request(request, "public_key"):
+#             return make_response(constant.RESPONSE_STATUS_PARAM_ERROE,
+#                                  constant.RESPONSE_CODE_PARAM_ERROE,
+#                                  "param public_key not exist")
+#         unspent = request.get_json()["unspent"]
+#         if not check_request(request, "unspent"):
+#             return make_response(constant.RESPONSE_STATUS_PARAM_ERROE,
+#                                  constant.RESPONSE_CODE_PARAM_ERROE,
+#                                  "param unspent not exist")
+#
+#         pool = current_app.config['bigchain_pool']
+#         # the asset frozen by contract
+#         with pool() as bigchain:
+#             try:
+#                 result = bigchain.get_freeze_output(public_key,unspent=unspent)
+#             except(Exception):
+#                 return make_response(constant.RESPONSE_STATUS_SERVER_ERROE,
+#                                      constant.RESPONSE_CODE_SERVER_ERROR,
+#                                      "get frozen asset failed.")
+#             if not result:
+#                 result = {}
+#                 return make_response(constant.RESPONSE_STATUS_SUCCESS_NODATA,
+#                                      constant.RESPONSE_CODE_SUCCESS_NODATA,
+#                                      "no asset exist!",
+#                                      result)
+#             else:
+#                 return make_response(constant.RESPONSE_STATUS_SUCCESS,
+#                                      constant.RESPONSE_CODE_SUCCESS,
+#                                      "query success",
+#                                      result)
 
 class ApiGetTxByConHashId(Resource):
     def post(self):
@@ -304,21 +304,21 @@ class ApiGetTxByConHashId(Resource):
                                      "query success",
                                      list(result))
 
-class ApiGetCanSpend(Resource):
-    def post(self):
-        print("getCanSpend")
-        # all asset include the asset frozen by the contract
-
-        return
-
-
-class ApiGetUnSpend(Resource):
-    def post(self):
-        print("getUnSpend")
-        # the asset which does not contains the asset frozen by the contract
-
-
-        return
+# class ApiGetCanSpend(Resource):
+#     def post(self):
+#         print("getCanSpend")
+#         # all asset include the asset frozen by the contract
+#
+#         return
+#
+#
+# class ApiGetUnSpend(Resource):
+#     def post(self):
+#         print("getUnSpend")
+#         # the asset which does not contains the asset frozen by the contract
+#
+#
+#         return
 
 
 # contract_api.add_resource(ApiCreateContract, '/createContract', strict_slashes=False)
@@ -326,10 +326,9 @@ contract_api.add_resource(ApiCreateContractTx, '/createContractTx', strict_slash
 contract_api.add_resource(ApiGetContract, '/getContract', strict_slashes=False)
 contract_api.add_resource(ApiGetContractTx, '/getContractTx', strict_slashes=False)
 contract_api.add_resource(ApiGetTxByConHashId,'/getTxByConHashId', strict_slashes=False)
-
 contract_api.add_resource(ApiGetContractRecord, '/getContractRecord', strict_slashes=False)
-contract_api.add_resource(ApiFreezeAsset, '/freezeAsset', strict_slashes=False)
-contract_api.add_resource(ApiUnfreeezeAsset, '/unfreezeAsset', strict_slashes=False)
-contract_api.add_resource(ApiFrozenAsset, '/frozenAsset', strict_slashes=False)
-contract_api.add_resource(ApiGetCanSpend, '/getCanSpend', strict_slashes=False)
-contract_api.add_resource(ApiGetUnSpend, '/getUnSpend', strict_slashes=False)
+# contract_api.add_resource(ApiFreezeAsset, '/freezeAsset', strict_slashes=False)
+# contract_api.add_resource(ApiUnfreeezeAsset, '/unfreezeAsset', strict_slashes=False)
+# contract_api.add_resource(ApiFrozenAsset, '/frozenAsset', strict_slashes=False)
+# contract_api.add_resource(ApiGetCanSpend, '/getCanSpend', strict_slashes=False)
+# contract_api.add_resource(ApiGetUnSpend, '/getUnSpend', strict_slashes=False)

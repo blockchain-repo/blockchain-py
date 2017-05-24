@@ -71,7 +71,7 @@ class Transaction(Transaction):
         input_conditions = []
         inputs_defined = all([ffill.tx_input for ffill in self.fulfillments])
         # print("4")
-        if self.operation in (Transaction.CREATE, Transaction.GENESIS,Transaction.CONTRACT):
+        if self.operation in (Transaction.CREATE, Transaction.GENESIS,Transaction.CONTRACT,Transaction.INTERIM):
             # print("5")
             # validate inputs
             if inputs_defined:
