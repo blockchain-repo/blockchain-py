@@ -659,7 +659,7 @@ class Transaction(object):
 
         # Only assets for 'CREATE' operations can be un-defined.
         if (asset and not isinstance(asset, Asset) or
-                not asset and operation != Transaction.CREATE and operation != Transaction.CONTRACT):
+                not asset and operation != Transaction.CREATE and operation != Transaction.CONTRACT and operation != Transaction.INTERIM):
             raise TypeError('`asset` must be an Asset instance')
 
         if conditions and not isinstance(conditions, list):
@@ -1228,7 +1228,7 @@ class Transaction(object):
             Returns:
                 bool: If all Fulfillments are valid.
         """
-        if self.operation in (Transaction.CREATE, Transaction.GENESIS,Transaction.CONTRACT):
+        if self.operation in (Transaction.CREATE, Transaction.GENESIS,Transaction.CONTRACT,Transaction.INTERIM):
             # NOTE: Since in the case of a `CREATE`-transaction we do not have
             #       to check for input_conditions, we're just submitting dummy
             #       values to the actual method. This simplifies it's logic
@@ -1312,7 +1312,7 @@ class Transaction(object):
         except (TypeError, ValueError, ParsingError):
             return False
 
-        if operation in (Transaction.CREATE, Transaction.GENESIS,Transaction.CONTRACT):
+        if operation in (Transaction.CREATE, Transaction.GENESIS,Transaction.CONTRACT,Transaction.INTERIM):
             # NOTE: In the case of a `CREATE` or `GENESIS` transaction, the
             #       input condition is always validate to `True`.
             input_cond_valid = True

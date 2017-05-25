@@ -63,22 +63,29 @@ class Transaction(Transaction):
             InvalidHash: if the hash of the transaction is wrong
             InvalidSignature: if the signature of the transaction is wrong
         """
-        if len(self.fulfillments) == 0:
+        # print(self.operation)
+        if len(self.fulfillments) == 0 and self.operation !=Transaction.CONTRACT and self.operation !=Transaction.INTERIM:
+            # print(self.id)
+            print('Transaction contains no fulfillments')
             raise ValueError('Transaction contains no fulfillments')
         # print("3")
         # print("self::",self)
-        # print(self.id)
+        if len(self.conditions) == 0 and self.operation !=Transaction.CONTRACT and self.operation !=Transaction.INTERIM:
+            print('Transaction contains no conditions')
+            raise  ValueError('Transaction contains no conditions')
+
         input_conditions = []
         inputs_defined = all([ffill.tx_input for ffill in self.fulfillments])
-        # print("4")
-        if self.operation in (Transaction.CREATE, Transaction.GENESIS,Transaction.CONTRACT,Transaction.INTERIM):
+        # print("4",inputs_defined)
+        if self.operation in (Transaction.CREATE, Transaction.GENESIS):
             # print("5")
             # validate inputs
             if inputs_defined:
                 raise ValueError('A CREATE operation has no inputs')
             # validate asset
-
             self.asset._validate_asset()
+        elif self.operation in (Transaction.CONTRACT,Transaction.INTERIM):
+            pass
         elif self.operation == Transaction.TRANSFER:
             if not inputs_defined:
                 raise ValueError('Only `CREATE` transactions can have null '
@@ -136,7 +143,7 @@ class Transaction(Transaction):
                 signature = contract_sign["Signature"]
                 if not self.is_signature_valid(detail_serialized, owner_pubkey, signature):
                     raise InvalidSignature()
-            # TODO 2.validate the contract votes
+            # TODO 2.validate the contract votes?
 
             return self
 

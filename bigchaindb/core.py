@@ -1018,7 +1018,7 @@ class Bigchain(object):
                 tx =  Transaction.from_dict(txDict)
                 con = tx.conditions
                 ful = tx.fulfillments
-                if len(ful) == len(con):
+                if len(ful) >0 and len(con)>0:
                     ownerbefore = transactions[0]["transaction"]["fulfillments"][0]["owners_before"][0]
                     ownerafter = transactions[0]["transaction"]["conditions"][0]["owners_after"][0]
                     # print(ownerbefore,ownerafter)
@@ -1077,7 +1077,7 @@ class Bigchain(object):
         """
         outputs = self.get_outputs_freeze(owner,contract_id,task_id,task_num)
         if len(outputs) == 0:
-            print("0---")
+            # print("0---")
             return 0,outputs
 
         if not include_spent:
