@@ -98,16 +98,18 @@ def get_txNumberById(block_id):
 
     # s = r.table('bigchain').get_all('126ff745192eea5873fe0b18559035e06a360e57785083579889bfaaa254b0ca', index='transaction_id').run(conn)
 
-    print(r.table('bigchain' ).concat_map(lambda doc: doc['block']['transactions'])\
-        .filter( lambda tx: tx['transaction']['Relation']['ContractId'] == contract_id)\
-        .filter(lambda tx: tx['transaction']['Relation']['TaskId'] == taskId)\
-        .filter( lambda tx: tx['transaction']['Relation']['TaskExecuteIdx'] == taskNUm)\
-        .filter(lambda tx: tx['transaction']['conditions'].contains(lambda c: c['owners_after'].contains(owner))))
-    s = r.table('bigchain',read_mode='majority').concat_map(lambda doc: doc['block']['transactions'])\
-        .filter( lambda tx: tx['transaction']['Relation']['ContractId'] == contract_id)\
-        .filter(lambda tx: tx['transaction']['Relation']['TaskId'] == taskId)\
-        .filter( lambda tx: tx['transaction']['Relation']['TaskExecuteIdx'] == taskNUm)\
-        .filter(lambda tx: tx['transaction']['conditions'].contains(lambda c: c['owners_after'].contains(owner))).run(conn)
+    # print(r.table('bigchain' ).concat_map(lambda doc: doc['block']['transactions'])\
+    #     .filter( lambda tx: tx['transaction']['Relation']['ContractId'] == contract_id)\
+    #     .filter(lambda tx: tx['transaction']['Relation']['TaskId'] == taskId)\
+    #     .filter( lambda tx: tx['transaction']['Relation']['TaskExecuteIdx'] == taskNUm)\
+    #     .filter(lambda tx: tx['transaction']['conditions'].contains(lambda c: c['owners_after'].contains(owner))))
+    # s = r.table('bigchain',read_mode='majority').concat_map(lambda doc: doc['block']['transactions'])\
+    #     .filter( lambda tx: tx['transaction']['Relation']['ContractId'] == contract_id)\
+    #     .filter(lambda tx: tx['transaction']['Relation']['TaskId'] == taskId)\
+    #     .filter( lambda tx: tx['transaction']['Relation']['TaskExecuteIdx'] == taskNUm)\
+    #     .filter(lambda tx: tx['transaction']['conditions'].contains(lambda c: c['owners_after'].contains(owner))).run(conn)
+    contract_hash_id = '63841426ea1c501745d56ce47a4e7b93bf85841d54f2c77102ce488ac0ce8b51'
+    s = r.table('bigchain').concat_map(lambda doc: doc['block']['transactions']).filter(lambda tx: tx['transaction']['Relation']['ContractHashId']==contract_hash_id).run(conn)
     # s = r.table('bigchain').get_all('2e83319bb7377f94a795a098ee626cddcb244fac28d2444d7555ab3feb22bcc8', index='transaction_id')\
     #     .get_field('block').get_field('transactions')[0].get_field('transaction')\
     #     .get_field('conditions')[0][1].update({"isfreeze":True}).run(conn)

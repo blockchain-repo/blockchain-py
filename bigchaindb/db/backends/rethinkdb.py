@@ -90,7 +90,7 @@ class RethinkDBBackend:
 
         return self.connection.run(
                 r.table('backlog')
-                .filter(lambda tx: time() - tx['assignment_timestamp'] > reassign_delay))
+                .filter(lambda tx: time() - tx['assignment_timestamp'] > reassign_delay).limit(10000))
 
     def get_transaction_from_block(self, transaction_id, block_id):
         """Get a transaction from a specific block.
