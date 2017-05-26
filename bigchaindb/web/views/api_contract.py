@@ -287,11 +287,11 @@ class ApiGetTxByConHashId(Resource):
         with pool() as bigchain:
             try:
                 result = bigchain.get_tx_by_contract_hash_id(contract_hash_id)
-                print(result)
+                # print(result)
             except(Exception):
                 return make_response(constant.RESPONSE_STATUS_SERVER_ERROE,
                                      constant.RESPONSE_CODE_SERVER_ERROR,
-                                     "get frozen asset failed.")
+                                     "get output failed.")
             if not result:
                 result = {}
                 return make_response(constant.RESPONSE_STATUS_SUCCESS_NODATA,
