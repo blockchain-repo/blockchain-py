@@ -39,7 +39,7 @@ config = {
     },
     'api_endpoint': os.environ.get('BIGCHAINDB_API_ENDPOINT') or 'http://localhost:{}/uniledger/v1'
         .format(unichain_config['server_config']['server_port']),
-    'backlog_reassign_delay': 30,
+    'backlog_reassign_delay': 120,
     'logger_config' : {
         'debug_to_console' : False,
         'debug_to_file' : False
@@ -53,7 +53,7 @@ config = {
         'block_pipeline.block_size_detal':100,
         'election_pipeline.wait_time':10,
         'stale_pipeline.timeout':10,
-        'stale_pipeline.assignee_timeout':20,
+        'stale_pipeline.assignee_timeout':100,
         'stale_pipeline.heartbeat_timeout':20,
         'vote_pipeline.fraction_of_cores':1
     },
