@@ -45,6 +45,21 @@ class StaleTransactionMonitor:
         mykey = self.bigchain.me
 
         # 有reassignee权限的node key
+
+        total_transaction_count =self.bigchain.get_txNumber()
+        total_block_count = self.bigchain.get_BlockNumber()
+        invalid_block_count = self.bigchain.get_allInvalidBlock_number()
+        invalid_block_rate = invalid_block_count / total_block_count
+
+        # 交易总数
+        monitor.gauge('total_transaction_count', value=total_transaction_count)
+        # 区块总数
+        monitor.gauge('total_block_count', value=total_block_count)
+        # 无效区块数
+        monitor.gauge('invalid_block_count', value=invalid_block_count)
+        # 无效块占比
+        monitor.gauge('invalid_block_rate', value=invalid_block_rate)
+
         nodeid, assigneekey = self.bigchain.getAssigneekey()
         # TODO update ,1st check nodes 2st check txs
         if mykey == assigneekey:

@@ -555,6 +555,10 @@ class RethinkDBBackend:
         else:
             return self.connection.run(r.table('rewrite').order_by(r.desc(r.row['timestamp'])).get_field('id').limit(1000))
 
+
+    def get_allInvalidBlock_number(self, startTime=r.minval, endTime=r.maxval):
+        return self.connection.run(r.table('rewrite').between(startTime, endTime, index="block_timestamp").count())
+
     # def get_invalidBlockByS(self,startTime):
     #     return self.connection.run(r.table('rewrite').between(startTime, r.maxval, index='block_timestamp').get_field('id'))
     #

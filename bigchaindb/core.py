@@ -794,6 +794,10 @@ class Bigchain(object):
             return self.backend.get_invalidBlockByTime(startTime, endTime)
 
 
+    def get_allInvalidBlock_number(self, startTime=None, endTime=None):
+        return self.backend.get_allInvalidBlock_number()
+
+
     def get_BlockIdList(self, startTime, endTime):
         if startTime is None and endTime is None:
             blockCount = self.backend.get_BlockNumber()
