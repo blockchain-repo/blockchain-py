@@ -147,7 +147,11 @@ class Vote:
         validity = 'valid' if vote['vote']['is_block_valid'] else 'invalid'
         logger.info("Vote '%s' block %s , node_pubkey = %s", validity,
                     vote['vote']['voting_for_block'],vote['node_pubkey'])
-        self.bigchain.write_vote(vote)
+        if monitor is not None:
+            with monitor.timer('write_vote'):
+                self.bigchain.write_vote(vote)
+        else:
+            self.bigchain.write_vote(vote)
         return vote
 
 
