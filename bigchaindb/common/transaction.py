@@ -625,7 +625,7 @@ class Transaction(object):
     FREEZEASSET = 'FREEZE'
     UNFREEZEASSET = 'UNFREEZE'
 
-    ALLOWED_OPERATIONS = (CREATE, TRANSFER, GENESIS, CONTRACT, FREEZEASSET,UNFREEZEASSET,INTERIM)
+    ALLOWED_OPERATIONS = (CREATE, TRANSFER, GENESIS, CONTRACT,INTERIM)
     VERSION = 1
 
     def __init__(self, operation, asset, fulfillments=None, conditions=None,
