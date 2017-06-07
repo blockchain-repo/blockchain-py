@@ -64,6 +64,8 @@ class Transaction(Transaction):
             InvalidSignature: if the signature of the transaction is wrong
         """
         # print(self.operation)
+        if self.operation == Transaction.METADATA:
+            return self
         if len(self.fulfillments) == 0 and self.operation !=Transaction.CONTRACT and self.operation !=Transaction.INTERIM:
             # print(self.id)
             print('Transaction contains no fulfillments')

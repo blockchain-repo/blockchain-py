@@ -230,6 +230,37 @@ class ApiGetTxRecord(Resource):
             txRecord = bigchain.gettxRecordByPubkey(args['public_key'])
             return txRecord
 
+class ApiOnlySaveData(Resource):
+    def post(self):
+        # print("ApiOnlySaveData:--",request.get_json())
+        pool = current_app.config['bigchain_pool']
+        monitor = current_app.config['monitor']
+        fromuser = request.get_json()['fromUser']
+        touser = request.get_json()['toUser']
+        amount = int(request.get_json()['amount'])
+        metadata = request.get_json(force=True)['dataStr']
+
+        with pool() as b:
+            tx = Transaction.savedata([fromuser], [([touser], amount)], metadata)
+
+            rate = bigchaindb.config['statsd']['rate']
+            with monitor.timer('write_transaction', rate=rate):
+                b.write_transaction(tx)
+
+        # tx = tx.to_dict()
+        # return rapidjson.dumps(tx)
+
+        if not tx:
+            tx_result = {}
+            result_messages = "tx not exist!"
+        else:
+            tx_result = tx.to_dict()
+            result_messages = "create transaction success"
+
+        return make_response(constant.RESPONSE_STATUS_SUCCESS,
+                             constant.RESPONSE_CODE_SUCCESS,
+                             result_messages,
+                             tx_result)
 ##Router display
 transaction_api.add_resource(ApiCreateByPayload,
                           '/createByPayload',
@@ -260,4 +291,7 @@ transaction_api.add_resource(ApiCreateOrTransferTx,
 
 transaction_api.add_resource(ApiGetTxRecord,
                           '/getTxRecord',
+                          strict_slashes=False)
+transaction_api.add_resource(ApiOnlySaveData,
+                          '/saveDataOnly',
                           strict_slashes=False)

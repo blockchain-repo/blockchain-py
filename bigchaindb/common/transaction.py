@@ -622,10 +622,11 @@ class Transaction(object):
     GENESIS = 'GENESIS'
     INTERIM = 'INTERIM'
     CONTRACT = 'CONTRACT'
-    FREEZEASSET = 'FREEZE'
-    UNFREEZEASSET = 'UNFREEZE'
+    # FREEZEASSET = 'FREEZE'
+    # UNFREEZEASSET = 'UNFREEZE'
+    METADATA = "METADATA"
 
-    ALLOWED_OPERATIONS = (CREATE, TRANSFER, GENESIS, CONTRACT,INTERIM)
+    ALLOWED_OPERATIONS = (CREATE, TRANSFER, GENESIS, CONTRACT,INTERIM,METADATA)
     VERSION = 1
 
     def __init__(self, operation, asset, fulfillments=None, conditions=None,
@@ -659,7 +660,7 @@ class Transaction(object):
 
         # Only assets for 'CREATE' operations can be un-defined.
         if (asset and not isinstance(asset, Asset) or
-                not asset and operation != Transaction.CREATE and operation != Transaction.CONTRACT and operation != Transaction.INTERIM):
+                not asset and operation != Transaction.CREATE and operation != Transaction.CONTRACT and operation != Transaction.INTERIM and operation != Transaction.METADATA):
             raise TypeError('`asset` must be an Asset instance')
 
         if conditions and not isinstance(conditions, list):
@@ -915,6 +916,63 @@ class Transaction(object):
         inputs = deepcopy(inputs)
 
         return cls(cls.TRANSFER, asset=asset, fulfillments=inputs, conditions=conditions, metadata=metadata)
+
+    @classmethod
+    def savedata(cls, tx_signers, recipients, metadata, operation=METADATA,  asset=None, Relation=None, Contract=None,
+               version=None):
+        """A simple way to generate a `CREATE` transaction.
+
+            Note:
+                This method currently supports the following Cryptoconditions
+                use cases:
+                    - Ed25519
+                    - ThresholdSha256
+
+                Additionally, it provides support for the following BigchainDB
+                use cases:
+                    - Multiple inputs and outputs.
+
+            Args:
+                tx_signers (:obj:`list` of :obj:`str`): A list of keys that
+                    represent the signers of the CREATE Transaction.
+                recipients (:obj:`list` of :obj:`tuple`): A list of
+                    ([keys],amount) that represent the recipients of this
+                    Transaction.
+                metadata
+                asset
+
+            Returns:
+                :class:`~bigchaindb.common.transaction.Transaction`
+        """
+        if not isinstance(tx_signers, list):
+            raise TypeError('`tx_signers` must be a list instance')
+        if not isinstance(recipients, list):
+            raise TypeError('`recipients` must be a list instance')
+        if len(tx_signers) == 0:
+            raise ValueError('`tx_signers` list cannot be empty')
+        if len(recipients) == 0:
+            raise ValueError('`recipients` list cannot be empty')
+
+        # if not (asset is None or isinstance(asset, dict)):
+        #     raise TypeError('`asset` must be a dict or None')
+
+        inputs = []
+        conditions = []
+        metadata = Metadata(metadata)
+        # generate_outputs
+        for recipient in recipients:
+            if not isinstance(recipient, tuple) or len(recipient) != 2:
+                raise ValueError(('Each `recipient` in the list must be a'
+                                  ' tuple of `([<list of public keys>],'
+                                  ' <amount>)`'))
+            pub_keys, amount = recipient
+            conditions.append(Condition.generate(pub_keys, amount))
+
+        # generate inputs
+        inputs.append(Fulfillment.generate(tx_signers))
+
+        return cls(operation, asset, fulfillments=inputs, conditions=conditions, metadata=metadata, Relation=Relation,
+                   Contract=Contract, version=version)
 
     @classmethod
     def freeze_asset(cls, inputs, recipients, asset, metadata=None):
