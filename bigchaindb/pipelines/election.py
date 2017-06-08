@@ -34,9 +34,17 @@ class Election:
         next_block = self.bigchain.connection.run(
                 r.table('bigchain')
                 .get(next_vote['vote']['voting_for_block']))
-
-        block_status = self.bigchain.block_election_status(next_block['id'],
+				
+		if monitor is not None:
+			with monitor.timer('validate_block'):
+				block_status = self.bigchain.block_election_status(next_block['id'],
                                                            next_block['block']['voters'])
+		else:
+			block_status = self.bigchain.block_election_status(next_block['id'],
+                                                           next_block['block']['voters'])
+
+        #block_status = self.bigchain.block_election_status(next_block['id'],
+        #                                                   next_block['block']['voters'])
         if block_status == self.bigchain.BLOCK_INVALID:
 
             return Block.from_dict(next_block)
