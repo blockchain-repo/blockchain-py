@@ -48,6 +48,8 @@ class Vote:
                                                    [([self.bigchain.me],1)])
 
     def validate_block(self, block):
+        # wsp@monitor
+        begin_time = int(round(time.time() * 1000))
         logger.debug("start validationg block %s", block['id'])
         if not self.bigchain.has_previous_vote(block['id'], block['block']['voters']):
             try:
@@ -58,7 +60,7 @@ class Vote:
                 # another function. Hackish solution: generate an invalid
                 # transaction and propagate it to the next steps of the
                 # pipeline.
-                return block['id'], [self.invalid_dummy_tx]
+                return block['id'], [self.invalid_dummy_tx], begin_time
             try:
                 # zy@secn
                 if monitor is not None:
@@ -77,10 +79,10 @@ class Vote:
                 # another function. Hackish solution: generate an invalid
                 # transaction and propagate it to the next steps of the
                 # pipeline.
-                return block.id, [self.invalid_dummy_tx]
-            return block.id, block.transactions
+                return block.id, [self.invalid_dummy_tx], begin_time
+            return block.id, block.transactions, begin_time
 
-    def ungroup(self, block_id, transactions):
+    def ungroup(self, block_id, transactions, begin_time):
         """Given a block, ungroup the transactions in it.
 
         Args:
@@ -96,9 +98,9 @@ class Vote:
         logger.debug("start ungroup block %s", block_id)
         num_tx = len(transactions)
         for tx in transactions:
-            yield tx, block_id, num_tx
+            yield tx, block_id, num_tx, begin_time
 
-    def validate_tx(self, tx, block_id, num_tx):
+    def validate_tx(self, tx, block_id, num_tx, begin_time):
         """Validate a transaction.
 
         Args:
@@ -111,9 +113,9 @@ class Vote:
             ``block_id``, ``num_tx``.
         """
         logger.debug("validate a tx in block %s", block_id)
-        return bool(self.bigchain.is_valid_transaction(tx)), block_id, num_tx
+        return bool(self.bigchain.is_valid_transaction(tx)), block_id, num_tx, begin_time
 
-    def vote(self, tx_validity, block_id, num_tx):
+    def vote(self, tx_validity, block_id, num_tx, begin_time):
         """Collect the validity of transactions and cast a vote when ready.
 
         Args:
@@ -136,9 +138,9 @@ class Vote:
             self.last_voted_id = block_id
             del self.counters[block_id]
             del self.validity[block_id]
-            return vote
+            return vote, begin_time
 
-    def write_vote(self, vote):
+    def write_vote(self, vote, begin_time):
         """Write vote to the database.
 
         Args:
@@ -147,9 +149,12 @@ class Vote:
         validity = 'valid' if vote['vote']['is_block_valid'] else 'invalid'
         logger.info("Vote '%s' block %s , node_pubkey = %s", validity,
                     vote['vote']['voting_for_block'],vote['node_pubkey'])
+        end_time = int(round(time.time() * 1000))
+        vote_time = end_time - begin_time
         if monitor is not None:
             with monitor.timer('write_vote'):
                 self.bigchain.write_vote(vote)
+                monitor.gauge('vote_time', value=vote_time)
         else:
             self.bigchain.write_vote(vote)
         return vote

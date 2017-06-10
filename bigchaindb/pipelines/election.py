@@ -34,19 +34,18 @@ class Election:
         next_block = self.bigchain.connection.run(
                 r.table('bigchain')
                 .get(next_vote['vote']['voting_for_block']))
-				
-		if monitor is not None:
-			with monitor.timer('validate_block'):
-				block_status = self.bigchain.block_election_status(next_block['id'],
+
+        if monitor is not None:
+            with monitor.timer('validate_block'):
+                block_status = self.bigchain.block_election_status(next_block['id'],
                                                            next_block['block']['voters'])
-		else:
-			block_status = self.bigchain.block_election_status(next_block['id'],
+        else:
+            block_status = self.bigchain.block_election_status(next_block['id'],
                                                            next_block['block']['voters'])
 
         #block_status = self.bigchain.block_election_status(next_block['id'],
         #                                                   next_block['block']['voters'])
         if block_status == self.bigchain.BLOCK_INVALID:
-
             return Block.from_dict(next_block)
 
     def requeue_transactions(self, invalid_block):
@@ -56,6 +55,8 @@ class Election:
         isHandled = self.bigchain.selectFromWrite(invalid_block.id)
         if self.bigchain.me == invalid_block.node_pubkey and isHandled ==False:
             logger.info('Rewriting %s transactions from invalid block %s', len(invalid_block.transactions), invalid_block.id)
+            if monitor is not None:
+                monitor.incr('rewrite_block', value=1)
             data = {'id':invalid_block.id,'node_publickey': invalid_block.node_pubkey,'timestamp':invalid_block.timestamp}
             self.bigchain.insertRewrite(data)
             for tx in invalid_block.transactions:
