@@ -32,7 +32,8 @@ def start():
     vote.start()
 
     logger.info('Starting stale transaction monitor')
-    stale.start()
+    #todo open it
+    #stale.start()
 
     logger.info('Starting election')
     election.start()

@@ -131,7 +131,10 @@ class BlockPipeline:
         if len(self.txs) == self.block_size or (timeout and self.txs) or (((time.time()-self.starttime) > self.block_timeout) and self.txs):
             req_result = self.bigchain.get_exist_txs(self.txsId)
             exist_tx = list(set(req_result).intersection(set(self.txsId)))
-            if exist_tx:
+
+            if False:
+            #todo open it
+            #if exist_tx:
                 for txid in exist_tx:
                     tx, status = self.bigchain.get_transaction(txid, include_status=True)
                     if status == self.bigchain.TX_VALID or status == self.bigchain.TX_UNDECIDED:

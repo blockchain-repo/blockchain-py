@@ -45,8 +45,8 @@ config = {
         'debug_to_file' : False
     },
     'argument_config' : {
-        'block_pipeline.block_size' : 1000,
-        'block_pipeline.pipe_maxsize' : 2000,
+        'block_pipeline.block_size' : 2000,
+        'block_pipeline.pipe_maxsize' : 4000,
         'block_pipeline.fraction_of_cores':1,
         'block_pipeline.timeout':1,
         'block_pipeline.block_timeout':15,
