@@ -16,6 +16,7 @@ from bigchaindb.consensus import BaseConsensusRules
 from bigchaindb.models import Transaction, Block
 from bigchaindb.pipelines.utils import ChangeFeed
 from bigchaindb import Bigchain,config
+import time
 
 monitor = Monitor()
 

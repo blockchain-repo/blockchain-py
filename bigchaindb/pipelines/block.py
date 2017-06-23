@@ -65,8 +65,6 @@ class BlockPipeline:
             :class:`~bigchaindb.models.Transaction`: The transaction if valid,
             ``None`` otherwise.
         """
-        # wsp@monitor
-        begin_time = int(round(time.time() * 1000))
         logger.debug("Validating transaction %s", tx['id'])
         # print(tx)
         tx.pop('assignee')
@@ -85,7 +83,7 @@ class BlockPipeline:
                 # then it no longer should be in the backlog, or added
                 # to a new block. We can delete and drop it.
                 self.bigchain.delete_transaction(tx.id)
-                return None, begin_time
+                return None
 
         if monitor is not None:
             with monitor.timer('validate_transaction', rate=config['statsd']['rate']):
@@ -94,14 +92,14 @@ class BlockPipeline:
             tx_validated = self.bigchain.is_valid_transaction(tx)
         # tx_validated = self.bigchain.is_valid_transaction(tx)
         if tx_validated:
-            return tx, begin_time
+            return tx
         else:
             # if the transaction is not valid, remove it from the
             # backlog
             self.bigchain.delete_transaction(tx.id)
-            return None, begin_time
+            return None
 
-    def create(self, tx, begin_time, timeout=False):
+    def create(self, tx, timeout=False):
         """Create a block.
 
         This method accumulates transactions to put in a block and outputs
@@ -143,9 +141,9 @@ class BlockPipeline:
             block = self.bigchain.create_block(self.txs)
             self.txs = []
             self.txsId = []
-            return block, begin_time
+            return block
 
-    def write(self, block, begin_time):
+    def write(self, block):
         """Write the block to the Database.
 
         Args:
@@ -159,16 +157,15 @@ class BlockPipeline:
         # logger.info('Write new block %s with %s transactions', block.id, block.transactions)
         # zy@secn
         if monitor is not None:
-            monitor.gauge("transaction_in_block_conut", value=len(block.transactions))
             # with monitor.timer('write_block', rate=config['statsd']['rate']):
             with monitor.timer('write_block'):
                 self.bigchain.write_block(block)
         else:
             self.bigchain.write_block(block)
         # self.bigchain.write_block(block)
-        return block, begin_time
+        return block
 
-    def delete_tx(self, block, begin_time):
+    def delete_tx(self, block):
         """Delete transactions.
 
         Args:
@@ -179,12 +176,7 @@ class BlockPipeline:
             :class:`~bigchaindb.models.Block`: The block.
         """
         self.bigchain.delete_transaction(*[tx.id for tx in block.transactions])
-        # wsp@monitor
-        end_time = int(round(time.time() * 1000))
-        block_time = end_time - begin_time
-        if monitor is not None:
-            monitor.gauge('block_time', value=block_time)
-            monitor.gauge('tracsaction_decrease', value=len(block.transactions)/block_time/1000)
+
         return block
 
 

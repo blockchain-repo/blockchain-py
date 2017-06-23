@@ -12,10 +12,10 @@ from bigchaindb.pipelines.utils import ChangeFeed
 from bigchaindb.models import Block
 from bigchaindb import Bigchain,config
 from time import sleep,time
-
+from bigchaindb.monitor import Monitor
 
 logger = logging.getLogger(__name__)
-
+monitor = Monitor()
 
 class Election:
     """Election class."""
