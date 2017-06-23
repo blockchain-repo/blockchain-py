@@ -138,16 +138,17 @@ class Transaction(Transaction):
             contract_signatures =ContractBody["ContractSignatures"]
             ContractBody["ContractSignatures"] = None
             detail_serialized = serialize(ContractBody)
-            if len(contract_owners) < len(contract_signatures):
-                raise MutilContractOwner
-            for index,contract_sign in enumerate(contract_signatures):
-                owner_pubkey = contract_owners[index]
-                signature = contract_sign["Signature"]
-                if not self.is_signature_valid(detail_serialized, owner_pubkey, signature):
-                    raise InvalidSignature()
-            # TODO 2.validate the contract votes?
+            if contract_owners != None and contract_signatures !=None:
+                if len(contract_owners) < len(contract_signatures):
+                    raise MutilContractOwner
+                for index, contract_sign in enumerate(contract_signatures):
+                    owner_pubkey = contract_owners[index]
+                    signature = contract_sign["Signature"]
+                    if not self.is_signature_valid(detail_serialized, owner_pubkey, signature):
+                        raise InvalidSignature()
+                # TODO 2.validate the contract votes?
 
-            return self
+                return self
 
         # print("validate in=3========",self.operation,"==",self.version)
         if self.version == 2:
