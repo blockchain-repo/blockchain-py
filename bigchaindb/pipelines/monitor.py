@@ -8,6 +8,7 @@ from bigchaindb.monitor import Monitor
 from multipipes import Pipeline, Node
 from bigchaindb import Bigchain,config
 from time import sleep,time
+from bigchaindb import Bigchain, config
 
 
 logger = logging.getLogger(__name__)
@@ -24,10 +25,12 @@ class UnichainStaticDataMonitor:
             timeout: how often to check for stale tx (in sec)
         """
         self.timeout = config['argument_config']['stale_pipeline.timeout']
+        self.bigchain = Bigchain()
 
 
     def send_static_data(self):
         sleep(self.timeout)
+        logger.debug("send_static_data begin")
         total_transaction_count =self.bigchain.get_txNumber()
         total_block_count = self.bigchain.get_BlockNumber()
         invalid_block_count = self.bigchain.get_allInvalidBlock_number()
