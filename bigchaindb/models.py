@@ -146,9 +146,10 @@ class Transaction(Transaction):
                     signature = contract_sign["Signature"]
                     if not self.is_signature_valid(detail_serialized, owner_pubkey, signature):
                         raise InvalidSignature()
-                # TODO 2.validate the contract votes?
-
                 return self
+            else:
+                 # TODO 2.validate the contract votes?
+                 return self
 
         # print("validate in=3========",self.operation,"==",self.version)
         if self.version == 2:
@@ -169,7 +170,7 @@ class Transaction(Transaction):
                 owner_pubkey = voters[index]
                 signature = vote["Signature"]
                 detail_serialized = self.id
-                # print(detail_serialized)
+                print(detail_serialized)
                 # print(owner_pubkey)
                 # print(signature)
                 if not self.is_signature_valid(detail_serialized, owner_pubkey, signature):
