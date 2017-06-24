@@ -65,8 +65,7 @@ class ApiCreateContractTx(Resource):
 
         contractTx_obj = Transaction.from_dict(contractTx)
         # TODO validate data structure /version=2;opercation=create/transfer;    has relation and contact?
-        # print(222)
-        # print(contractTx_obj)
+        print("222====",contractTx_obj)
         with pool() as bigchain:
             try:
                 # print("333")
