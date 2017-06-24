@@ -2,7 +2,7 @@ import logging
 import multiprocessing as mp
 
 import bigchaindb
-from bigchaindb.pipelines import vote, block, election, stale
+from bigchaindb.pipelines import vote, block, election, stale, monitor
 from bigchaindb.web import server
 
 from extend.localdb.pipelines import local_block, local_vote
@@ -34,7 +34,7 @@ def start():
     logger.info('Starting stale transaction monitor')
     #todo open it
     #stale.start()
-
+    monitor.start()
     logger.info('Starting election')
     election.start()
 
