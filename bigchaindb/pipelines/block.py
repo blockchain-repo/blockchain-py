@@ -160,6 +160,7 @@ class BlockPipeline:
         # logger.info('Write new block %s with %s transactions', block.id, block.transactions)
         # zy@secn
         if monitor is not None:
+            monitor.gauge("transaction_in_block_conut", value=len(block.transactions))
             # with monitor.timer('write_block', rate=config['statsd']['rate']):
             with monitor.timer('write_block'):
                 self.bigchain.write_block(block)
