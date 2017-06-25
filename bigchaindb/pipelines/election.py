@@ -36,7 +36,7 @@ class Election:
                 .get(next_vote['vote']['voting_for_block']))
 
         if monitor is not None:
-            with monitor.timer('validate_block'):
+            with monitor.timer('validate_vote'):
                 block_status = self.bigchain.block_election_status(next_block['id'],
                                                            next_block['block']['voters'])
         else:
