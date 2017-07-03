@@ -30,7 +30,6 @@ class UnichainStaticDataMonitor:
 
     def send_static_data(self):
         sleep(self.timeout)
-        logger.debug("send_static_data begin")
         total_transaction_count =self.bigchain.get_txNumber()
         total_block_count = self.bigchain.get_BlockNumber()
         invalid_block_count = self.bigchain.get_allInvalidBlock_number()
