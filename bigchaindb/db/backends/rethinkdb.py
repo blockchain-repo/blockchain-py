@@ -635,6 +635,8 @@ class RethinkDBBackend:
 
     # for border trade start
     def getCustomsListOfFuser(self,fuserName,startTime,endTime,startIndex,endIndex):
+        #TODO count
+
         return self.connection.run(r.table('bigchain').concat_map(lambda doc: doc['block']['transactions'])
                                    .filter({'transaction':{'metadata':{'data':{'from':{'userName':fuserName}}}}})
                                    .get_field("transaction").get_field("metadata").get_field('data').order_by('timestamp')
