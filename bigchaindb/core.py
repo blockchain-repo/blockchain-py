@@ -2,6 +2,7 @@ import random
 import math
 import collections
 from time import time
+import time
 
 from itertools import compress
 from bigchaindb.common import crypto, exceptions
@@ -1135,3 +1136,57 @@ class Bigchain(object):
     def get_contract_record_by_contract_id(self):
 
         pass
+
+    # for border trade start
+    def getCustomsList(self,param):
+        fuserName = param['fuserName']
+        tuserName = param['tuserName']
+        itemTitle = param['itemTitle']
+        orderCode = param['orderCode']
+        start = param['startTime']
+        end = param['endTime']
+        pageSize = param['pageSize']
+        pageNum = param['pageNum']
+
+        startTime = '1262275200000'  #2010-01-01 00:00:00
+        endTime = gen_timestamp()
+        if start != '':
+            startTime = str(round(time.mktime(time.strptime(start, '%Y-%m-%d'))*1000))
+        if end != '':
+            endTime = str(round(time.mktime(time.strptime(end, '%Y-%m-%d'))*1000))
+
+        startIndex = pageSize * (pageNum -1)
+        endIndex = pageSize * pageNum
+
+        if fuserName != '':
+            return self.backend.getCustomsListOfFuser(fuserName,startTime,endTime,startIndex,endIndex)
+        elif tuserName!='':
+            return self.backend.getCustomsListOfTuser(tuserName,startTime,endTime,startIndex,endIndex)
+        elif itemTitle!='':
+            return self.backend.getCustomsListOfTitle(itemTitle,startTime,endTime,startIndex,endIndex)
+        elif orderCode!='':
+            return self.backend.getCustomsListOfCode(orderCode,startTime,endTime,startIndex,endIndex)
+        else:
+            return
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+    # for border trade end

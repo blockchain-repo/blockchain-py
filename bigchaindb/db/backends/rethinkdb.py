@@ -632,3 +632,48 @@ class RethinkDBBackend:
 
     def get_contract_txs_by_id(self,tx_id):
         return self.connection.run(r.table('bigchain', read_mode=self.read_mode).get_all(tx_id, index='transaction_id'))
+
+    # for border trade start
+    def getCustomsListOfFuser(self,fuserName,startTime,endTime,startIndex,endIndex):
+        return self.connection.run(r.table('bigchain').concat_map(lambda doc: doc['block']['transactions'])
+                                   .filter({'transaction':{'metadata':{'data':{'from':{'userName':fuserName}}}}})
+                                   .get_field("transaction").get_field("metadata").get_field('data').order_by('timestamp')
+                                   .filter((r.row['timestamp'] >= startTime) & (r.row['timestamp'] <= endTime)).slice(startIndex,endIndex))
+
+
+    def getCustomsListOfTuser(self,tuserName,startTime,endTime,startIndex,endIndex):
+        return self.connection.run(r.table('bigchain').concat_map(lambda doc: doc['block']['transactions'])
+                                   .filter({'transaction': {'metadata': {'data': {'to': {'userName': tuserName}}}}})
+                                   .get_field("transaction").get_field("metadata").get_field('data').order_by('timestamp')
+                                   .filter((r.row['timestamp'] >= startTime) & (r.row['timestamp'] <= endTime)).slice(startIndex, endIndex))
+
+
+    def getCustomsListOfTitle(self,itemTitle,startTime,endTime,startIndex,endIndex):
+        return self.connection.run(r.table('bigchain').concat_map(lambda doc: doc['block']['transactions'])
+                                   .filter({'transaction':{'operation':'METADATA'}})
+                                   .filter(lambda tx: tx['transaction']['metadata']['data']['goodsinfo'].contains(lambda gi: gi['itemTitle']==itemTitle))
+                                   .get_field("transaction").get_field("metadata").get_field('data').order_by('timestamp')
+                                   .filter((r.row['timestamp'] >= startTime) & (r.row['timestamp'] <= endTime)).slice(startIndex, endIndex))
+
+
+    def getCustomsListOfCode(self,orderCode,startTime,endTime,startIndex,endIndex):
+        return self.connection.run(r.table('bigchain').concat_map(lambda doc: doc['block']['transactions'])
+                                   .filter({'transaction': {'metadata': {'orderCode': orderCode}}})
+                                   .get_field("transaction").get_field("metadata").get_field('data').order_by('timestamp')
+                                   .filter((r.row['timestamp'] >= startTime) & (r.row['timestamp'] <= endTime)).slice(startIndex, endIndex))
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+    # for border trade end

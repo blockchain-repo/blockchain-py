@@ -18,6 +18,7 @@ from bigchaindb.web.views.api_vote import vote_views
 from bigchaindb.web.views.api_timestat import timestat_views
 from bigchaindb.web.views.api_condition import condition_views
 from bigchaindb.web.views.api_contract import contract_views
+from bigchaindb.web.views.api_bordertrade import bordertrade_views
 # from bigchaindb.web.apiForVeracity.apiForVeracity import testVeracity_api
 from bigchaindb.monitor import Monitor
 
@@ -83,6 +84,7 @@ def create_app(settings):
 
     app.register_blueprint(contract_views, url_prefix='/uniledger/v1/contract')
 
+    app.register_blueprint(bordertrade_views, url_prefix='/uniledger/v1/bordertrade')
     return app
 
 
