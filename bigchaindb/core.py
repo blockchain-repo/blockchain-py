@@ -2,8 +2,8 @@ import random
 import math
 import collections
 from time import time,mktime,strptime
-
-
+import requests
+import json
 from itertools import compress
 from bigchaindb.common import crypto, exceptions
 from bigchaindb.common.util import gen_timestamp, serialize
@@ -1167,7 +1167,7 @@ class Bigchain(object):
         elif orderCode!='':
             return self.backend.getCustomsListOfCode(orderCode,startTime,endTime,startIndex,endIndex)
         else:
-            return [0,[0]]
+            return self.backend.getCustomsList(startTime, endTime, startIndex, endIndex)
 
     def getCustomsDeatil(self, param):
         orderCode = param['orderCode']
@@ -1194,30 +1194,40 @@ class Bigchain(object):
         endIndex = pageSize * pageNum
 
         if fuserName != '':
-            return self.backend.getTaxListOfFuser(fuserName, startTime, endTime, startIndex, endIndex)
+            taxlist = self.backend.getTaxListOfFuser(fuserName, startTime, endTime, startIndex, endIndex)
         elif tuserName != '':
-            return self.backend.getTaxListOfTuser(tuserName, startTime, endTime, startIndex, endIndex)
-        elif itemTitle != '':
-            return self.backend.getTaxListOfTitle(itemTitle, startTime, endTime, startIndex, endIndex)
+            taxlist = self.backend.getTaxListOfTuser(tuserName, startTime, endTime, startIndex, endIndex)
         elif orderCode != '':
-            return self.backend.getTaxListOfCode(orderCode, startTime, endTime, startIndex, endIndex)
-        else:
-            return (0, [0])
+            taxlist = self.backend.getTaxListOfCode(orderCode, startTime, endTime, startIndex, endIndex)
+        elif itemTitle != '':
+            url = 'http://36.110.71.170:41/uniledger/v1/bordertrade/apiGetOrderCodeByTitle'
+            headers = {'content-type': 'application/json'}
+            payload = {
+                "itemTitle": itemTitle
+            }
+            data = json.dumps(payload)
+            res = requests.post(url, data=data, headers=headers)
+            print(res)
+            orderCodeList = res
+            taxlist = self.backend.getTaxListOfTitle(orderCodeList, startTime, endTime, startIndex, endIndex)
+        else :
+            taxlist = self.backend.getTaxList(startTime, endTime, startIndex, endIndex)
+
+        return taxlist
+
+
+    def getTaxDeatil(self,param):
+        orderCode = param['orderCode']
+        return self.backend.getTaxDetailOfCode(orderCode)
+
+
+    def getOrderCodeByTitle(self,param):
+        itemTitle = param['itemTitle']
+        orderList = self.backend.getOrderCodeByTitle(itemTitle)
+        # print(orderList)
+        return list(orderList)
 
 
 
 
-
-
-
-
-
-
-
-
-
-
-
-
-
-                    # for border trade end
+     # for border trade end

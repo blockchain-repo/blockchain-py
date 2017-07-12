@@ -117,10 +117,23 @@ def get_txNumberById(block_id):
     #     .filter((r.row['timestamp'] >= '1499759100000') & (r.row['timestamp'] <= '1499759109000')) \
     #     .slice(0,2)\
     #     .run(conn)
-    s = r.table('bigchain').concat_map(lambda doc: doc['block']['transactions'])\
-                        .filter({'transaction': {'metadata': {'data':{'orderCode': 'D1707111643542395'}}}})\
-                        .get_field("transaction").get_field("metadata").get_field('data').order_by('timestamp')\
-                        .filter((r.row['timestamp'] >= '1499702400000') & (r.row['timestamp'] <= '1499788800000')).run(conn)
+    # s = r.table('bigchain').concat_map(lambda doc: doc['block']['transactions'])\
+    #                     .filter({'transaction': {'metadata': {'data':{'orderCode': 'D1707111643542395'}}}})\
+    #                     .get_field("transaction").get_field("metadata").get_field('data').order_by('timestamp')\
+    #                     .filter((r.row['timestamp'] >= '1499702400000') & (r.row['timestamp'] <= '1499788800000')).run(conn)
+    # s = r.table('bigchain').concat_map(lambda doc: doc['block']['transactions'])\
+    #         .filter({'transaction': {'operation': 'METADATA'}})\
+    #         .filter(lambda tx: tx['transaction']['metadata']['data']['goodsinfo'].contains(lambda gi: gi['itemTitle'] == '测试-苹果（含新版规格）')) \
+    #         .get_field("transaction").get_field("metadata").get_field('data').get_field('orderCode').run(conn)
+
+    # lambda doc:
+    # r.expr(["Peter", "John"])
+    # .contains(doc["name"])
+    orderCodeList = ['S1707111712422395']
+    s = r.table('bigchain').concat_map(lambda doc: doc['block']['transactions']) \
+        .filter(lambda doc: r.expr(orderCodeList) .contains(doc['transaction']['metadata']['data']['orderCode']))\
+        .get_field("transaction").get_field("metadata").get_field('data').order_by('timestamp')\
+        .run(conn)
 # == '测试-苹果（含新版规格）'
 # .filter({'transaction': {'metadata': {'data': {'from': {'userName': '供应商户01责任有限公司'}}}}}) \
 #     .get_field("transaction").get_field("metadata").get_field('data').order_by('timestamp') \

@@ -29,6 +29,7 @@ class ApiCustomsDetail(Resource):
         pool = current_app.config['bigchain_pool']
         param = request.get_json(force=True)
         print("1:", param)
+        customsDetail = None
         with pool() as bigchain:
             customsDetails = bigchain.getCustomsDeatil(param)
 
@@ -46,8 +47,16 @@ class ApiTaxList(Resource):
         param = request.get_json(force=True)
         print("1:",param)
         with pool() as bigchain:
+            # if param['itemTitle'] == '':
+            #
+            #     taxList = bigchain.getTaxList(param)
+            #     pass
+            # else:
+            #     taxList = bigchain.getTaxList(param)
             taxList = bigchain.getTaxList(param)
         print(taxList)
+
+
         return taxList
 
 class ApiTaxDetail(Resource):
@@ -57,13 +66,25 @@ class ApiTaxDetail(Resource):
         param = request.get_json(force=True)
         print("1:", param)
         with pool() as bigchain:
+            taxDetail = None
             taxDetails = bigchain.getTaxDeatil(param)
             if taxDetails:
                 for c in taxDetails:
                     taxDetail = c
-        print(taxDetail)
+        # print(taxDetail)
         return taxDetail
 
+# apiGetOrderCodeByTitle
+class ApiGetOrderCodeByTitle(Resource):
+    def post(self):
+        print("ApiGetOrderCodeByTitle")
+        pool = current_app.config['bigchain_pool']
+        param = request.get_json(force=True)
+        print("1:", param)
+        with pool() as bigchain:
+            taxDetails = bigchain.getOrderCodeByTitle(param)
+        print(taxDetails)
+        return taxDetails
 
 
 bordertrade_api.add_resource(Test, '/test', strict_slashes=False)
@@ -71,3 +92,4 @@ bordertrade_api.add_resource(ApiCustomsList, '/apiCustomsList', strict_slashes=F
 bordertrade_api.add_resource(ApiCustomsDetail, '/customsDetail', strict_slashes=False)
 bordertrade_api.add_resource(ApiTaxList, '/taxList', strict_slashes=False)
 bordertrade_api.add_resource(ApiTaxDetail, '/taxDetail', strict_slashes=False)
+bordertrade_api.add_resource(ApiGetOrderCodeByTitle, '/apiGetOrderCodeByTitle', strict_slashes=False)

@@ -635,6 +635,16 @@ class RethinkDBBackend:
 
     # for border trade start
     # order
+    def getCustomsList(self,startTime,endTime,startIndex,endIndex):
+        count = self.connection.run(r.table('bigchain').concat_map(lambda doc: doc['block']['transactions'])
+                                    .filter({'transaction': {'operation': 'METADATA'}})
+                                    .get_field("transaction").get_field("metadata").get_field('data').order_by('timestamp')
+                                    .filter((r.row['timestamp'] >= startTime) & (r.row['timestamp'] <= endTime)).count())
+        return [count, self.connection.run(r.table('bigchain').concat_map(lambda doc: doc['block']['transactions'])
+                                           .filter({'transaction': {'operation': 'METADATA'}})
+                                           .get_field("transaction").get_field("metadata").get_field('data').order_by('timestamp')
+                                           .filter((r.row['timestamp'] >= startTime) & (r.row['timestamp'] <= endTime)).slice(startIndex, endIndex))]
+
     def getCustomsListOfFuser(self,fuserName,startTime,endTime,startIndex,endIndex):
         count = self.connection.run(r.table('bigchain').concat_map(lambda doc: doc['block']['transactions'])
                             .filter({'transaction': {'metadata': {'data': {'from': {'userName': fuserName}}}}})
@@ -684,12 +694,23 @@ class RethinkDBBackend:
                                    .get_field("transaction").get_field("metadata").get_field('data').order_by('timestamp')
                                    .filter((r.row['timestamp'] >= startTime) & (r.row['timestamp'] <= endTime)).slice(startIndex, endIndex))]
 
+
     def getCustomsDetailOfCode(self,orderCode):
         return self.connection.run(r.table('bigchain').concat_map(lambda doc: doc['block']['transactions'])
                                           .filter({'transaction': {'metadata': {'data':{'orderCode': orderCode}}}})
                                           .get_field("transaction").get_field("metadata").get_field('data').limit(1))
 
     # tax
+    def getTaxList(self,startTime,endTime,startIndex,endIndex):
+        count = self.connection.run(r.table('bigchain').concat_map(lambda doc: doc['block']['transactions'])
+                                    .filter({'transaction': {'operation': 'METADATA'}})
+                                    .get_field("transaction").get_field("metadata").get_field('data').order_by('timestamp')
+                                    .filter((r.row['timestamp'] >= startTime) & (r.row['timestamp'] <= endTime)).count())
+        return [count, self.connection.run(r.table('bigchain').concat_map(lambda doc: doc['block']['transactions'])
+                                           .filter({'transaction': {'operation': 'METADATA'}})
+                                           .get_field("transaction").get_field("metadata").get_field('data').order_by('timestamp')
+                                           .filter((r.row['timestamp'] >= startTime) & (r.row['timestamp'] <= endTime)).slice(startIndex, endIndex))]
+
     def getTaxListOfFuser(self,fuserName, startTime, endTime, startIndex, endIndex):
         count = self.connection.run(r.table('bigchain').concat_map(lambda doc: doc['block']['transactions'])
                                     .filter({'transaction': {'metadata': {'data': {'from': {'userName': fuserName}}}}})
@@ -712,17 +733,42 @@ class RethinkDBBackend:
                                            .get_field("transaction").get_field("metadata").get_field('data').order_by('timestamp')
                                            .filter((r.row['timestamp'] >= startTime) & (r.row['timestamp'] <= endTime)).slice(startIndex, endIndex))]
 
-    def getTaxListOfTitle(self,itemTitle, startTime, endTime, startIndex, endIndex):
-        pass
 
     def getTaxListOfCode(self,orderCode, startTime, endTime, startIndex, endIndex):
-        pass
+        count = self.connection.run(r.table('bigchain').concat_map(lambda doc: doc['block']['transactions'])
+                                    .filter({'transaction': {'metadata': {'data': {'orderCode': orderCode}}}})
+                                    .get_field("transaction").get_field("metadata").get_field('data').order_by('timestamp')
+                                    .filter((r.row['timestamp'] >= startTime) & (r.row['timestamp'] <= endTime)).count())
+
+        return [count, self.connection.run(r.table('bigchain').concat_map(lambda doc: doc['block']['transactions'])
+                                           .filter({'transaction': {'metadata': {'data': {'orderCode': orderCode}}}})
+                                           .get_field("transaction").get_field("metadata").get_field('data').order_by('timestamp')
+                                           .filter((r.row['timestamp'] >= startTime) & (r.row['timestamp'] <= endTime)).slice(startIndex, endIndex))]
 
 
+    def getTaxListOfTitle(self, orderCodeList, startTime, endTime, startIndex, endIndex):
+        count = self.connection.run(r.table('bigchain').concat_map(lambda doc: doc['block']['transactions'])
+                                    .filter( lambda doc: r.expr(orderCodeList).contains(doc['transaction']['metadata']['data']['orderCode']))
+                                    .get_field("transaction").get_field("metadata").get_field('data').order_by('timestamp')
+                                    .filter((r.row['timestamp'] >= startTime) & (r.row['timestamp'] <= endTime)).count())
+
+        return [count, self.connection.run(r.table('bigchain').concat_map(lambda doc: doc['block']['transactions'])
+                                           .filter({'transaction': {'metadata': {'data': {'orderCode': r.args(orderCodeList)}}}})
+                                           .get_field("transaction").get_field("metadata").get_field('data').order_by('timestamp')
+                                           .filter((r.row['timestamp'] >= startTime) & (r.row['timestamp'] <= endTime)).slice(startIndex, endIndex))]
 
 
+    def getOrderCodeByTitle(self,itemTitle):
+        return self.connection.run(r.table('bigchain').concat_map(lambda doc: doc['block']['transactions'])
+                            .filter({'transaction': {'operation': 'METADATA'}})
+                            .filter(lambda tx: tx['transaction']['metadata']['data']['goodsinfo'].contains(lambda gi: gi['itemTitle'] == itemTitle))
+                            .get_field("transaction").get_field("metadata").get_field('data').get_field('orderCode'))
 
 
+    def getTaxDetailOfCode(self,orderCode):
+        return self.connection.run(r.table('bigchain').concat_map(lambda doc: doc['block']['transactions'])
+                                   .filter({'transaction': {'metadata': {'data': {'orderCode': orderCode}}}})
+                                   .get_field("transaction").get_field("metadata").get_field('data').limit(1))
 
 
-    # for border trade end
+     # for border trade end
