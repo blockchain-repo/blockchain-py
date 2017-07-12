@@ -1,8 +1,8 @@
 import random
 import math
 import collections
-from time import time
-import time
+from time import time,mktime,strptime
+
 
 from itertools import compress
 from bigchaindb.common import crypto, exceptions
@@ -1151,9 +1151,9 @@ class Bigchain(object):
         startTime = '1262275200000'  #2010-01-01 00:00:00
         endTime = gen_timestamp()
         if start != '':
-            startTime = str(round(time.mktime(time.strptime(start, '%Y-%m-%d'))*1000))
+            startTime = str(round(mktime(strptime(start, '%Y-%m-%d'))*1000))
         if end != '':
-            endTime = str(round(time.mktime(time.strptime(end, '%Y-%m-%d'))*1000))
+            endTime = str(round(mktime(strptime(end, '%Y-%m-%d'))*1000))
 
         startIndex = pageSize * (pageNum -1)
         endIndex = pageSize * pageNum
@@ -1167,7 +1167,42 @@ class Bigchain(object):
         elif orderCode!='':
             return self.backend.getCustomsListOfCode(orderCode,startTime,endTime,startIndex,endIndex)
         else:
-            return
+            return [0,[0]]
+
+    def getCustomsDeatil(self, param):
+        orderCode = param['orderCode']
+        return self.backend.getCustomsDetailOfCode(orderCode)
+
+    def getTaxList(self,param):
+        fuserName = param['fuserName']
+        tuserName = param['tuserName']
+        itemTitle = param['itemTitle']
+        orderCode = param['orderCode']
+        start = param['startTime']
+        end = param['endTime']
+        pageSize = param['pageSize']
+        pageNum = param['pageNum']
+
+        startTime = '1262275200000'  # 2010-01-01 00:00:00
+        endTime = gen_timestamp()
+        if start != '':
+            startTime = str(round(mktime(strptime(start, '%Y-%m-%d')) * 1000))
+        if end != '':
+            endTime = str(round(mktime(strptime(end, '%Y-%m-%d')) * 1000))
+
+        startIndex = pageSize * (pageNum - 1)
+        endIndex = pageSize * pageNum
+
+        if fuserName != '':
+            return self.backend.getTaxListOfFuser(fuserName, startTime, endTime, startIndex, endIndex)
+        elif tuserName != '':
+            return self.backend.getTaxListOfTuser(tuserName, startTime, endTime, startIndex, endIndex)
+        elif itemTitle != '':
+            return self.backend.getTaxListOfTitle(itemTitle, startTime, endTime, startIndex, endIndex)
+        elif orderCode != '':
+            return self.backend.getTaxListOfCode(orderCode, startTime, endTime, startIndex, endIndex)
+        else:
+            return (0, [0])
 
 
 
@@ -1185,8 +1220,4 @@ class Bigchain(object):
 
 
 
-
-
-
-
-    # for border trade end
+                    # for border trade end

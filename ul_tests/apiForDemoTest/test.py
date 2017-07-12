@@ -110,13 +110,17 @@ def get_txNumberById(block_id):
     #     .filter(lambda tx: tx['transaction']['conditions'].contains(lambda c: c['owners_after'].contains(owner))).run(conn)
     contract_hash_id = '63841426ea1c501745d56ce47a4e7b93bf85841d54f2c77102ce488ac0ce8b51'
     # s = r.table('bigchain').concat_map(lambda doc: doc['block']['transactions']).filter(lambda tx: tx['transaction']['Relation']['ContractHashId']==contract_hash_id).run(conn)
+    # s = r.table('bigchain').concat_map(lambda doc: doc['block']['transactions'])\
+    #     .filter({'transaction':{'operation':'METADATA'}}) \
+    #     .filter(lambda tx: tx['transaction']['metadata']['data']['goodsinfo'].contains(lambda gi: gi['itemTitle']=="测试-苹果（含新版规格）")) \
+    #     .get_field("transaction").get_field("metadata").get_field('data').order_by('timestamp') \
+    #     .filter((r.row['timestamp'] >= '1499759100000') & (r.row['timestamp'] <= '1499759109000')) \
+    #     .slice(0,2)\
+    #     .run(conn)
     s = r.table('bigchain').concat_map(lambda doc: doc['block']['transactions'])\
-        .filter({'transaction':{'operation':'METADATA'}}) \
-        .filter(lambda tx: tx['transaction']['metadata']['data']['goodsinfo'].contains(lambda gi: gi['itemTitle']=="测试-苹果（含新版规格）")) \
-        .get_field("transaction").get_field("metadata").get_field('data').order_by('timestamp') \
-        .filter((r.row['timestamp'] >= '1499759100000') & (r.row['timestamp'] <= '1499759109000')) \
-        .slice(0,2)\
-        .run(conn)
+                        .filter({'transaction': {'metadata': {'data':{'orderCode': 'D1707111643542395'}}}})\
+                        .get_field("transaction").get_field("metadata").get_field('data').order_by('timestamp')\
+                        .filter((r.row['timestamp'] >= '1499702400000') & (r.row['timestamp'] <= '1499788800000')).run(conn)
 # == '测试-苹果（含新版规格）'
 # .filter({'transaction': {'metadata': {'data': {'from': {'userName': '供应商户01责任有限公司'}}}}}) \
 #     .get_field("transaction").get_field("metadata").get_field('data').order_by('timestamp') \

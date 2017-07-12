@@ -634,42 +634,89 @@ class RethinkDBBackend:
         return self.connection.run(r.table('bigchain', read_mode=self.read_mode).get_all(tx_id, index='transaction_id'))
 
     # for border trade start
+    # order
     def getCustomsListOfFuser(self,fuserName,startTime,endTime,startIndex,endIndex):
-        #TODO count
+        count = self.connection.run(r.table('bigchain').concat_map(lambda doc: doc['block']['transactions'])
+                            .filter({'transaction': {'metadata': {'data': {'from': {'userName': fuserName}}}}})
+                            .get_field("transaction").get_field("metadata").get_field('data').order_by('timestamp')
+                            .filter((r.row['timestamp'] >= startTime) & (r.row['timestamp'] <= endTime)).count())
 
-        return self.connection.run(r.table('bigchain').concat_map(lambda doc: doc['block']['transactions'])
+        return [count,self.connection.run(r.table('bigchain').concat_map(lambda doc: doc['block']['transactions'])
                                    .filter({'transaction':{'metadata':{'data':{'from':{'userName':fuserName}}}}})
                                    .get_field("transaction").get_field("metadata").get_field('data').order_by('timestamp')
-                                   .filter((r.row['timestamp'] >= startTime) & (r.row['timestamp'] <= endTime)).slice(startIndex,endIndex))
+                                   .filter((r.row['timestamp'] >= startTime) & (r.row['timestamp'] <= endTime)).slice(startIndex,endIndex))]
 
 
     def getCustomsListOfTuser(self,tuserName,startTime,endTime,startIndex,endIndex):
-        return self.connection.run(r.table('bigchain').concat_map(lambda doc: doc['block']['transactions'])
+        count = self.connection.run(r.table('bigchain').concat_map(lambda doc: doc['block']['transactions'])
+                            .filter({'transaction': {'metadata': {'data': {'to': {'userName': tuserName}}}}})
+                            .get_field("transaction").get_field("metadata").get_field('data').order_by('timestamp')
+                            .filter((r.row['timestamp'] >= startTime) & (r.row['timestamp'] <= endTime)).count())
+
+        return [count,self.connection.run(r.table('bigchain').concat_map(lambda doc: doc['block']['transactions'])
                                    .filter({'transaction': {'metadata': {'data': {'to': {'userName': tuserName}}}}})
                                    .get_field("transaction").get_field("metadata").get_field('data').order_by('timestamp')
-                                   .filter((r.row['timestamp'] >= startTime) & (r.row['timestamp'] <= endTime)).slice(startIndex, endIndex))
+                                   .filter((r.row['timestamp'] >= startTime) & (r.row['timestamp'] <= endTime)).slice(startIndex, endIndex))]
 
 
     def getCustomsListOfTitle(self,itemTitle,startTime,endTime,startIndex,endIndex):
-        return self.connection.run(r.table('bigchain').concat_map(lambda doc: doc['block']['transactions'])
+        count = self.connection.run(r.table('bigchain').concat_map(lambda doc: doc['block']['transactions'])
+                            .filter({'transaction': {'operation': 'METADATA'}})
+                            .filter(lambda tx: tx['transaction']['metadata']['data']['goodsinfo'].contains(lambda gi: gi['itemTitle'] == itemTitle))
+                            .get_field("transaction").get_field("metadata").get_field('data').order_by('timestamp')
+                            .filter((r.row['timestamp'] >= startTime) & (r.row['timestamp'] <= endTime)).count())
+
+        return [count,self.connection.run(r.table('bigchain').concat_map(lambda doc: doc['block']['transactions'])
                                    .filter({'transaction':{'operation':'METADATA'}})
                                    .filter(lambda tx: tx['transaction']['metadata']['data']['goodsinfo'].contains(lambda gi: gi['itemTitle']==itemTitle))
                                    .get_field("transaction").get_field("metadata").get_field('data').order_by('timestamp')
-                                   .filter((r.row['timestamp'] >= startTime) & (r.row['timestamp'] <= endTime)).slice(startIndex, endIndex))
+                                   .filter((r.row['timestamp'] >= startTime) & (r.row['timestamp'] <= endTime)).slice(startIndex, endIndex))]
 
 
     def getCustomsListOfCode(self,orderCode,startTime,endTime,startIndex,endIndex):
-        return self.connection.run(r.table('bigchain').concat_map(lambda doc: doc['block']['transactions'])
-                                   .filter({'transaction': {'metadata': {'orderCode': orderCode}}})
+        count = self.connection.run(r.table('bigchain').concat_map(lambda doc: doc['block']['transactions'])
+                            .filter({'transaction': {'metadata': {'data':{'orderCode': orderCode}}}})
+                            .get_field("transaction").get_field("metadata").get_field('data').order_by('timestamp')
+                            .filter((r.row['timestamp'] >= startTime) & (r.row['timestamp'] <= endTime)).count())
+
+        return [count,self.connection.run(r.table('bigchain').concat_map(lambda doc: doc['block']['transactions'])
+                                   .filter({'transaction': {'metadata': {'data':{'orderCode': orderCode}}}})
                                    .get_field("transaction").get_field("metadata").get_field('data').order_by('timestamp')
-                                   .filter((r.row['timestamp'] >= startTime) & (r.row['timestamp'] <= endTime)).slice(startIndex, endIndex))
+                                   .filter((r.row['timestamp'] >= startTime) & (r.row['timestamp'] <= endTime)).slice(startIndex, endIndex))]
 
+    def getCustomsDetailOfCode(self,orderCode):
+        return self.connection.run(r.table('bigchain').concat_map(lambda doc: doc['block']['transactions'])
+                                          .filter({'transaction': {'metadata': {'data':{'orderCode': orderCode}}}})
+                                          .get_field("transaction").get_field("metadata").get_field('data').limit(1))
 
+    # tax
+    def getTaxListOfFuser(self,fuserName, startTime, endTime, startIndex, endIndex):
+        count = self.connection.run(r.table('bigchain').concat_map(lambda doc: doc['block']['transactions'])
+                                    .filter({'transaction': {'metadata': {'data': {'from': {'userName': fuserName}}}}})
+                                    .get_field("transaction").get_field("metadata").get_field('data').order_by('timestamp')
+                                    .filter((r.row['timestamp'] >= startTime) & (r.row['timestamp'] <= endTime)).count())
 
+        return [count, self.connection.run(r.table('bigchain').concat_map(lambda doc: doc['block']['transactions'])
+                                           .filter({'transaction': {'metadata': {'data': {'from': {'userName': fuserName}}}}})
+                                           .get_field("transaction").get_field("metadata").get_field('data').order_by('timestamp')
+                                           .filter((r.row['timestamp'] >= startTime) & (r.row['timestamp'] <= endTime)).slice(startIndex, endIndex))]
 
+    def getTaxListOfTuser(self,tuserName, startTime, endTime, startIndex, endIndex):
+        count = self.connection.run(r.table('bigchain').concat_map(lambda doc: doc['block']['transactions'])
+                                    .filter({'transaction': {'metadata': {'data': {'to': {'userName': tuserName}}}}})
+                                    .get_field("transaction").get_field("metadata").get_field('data').order_by('timestamp')
+                                    .filter((r.row['timestamp'] >= startTime) & (r.row['timestamp'] <= endTime)).count())
 
+        return [count, self.connection.run(r.table('bigchain').concat_map(lambda doc: doc['block']['transactions'])
+                                           .filter({'transaction': {'metadata': {'data': {'to': {'userName': tuserName}}}}})
+                                           .get_field("transaction").get_field("metadata").get_field('data').order_by('timestamp')
+                                           .filter((r.row['timestamp'] >= startTime) & (r.row['timestamp'] <= endTime)).slice(startIndex, endIndex))]
 
+    def getTaxListOfTitle(self,itemTitle, startTime, endTime, startIndex, endIndex):
+        pass
 
+    def getTaxListOfCode(self,orderCode, startTime, endTime, startIndex, endIndex):
+        pass
 
 
 
