@@ -66,6 +66,7 @@ class Bigchain(object):
         self.me_private = private_key or bigchaindb.config['keypair']['private']
         self.nodes_except_me = keyring or bigchaindb.config['keyring']
         self.backlog_reassign_delay = backlog_reassign_delay or bigchaindb.config['backlog_reassign_delay']
+        self.order_api = '' or bigchaindb.config['order_api']
         self.consensus = BaseConsensusRules
         # change RethinkDB read mode to majority.  This ensures consistency in query results
         self.read_mode = 'majority'
@@ -1192,12 +1193,11 @@ class Bigchain(object):
 
         startIndex = pageSize * (pageNum - 1)
         endIndex = pageSize * pageNum
-
         if fuserName != '':
             taxlist = self.backend.getTaxListOfFuser(fuserName, startTime, endTime, startIndex, endIndex)
             for tax in taxlist[1]:
                 print(tax)
-                url = 'http://192.168.159.101:9984/uniledger/v1/bordertrade/apiGetGoosTitle'
+                url = self.order_api +'/uniledger/v1/bordertrade/apiGetGoosTitle'
                 headers = {'content-type': 'application/json'}
                 print(tax['orderCode'])
                 payload = {
@@ -1212,7 +1212,7 @@ class Bigchain(object):
             taxlist = self.backend.getTaxListOfTuser(tuserName, startTime, endTime, startIndex, endIndex)
             for tax in taxlist[1]:
                 print(tax)
-                url = 'http://192.168.159.101:9984/uniledger/v1/bordertrade/apiGetGoosTitle'
+                url = self.order_api +'/uniledger/v1/bordertrade/apiGetGoosTitle'
                 headers = {'content-type': 'application/json'}
                 print(tax['orderCode'])
                 payload = {
@@ -1226,7 +1226,7 @@ class Bigchain(object):
             taxlist = self.backend.getTaxListOfCode(orderCode, startTime, endTime, startIndex, endIndex)
             for tax in taxlist[1]:
                 print(tax)
-                url = 'http://192.168.159.101:9984/uniledger/v1/bordertrade/apiGetGoosTitle'
+                url = self.order_api +'/uniledger/v1/bordertrade/apiGetGoosTitle'
                 headers = {'content-type': 'application/json'}
                 print(tax['orderCode'])
                 payload = {
@@ -1237,7 +1237,7 @@ class Bigchain(object):
                 print(res)
                 tax["goosTitle"] = res
         elif itemTitle != '':
-            url = 'http://192.168.159.101:9984/uniledger/v1/bordertrade/apiGetOrderCodeByTitle'
+            url = self.order_api + '/uniledger/v1/bordertrade/apiGetOrderCodeByTitle'
             headers = {'content-type': 'application/json'}
             payload = {
                 "itemTitle": itemTitle
@@ -1254,7 +1254,7 @@ class Bigchain(object):
             print("1--",taxlist)
             for tax in taxlist[1]:
                 print("2--",tax)
-                url = 'http://192.168.159.101:9984/uniledger/v1/bordertrade/apiGetGoosTitle'
+                url = self.order_api +'/uniledger/v1/bordertrade/apiGetGoosTitle'
                 headers = {'content-type': 'application/json'}
                 print("3--",tax['orderCode'])
                 payload = {

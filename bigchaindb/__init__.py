@@ -57,6 +57,7 @@ config = {
         'stale_pipeline.heartbeat_timeout':20,
         'vote_pipeline.fraction_of_cores':1
     },
+    'order_api':'http://36.110.71.170:41',
     'restore_server': {
         'bind': os.environ.get('BIGCHAINDB_RESTORE_SERVER_BIND') or 'localhost:{}'
             .format(unichain_config['server_config']['restore_server_port']),
