@@ -130,10 +130,17 @@ def get_txNumberById(block_id):
     # r.expr(["Peter", "John"])
     # .contains(doc["name"])
     orderCodeList = ['S1707111712422395']
-    s = r.table('bigchain').concat_map(lambda doc: doc['block']['transactions']) \
-        .filter(lambda doc: r.expr(orderCodeList) .contains(doc['transaction']['metadata']['data']['orderCode']))\
-        .get_field("transaction").get_field("metadata").get_field('data').order_by('timestamp')\
-        .run(conn)
+    # s = r.table('bigchain').concat_map(lambda doc: doc['block']['transactions']) \
+    #     .filter(lambda doc: r.expr(orderCodeList) .contains(doc['transaction']['metadata']['data']['orderCode']))\
+    #     .get_field("transaction").get_field("metadata").get_field('data').order_by('timestamp')\
+    #     .run(conn)
+    # s = r.table('bigchain').concat_map(lambda doc: doc['block']['transactions'])\
+    #     .filter({'transaction': {'metadata': {'data': {'orderCode': 'S1707111712422395'}}}})\
+    #     .get_field("transaction").get_field("metadata").get_field('data')\
+    #     .concat_map(lambda goods: goods['goodsinfo']).get_field('itemTitle').run(conn)
+    s = r.table('bigchain').concat_map(lambda doc: doc['block']['transactions'])\
+    .filter({'transaction': {'metadata': {'data': {'orderCode': 'S1707111712422395'}}}})\
+    .get_field("transaction").get_field("metadata").get_field('data').limit(1).run(conn)
 # == '测试-苹果（含新版规格）'
 # .filter({'transaction': {'metadata': {'data': {'from': {'userName': '供应商户01责任有限公司'}}}}}) \
 #     .get_field("transaction").get_field("metadata").get_field('data').order_by('timestamp') \

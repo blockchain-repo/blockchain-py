@@ -1195,12 +1195,49 @@ class Bigchain(object):
 
         if fuserName != '':
             taxlist = self.backend.getTaxListOfFuser(fuserName, startTime, endTime, startIndex, endIndex)
+            for tax in taxlist[1]:
+                print(tax)
+                url = 'http://192.168.159.101:9984/uniledger/v1/bordertrade/apiGetGoosTitle'
+                headers = {'content-type': 'application/json'}
+                print(tax['orderCode'])
+                payload = {
+                    "orderCode": tax['orderCode']
+                }
+                data = json.dumps(payload)
+                res = requests.post(url, data=data, headers=headers)
+                print(res)
+                tax["goosTitle"] = res
+
         elif tuserName != '':
             taxlist = self.backend.getTaxListOfTuser(tuserName, startTime, endTime, startIndex, endIndex)
+            for tax in taxlist[1]:
+                print(tax)
+                url = 'http://192.168.159.101:9984/uniledger/v1/bordertrade/apiGetGoosTitle'
+                headers = {'content-type': 'application/json'}
+                print(tax['orderCode'])
+                payload = {
+                    "orderCode": tax['orderCode']
+                }
+                data = json.dumps(payload)
+                res = requests.post(url, data=data, headers=headers)
+                print(res)
+                tax["goosTitle"] = res
         elif orderCode != '':
             taxlist = self.backend.getTaxListOfCode(orderCode, startTime, endTime, startIndex, endIndex)
+            for tax in taxlist[1]:
+                print(tax)
+                url = 'http://192.168.159.101:9984/uniledger/v1/bordertrade/apiGetGoosTitle'
+                headers = {'content-type': 'application/json'}
+                print(tax['orderCode'])
+                payload = {
+                    "orderCode": tax['orderCode']
+                }
+                data = json.dumps(payload)
+                res = requests.post(url, data=data, headers=headers)
+                print(res)
+                tax["goosTitle"] = res
         elif itemTitle != '':
-            url = 'http://36.110.71.170:41/uniledger/v1/bordertrade/apiGetOrderCodeByTitle'
+            url = 'http://192.168.159.101:9984/uniledger/v1/bordertrade/apiGetOrderCodeByTitle'
             headers = {'content-type': 'application/json'}
             payload = {
                 "itemTitle": itemTitle
@@ -1210,9 +1247,25 @@ class Bigchain(object):
             print(res)
             orderCodeList = res
             taxlist = self.backend.getTaxListOfTitle(orderCodeList, startTime, endTime, startIndex, endIndex)
+            for tax in taxlist[1]:
+                tax["goosTitle"] = itemTitle
         else :
             taxlist = self.backend.getTaxList(startTime, endTime, startIndex, endIndex)
-
+            print("1--",taxlist)
+            for tax in taxlist[1]:
+                print("2--",tax)
+                url = 'http://192.168.159.101:9984/uniledger/v1/bordertrade/apiGetGoosTitle'
+                headers = {'content-type': 'application/json'}
+                print("3--",tax['orderCode'])
+                payload = {
+                    "orderCode": tax['orderCode']
+                }
+                data = json.dumps(payload)
+                # session = requests.Session()
+                # session.trust_env = False
+                res = requests.post(url, data=data, headers=headers)
+                print("4--",res)
+                tax["goosTitle"] = res
         return taxlist
 
 
@@ -1227,7 +1280,9 @@ class Bigchain(object):
         # print(orderList)
         return list(orderList)
 
-
-
-
+    def getGoosTitleByCode(self,param):
+        orderCode = param['orderCode']
+        title = self.backend.getGoosTitleByCode(orderCode)
+        # print(orderList)
+        return ','.join(list(title))
      # for border trade end

@@ -50,7 +50,7 @@ class ApiTaxList(Resource):
             # if param['itemTitle'] == '':
             #
             #     taxList = bigchain.getTaxList(param)
-            #     pass
+            #     passstrict_
             # else:
             #     taxList = bigchain.getTaxList(param)
             taxList = bigchain.getTaxList(param)
@@ -87,9 +87,22 @@ class ApiGetOrderCodeByTitle(Resource):
         return taxDetails
 
 
+class ApiGetGoosTitle(Resource):
+    def post(self):
+        print("ApiGetGoosTitle")
+        pool = current_app.config['bigchain_pool']
+        param = request.get_json(force=True)
+        print("1:", param)
+        with pool() as bigchain:
+            title = bigchain.getGoosTitleByCode(param)
+        print(title)
+        return title
+
 bordertrade_api.add_resource(Test, '/test', strict_slashes=False)
 bordertrade_api.add_resource(ApiCustomsList, '/apiCustomsList', strict_slashes=False)
 bordertrade_api.add_resource(ApiCustomsDetail, '/customsDetail', strict_slashes=False)
 bordertrade_api.add_resource(ApiTaxList, '/taxList', strict_slashes=False)
 bordertrade_api.add_resource(ApiTaxDetail, '/taxDetail', strict_slashes=False)
 bordertrade_api.add_resource(ApiGetOrderCodeByTitle, '/apiGetOrderCodeByTitle', strict_slashes=False)
+bordertrade_api.add_resource(ApiGetGoosTitle, '/apiGetGoosTitle', strict_slashes=False)
+

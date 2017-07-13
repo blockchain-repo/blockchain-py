@@ -770,5 +770,9 @@ class RethinkDBBackend:
                                    .filter({'transaction': {'metadata': {'data': {'orderCode': orderCode}}}})
                                    .get_field("transaction").get_field("metadata").get_field('data').limit(1))
 
-
+    def getGoosTitleByCode(self,orderCode):
+        return self.connection.run(r.table('bigchain').concat_map(lambda doc: doc['block']['transactions'])
+                                   .filter({'transaction': {'metadata': {'data': {'orderCode': orderCode}}}})
+                                   .get_field("transaction").get_field("metadata").get_field('data')
+                                   .concat_map(lambda goods: goods['goodsinfo']).get_field('itemTitle'))
      # for border trade end
