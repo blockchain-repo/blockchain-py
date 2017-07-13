@@ -1206,7 +1206,7 @@ class Bigchain(object):
                 data = json.dumps(payload)
                 res = requests.post(url, data=data, headers=headers)
                 print(res)
-                tax["goosTitle"] = res
+                tax["goodsTitle"] = res
 
         elif tuserName != '':
             taxlist = self.backend.getTaxListOfTuser(tuserName, startTime, endTime, startIndex, endIndex)
@@ -1221,7 +1221,7 @@ class Bigchain(object):
                 data = json.dumps(payload)
                 res = requests.post(url, data=data, headers=headers)
                 print(res)
-                tax["goosTitle"] = res
+                tax["goodsTitle"] = res
         elif orderCode != '':
             taxlist = self.backend.getTaxListOfCode(orderCode, startTime, endTime, startIndex, endIndex)
             for tax in taxlist[1]:
@@ -1235,7 +1235,7 @@ class Bigchain(object):
                 data = json.dumps(payload)
                 res = requests.post(url, data=data, headers=headers)
                 print(res)
-                tax["goosTitle"] = res
+                tax["goodsTitle"] = res
         elif itemTitle != '':
             url = self.order_api + '/uniledger/v1/bordertrade/apiGetOrderCodeByTitle'
             headers = {'content-type': 'application/json'}
@@ -1248,7 +1248,7 @@ class Bigchain(object):
             orderCodeList = res
             taxlist = self.backend.getTaxListOfTitle(orderCodeList, startTime, endTime, startIndex, endIndex)
             for tax in taxlist[1]:
-                tax["goosTitle"] = itemTitle
+                tax["goodsTitle"] = itemTitle
         else :
             taxlist = self.backend.getTaxList(startTime, endTime, startIndex, endIndex)
             print("1--",taxlist)
@@ -1265,7 +1265,7 @@ class Bigchain(object):
                 # session.trust_env = False
                 res = requests.post(url, data=data, headers=headers)
                 print("4--",res)
-                tax["goosTitle"] = res.json()
+                tax["goodsTitle"] = res.json()
         return taxlist
 
 
