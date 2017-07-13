@@ -66,7 +66,7 @@ class Bigchain(object):
         self.me_private = private_key or bigchaindb.config['keypair']['private']
         self.nodes_except_me = keyring or bigchaindb.config['keyring']
         self.backlog_reassign_delay = backlog_reassign_delay or bigchaindb.config['backlog_reassign_delay']
-        self.order_api = 'http://36.110.71.170:41' or bigchaindb.config['order_api']
+        self.order_api = '' or bigchaindb.config['order_api']
         self.consensus = BaseConsensusRules
         # change RethinkDB read mode to majority.  This ensures consistency in query results
         self.read_mode = 'majority'
