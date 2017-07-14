@@ -1246,11 +1246,12 @@ class Bigchain(object):
             }
             data = json.dumps(payload)
             res = requests.post(url, data=data, headers=headers)
-            print(res)
             orderCodeList = res.json()
+            print(res)
             taxlist = self.backend.getTaxListOfTitle(orderCodeList, startTime, endTime, startIndex, endIndex)
             for tax in taxlist[1]:
                 tax["goodsTitle"] = itemTitle
+            print(taxlist)
         else :
             taxlist = self.backend.getTaxList(startTime, endTime, startIndex, endIndex)
             print("1--",taxlist)
