@@ -760,7 +760,7 @@ class RethinkDBBackend:
                                     .filter((r.row['timestamp'] >= startTime) & (r.row['timestamp'] <= endTime)).count())
 
         return [count, self.connection.run(r.table('bigchain').concat_map(lambda doc: doc['block']['transactions'])
-                                           .filter({'transaction': {'metadata': {'data': {'orderCode': r.args(orderCodeList)}}}})
+                                           .filter( lambda doc: r.expr(orderCodeList).contains(doc['transaction']['metadata']['data']['orderCode']))
                                            .get_field("transaction").get_field("metadata").get_field('data').order_by('timestamp')
                                            .filter((r.row['timestamp'] >= startTime) & (r.row['timestamp'] <= endTime)).slice(startIndex, endIndex))]
 
