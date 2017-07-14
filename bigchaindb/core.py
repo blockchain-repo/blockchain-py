@@ -1169,8 +1169,8 @@ class Bigchain(object):
             customList = self.backend.getCustomsListOfCode(orderCode,startTime,endTime,startIndex,endIndex)
         else:
             customList = self.backend.getCustomsList(startTime, endTime, startIndex, endIndex)
-        resList = customList.append(pageNum)
-        return resList
+        customList.append(pageNum)
+        return customList
 
     def getCustomsDeatil(self, param):
         orderCode = param['orderCode']
@@ -1268,8 +1268,8 @@ class Bigchain(object):
                 res = requests.post(url, data=data, headers=headers)
                 print("4--",res)
                 tax["goodsTitle"] = res.json()
-        resList = taxlist.append(pageNum)
-        return resList
+        taxlist.append(pageNum)
+        return taxlist
 
 
     def getTaxDeatil(self,param):
