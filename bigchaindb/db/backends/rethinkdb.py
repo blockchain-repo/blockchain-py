@@ -747,6 +747,13 @@ class RethinkDBBackend:
 
 
     def getTaxListOfTitle(self, orderCodeList, startTime, endTime, startIndex, endIndex):
+        print("rethindkb")
+        print(orderCodeList)
+        print(startTime)
+        print(endTime)
+        print(startIndex)
+        print(endIndex)
+
         count = self.connection.run(r.table('bigchain').concat_map(lambda doc: doc['block']['transactions'])
                                     .filter( lambda doc: r.expr(orderCodeList).contains(doc['transaction']['metadata']['data']['orderCode']))
                                     .get_field("transaction").get_field("metadata").get_field('data').order_by('timestamp')
