@@ -1160,15 +1160,16 @@ class Bigchain(object):
         endIndex = pageSize * pageNum
 
         if fuserName != '':
-            return self.backend.getCustomsListOfFuser(fuserName,startTime,endTime,startIndex,endIndex)
+            customList = self.backend.getCustomsListOfFuser(fuserName,startTime,endTime,startIndex,endIndex)
         elif tuserName!='':
-            return self.backend.getCustomsListOfTuser(tuserName,startTime,endTime,startIndex,endIndex)
+            customList = self.backend.getCustomsListOfTuser(tuserName,startTime,endTime,startIndex,endIndex)
         elif itemTitle!='':
-            return self.backend.getCustomsListOfTitle(itemTitle,startTime,endTime,startIndex,endIndex)
+            customList = self.backend.getCustomsListOfTitle(itemTitle,startTime,endTime,startIndex,endIndex)
         elif orderCode!='':
-            return self.backend.getCustomsListOfCode(orderCode,startTime,endTime,startIndex,endIndex)
+            customList = self.backend.getCustomsListOfCode(orderCode,startTime,endTime,startIndex,endIndex)
         else:
-            return self.backend.getCustomsList(startTime, endTime, startIndex, endIndex)
+            customList = self.backend.getCustomsList(startTime, endTime, startIndex, endIndex)
+        return customList.append(pageNum)
 
     def getCustomsDeatil(self, param):
         orderCode = param['orderCode']
@@ -1266,7 +1267,7 @@ class Bigchain(object):
                 res = requests.post(url, data=data, headers=headers)
                 print("4--",res)
                 tax["goodsTitle"] = res.json()
-        return taxlist
+        return taxlist.append(pageNum)
 
 
     def getTaxDeatil(self,param):
