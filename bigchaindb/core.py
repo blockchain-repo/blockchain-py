@@ -1208,7 +1208,7 @@ class Bigchain(object):
                 data = json.dumps(payload)
                 res = requests.post(url, data=data, headers=headers)
                 print(res)
-                tax["goodsTitle"] = res
+                tax["goodsTitle"] = res.json()
 
         elif tuserName != '':
             taxlist = self.backend.getTaxListOfTuser(tuserName, startTime, endTime, startIndex, endIndex)
@@ -1223,7 +1223,7 @@ class Bigchain(object):
                 data = json.dumps(payload)
                 res = requests.post(url, data=data, headers=headers)
                 print(res)
-                tax["goodsTitle"] = res
+                tax["goodsTitle"] = res.json()
         elif orderCode != '':
             taxlist = self.backend.getTaxListOfCode(orderCode, startTime, endTime, startIndex, endIndex)
             for tax in taxlist[1]:
@@ -1237,7 +1237,7 @@ class Bigchain(object):
                 data = json.dumps(payload)
                 res = requests.post(url, data=data, headers=headers)
                 print(res)
-                tax["goodsTitle"] = res
+                tax["goodsTitle"] = res.json()
         elif itemTitle != '':
             url = self.order_api + '/uniledger/v1/bordertrade/apiGetOrderCodeByTitle'
             headers = {'content-type': 'application/json'}
@@ -1247,7 +1247,7 @@ class Bigchain(object):
             data = json.dumps(payload)
             res = requests.post(url, data=data, headers=headers)
             print(res)
-            orderCodeList = res
+            orderCodeList = res.json()
             taxlist = self.backend.getTaxListOfTitle(orderCodeList, startTime, endTime, startIndex, endIndex)
             for tax in taxlist[1]:
                 tax["goodsTitle"] = itemTitle
