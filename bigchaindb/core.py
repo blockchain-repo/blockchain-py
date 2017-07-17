@@ -1285,8 +1285,8 @@ class Bigchain(object):
         }
         data = json.dumps(payload)
         res = requests.post(url, data=data, headers=headers)
-        resTax.json()["goodsTitle"] = res.json()
-        return resTax
+        goodsTitle = res.json()
+        return resTax,goodsTitle
 
 
     def getOrderCodeByTitle(self,param):
