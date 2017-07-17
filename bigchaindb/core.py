@@ -1285,7 +1285,7 @@ class Bigchain(object):
         }
         data = json.dumps(payload)
         res = requests.post(url, data=data, headers=headers)
-        resTax["goodsTitle"] = res.json()
+        resTax.json()["goodsTitle"] = res.json()
         return resTax
 
 
