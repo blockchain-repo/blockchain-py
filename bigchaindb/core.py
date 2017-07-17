@@ -1275,7 +1275,18 @@ class Bigchain(object):
 
     def getTaxDeatil(self,param):
         orderCode = param['orderCode']
-        return self.backend.getTaxDetailOfCode(orderCode)
+
+        resTax = self.backend.getTaxDetailOfCode(orderCode)
+
+        url = self.order_api + '/uniledger/v1/bordertrade/apiGetGoosTitle'
+        headers = {'content-type': 'application/json'}
+        payload = {
+            "orderCode": orderCode
+        }
+        data = json.dumps(payload)
+        res = requests.post(url, data=data, headers=headers)
+        resTax["goodsTitle"] = res.json()
+        return resTax
 
 
     def getOrderCodeByTitle(self,param):
