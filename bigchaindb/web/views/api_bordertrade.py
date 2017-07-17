@@ -67,10 +67,11 @@ class ApiTaxDetail(Resource):
         print("1:", param)
         with pool() as bigchain:
             taxDetail = None
-            taxDetails = bigchain.getTaxDeatil(param)
+            taxDetails,goodsTitle = bigchain.getTaxDeatil(param)
             if taxDetails:
                 for c in taxDetails:
                     taxDetail = c
+                    taxDetail['goodsTitle'] = goodsTitle
         # print(taxDetail)
         return taxDetail
 
