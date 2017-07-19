@@ -639,34 +639,34 @@ class RethinkDBBackend:
         count = self.connection.run(r.table('bigchain').concat_map(lambda doc: doc['block']['transactions'])
                                     .filter({'transaction': {'operation': 'METADATA'}})
                                     .get_field("transaction").get_field("metadata").get_field('data').order_by('timestamp')
-                                    .filter((r.row['timestamp'] >= startTime) & (r.row['timestamp'] <= endTime)).count())
+                                    .filter((r.row['timestamp'] >= startTime) & (r.row['timestamp'] <= endTime)).filter(r.row['orderType'] == 2).count())
         return [count, self.connection.run(r.table('bigchain').concat_map(lambda doc: doc['block']['transactions'])
                                            .filter({'transaction': {'operation': 'METADATA'}})
                                            .get_field("transaction").get_field("metadata").get_field('data').order_by('timestamp')
-                                           .filter((r.row['timestamp'] >= startTime) & (r.row['timestamp'] <= endTime)).slice(startIndex, endIndex))]
+                                           .filter((r.row['timestamp'] >= startTime) & (r.row['timestamp'] <= endTime)).filter(r.row['orderType'] == 2).slice(startIndex, endIndex))]
 
     def getCustomsListOfFuser(self,fuserName,startTime,endTime,startIndex,endIndex):
         count = self.connection.run(r.table('bigchain').concat_map(lambda doc: doc['block']['transactions'])
                             .filter({'transaction': {'metadata': {'data': {'from': {'userName': fuserName}}}}})
                             .get_field("transaction").get_field("metadata").get_field('data').order_by('timestamp')
-                            .filter((r.row['timestamp'] >= startTime) & (r.row['timestamp'] <= endTime)).count())
+                            .filter((r.row['timestamp'] >= startTime) & (r.row['timestamp'] <= endTime)).filter(r.row['orderType'] == 2).count())
 
         return [count,self.connection.run(r.table('bigchain').concat_map(lambda doc: doc['block']['transactions'])
                                    .filter({'transaction':{'metadata':{'data':{'from':{'userName':fuserName}}}}})
                                    .get_field("transaction").get_field("metadata").get_field('data').order_by('timestamp')
-                                   .filter((r.row['timestamp'] >= startTime) & (r.row['timestamp'] <= endTime)).slice(startIndex,endIndex))]
+                                   .filter((r.row['timestamp'] >= startTime) & (r.row['timestamp'] <= endTime)).filter(r.row['orderType'] == 2).slice(startIndex,endIndex))]
 
 
     def getCustomsListOfTuser(self,tuserName,startTime,endTime,startIndex,endIndex):
         count = self.connection.run(r.table('bigchain').concat_map(lambda doc: doc['block']['transactions'])
                             .filter({'transaction': {'metadata': {'data': {'to': {'userName': tuserName}}}}})
                             .get_field("transaction").get_field("metadata").get_field('data').order_by('timestamp')
-                            .filter((r.row['timestamp'] >= startTime) & (r.row['timestamp'] <= endTime)).count())
+                            .filter((r.row['timestamp'] >= startTime) & (r.row['timestamp'] <= endTime)).filter(r.row['orderType'] == 2).count())
 
         return [count,self.connection.run(r.table('bigchain').concat_map(lambda doc: doc['block']['transactions'])
                                    .filter({'transaction': {'metadata': {'data': {'to': {'userName': tuserName}}}}})
                                    .get_field("transaction").get_field("metadata").get_field('data').order_by('timestamp')
-                                   .filter((r.row['timestamp'] >= startTime) & (r.row['timestamp'] <= endTime)).slice(startIndex, endIndex))]
+                                   .filter((r.row['timestamp'] >= startTime) & (r.row['timestamp'] <= endTime)).filter(r.row['orderType'] == 2).slice(startIndex, endIndex))]
 
 
     def getCustomsListOfTitle(self,itemTitle,startTime,endTime,startIndex,endIndex):
@@ -674,25 +674,25 @@ class RethinkDBBackend:
                             .filter({'transaction': {'operation': 'METADATA'}})
                             .filter(lambda tx: tx['transaction']['metadata']['data']['goodsinfo'].contains(lambda gi: gi['itemTitle'] == itemTitle))
                             .get_field("transaction").get_field("metadata").get_field('data').order_by('timestamp')
-                            .filter((r.row['timestamp'] >= startTime) & (r.row['timestamp'] <= endTime)).count())
+                            .filter((r.row['timestamp'] >= startTime) & (r.row['timestamp'] <= endTime)).filter(r.row['orderType'] == 2).count())
 
         return [count,self.connection.run(r.table('bigchain').concat_map(lambda doc: doc['block']['transactions'])
                                    .filter({'transaction':{'operation':'METADATA'}})
                                    .filter(lambda tx: tx['transaction']['metadata']['data']['goodsinfo'].contains(lambda gi: gi['itemTitle']==itemTitle))
                                    .get_field("transaction").get_field("metadata").get_field('data').order_by('timestamp')
-                                   .filter((r.row['timestamp'] >= startTime) & (r.row['timestamp'] <= endTime)).slice(startIndex, endIndex))]
+                                   .filter((r.row['timestamp'] >= startTime) & (r.row['timestamp'] <= endTime)).filter(r.row['orderType'] == 2).slice(startIndex, endIndex))]
 
 
     def getCustomsListOfCode(self,orderCode,startTime,endTime,startIndex,endIndex):
         count = self.connection.run(r.table('bigchain').concat_map(lambda doc: doc['block']['transactions'])
                             .filter({'transaction': {'metadata': {'data':{'orderCode': orderCode}}}})
                             .get_field("transaction").get_field("metadata").get_field('data').order_by('timestamp')
-                            .filter((r.row['timestamp'] >= startTime) & (r.row['timestamp'] <= endTime)).count())
+                            .filter((r.row['timestamp'] >= startTime) & (r.row['timestamp'] <= endTime)).filter(r.row['orderType'] == 2).count())
 
         return [count,self.connection.run(r.table('bigchain').concat_map(lambda doc: doc['block']['transactions'])
                                    .filter({'transaction': {'metadata': {'data':{'orderCode': orderCode}}}})
                                    .get_field("transaction").get_field("metadata").get_field('data').order_by('timestamp')
-                                   .filter((r.row['timestamp'] >= startTime) & (r.row['timestamp'] <= endTime)).slice(startIndex, endIndex))]
+                                   .filter((r.row['timestamp'] >= startTime) & (r.row['timestamp'] <= endTime)).filter(r.row['orderType'] == 2).slice(startIndex, endIndex))]
 
 
     def getCustomsDetailOfCode(self,orderCode):
@@ -747,12 +747,6 @@ class RethinkDBBackend:
 
 
     def getTaxListOfTitle(self, orderCodeList, startTime, endTime, startIndex, endIndex):
-        print("rethindkb")
-        print(orderCodeList)
-        print(startTime)
-        print(endTime)
-        print(startIndex)
-        print(endIndex)
 
         count = self.connection.run(r.table('bigchain').concat_map(lambda doc: doc['block']['transactions'])
                                     .filter( lambda doc: r.expr(orderCodeList).contains(doc['transaction']['metadata']['data']['orderCode']))
