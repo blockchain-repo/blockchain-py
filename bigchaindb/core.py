@@ -1003,6 +1003,49 @@ class Bigchain(object):
                         # linksAmount.append(amount)
 
         return links
+    def get_outputs_freeze_by_id(self, transaction_id):
+        """Retrieve a list of links to transaction outputs for a given public
+                   key.
+
+                Args:
+                    owner (str): base58 encoded public key.
+
+                Returns:
+                    :obj:`list` of TransactionLink: list of ``txid`` s and ``output`` s
+                    pointing to another transaction's condition
+                """
+        # get all transactions in which owner is in the `owners_after` list
+        response = self.backend.get_owned_ids_by_id(transaction_id)
+        # print("1---",response)
+        links = []
+        for tx in response:
+            # print("2---")
+            # disregard transactions from invalid blocks
+            validity = self.get_blocks_status_containing_tx(tx['id'])
+            # print("3---",validity)
+            if Bigchain.BLOCK_VALID not in validity.values():
+                if Bigchain.BLOCK_UNDECIDED not in validity.values():
+                    continue
+            # print("4---")
+            # NOTE: It's OK to not serialize the transaction here, as we do not
+            # use it after the execution of this function.
+            # a transaction can contain multiple outputs so we need to iterate over all of them
+            # to get a list of outputs available to spend
+            for index, output in enumerate(tx['transaction']['conditions']):
+                # for simple signature conditions there are no subfulfillments
+                # check if the owner is in the condition `owners_after`
+                # print(index)
+                if not output['isfreeze']:
+                    continue
+
+                details = output['condition']['details']
+                amount = output['amount']
+                merged = {'details': details, 'amount': amount}
+
+                tx_link = TransactionLink(tx['id'], index)
+                links.append(dict(tx_link.to_dict(), **merged))
+
+        return links
 
     def filter_unspent(self,outputs):
         outputs = [o for o in outputs
@@ -1100,7 +1143,39 @@ class Bigchain(object):
                 return 3, outputs_after
             return 2,outputs_after
         return 4,outputs_after
+    def get_freeze_output_by_id(self, transaction_id,include_spent=True):
+        """
+        :param owner:
+        :param transaction_id:
+        :param include_spent:
+        :return: outputs,
+                flag(
+                    0:no asset was frozen;
+                    1:the asset was frozen;
+                    2:the frozen asset had unfreeze
+                    3:the frozen asset had transfer
+                    4:has muti-frozen asset
+                    )
+        """
+        outputs = self.get_outputs_freeze_by_id(transaction_id)
+        if len(outputs) == 0:
+            # print("0---")
+            return 0,outputs
 
+        if not include_spent:
+            outputs_after = self.filter_unspent(outputs)
+
+        if len(outputs_after) == 1:
+            return 1,outputs_after
+
+        if len(outputs_after) == 0:
+            flag = self.check_output_transfer(outputs)
+            # print("flag-->",flag)
+            if flag:
+                # TODO return the outputs_after or outputs?
+                return 3, outputs_after
+            return 2,outputs_after
+        return 4,outputs_after
 
     def gettxRecordByPubkey(self,pubkey):
 

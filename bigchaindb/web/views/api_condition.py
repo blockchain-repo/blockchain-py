@@ -60,6 +60,25 @@ class ApiGetFreezeUnspentTx(Resource):
                                  "sucess",
                                  outputs)
 
+class ApiGetFreezeByTransId(Resource):
+    def get(self):
+        print('ApiGetFreezeByTransId')
+        parser = reqparse.RequestParser()
+        parser.add_argument('unspent', type=parameters.valid_bool)
+        parser.add_argument('transaction_id')
+        args = parser.parse_args()
+
+        include_spent = not args['unspent']
+        transaction_id = args['transaction_id']
+
+        pool = current_app.config['bigchain_pool']
+        with pool() as bigchain:
+            outputs = bigchain.get_freeze_output_by_id(transaction_id, include_spent)
+            return make_response(constant.RESPONSE_STATUS_SUCCESS,
+                                 constant.RESPONSE_CODE_SUCCESS,
+                                 "sucess",
+                                 outputs)
 
 condition_api.add_resource(ApiGetUnspentTxs, '/getUnspentTxs', strict_slashes=False)
 condition_api.add_resource(ApiGetFreezeUnspentTx, '/getFreezeUnspentTx', strict_slashes=False)
+condition_api.add_resource(ApiGetFreezeByTransId, '/getFreezeByTransId', strict_slashes=False)

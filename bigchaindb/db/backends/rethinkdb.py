@@ -238,6 +238,22 @@ class RethinkDBBackend:
                 lambda var_5: var_5['transaction']['conditions'].contains(
                     lambda var_6: var_6['owners_after'].contains(owner))))
 
+    def get_owned_ids_by_id(self,transaction_id):
+        """Retrieve a list of `txids` that can we used has inputs.
+
+        Args:
+            owner (str): base58 encoded public key.
+
+        Returns:
+            A cursor for the matching transactions.
+        """
+        # print(owner)
+        # TODO: use index!
+        return self.connection.run(
+            r.table('bigchain').concat_map(lambda var_1: var_1['block']['transactions']).filter(lambda var_2: (
+            var_2['transaction']['id']['ContractId'] == transaction_id)))
+
+
     def get_tx_by_contract_hash_id(self, contract_hash_id):
         """Retrieve a list of `txids` that can we used has inputs.
 

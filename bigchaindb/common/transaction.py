@@ -630,7 +630,7 @@ class Transaction(object):
     VERSION = 1
 
     def __init__(self, operation, asset, fulfillments=None, conditions=None,
-                 metadata=None, timestamp=None, version=None,Relation=None,Contract=None):
+                 metadata=None, timestamp=None, version=None,Relation=None,Contract=None,chainType=""):
         """The constructor allows to create a customizable Transaction.
 
             Note:
@@ -687,10 +687,11 @@ class Transaction(object):
         self.metadata = metadata
         self.Relation = Relation
         self.Contract = Contract
+        self.chainType = chainType
 
 
     @classmethod
-    def create(cls, tx_signers, recipients,operation=CREATE, metadata=None, asset=None,Relation=None,Contract=None,version=None):
+    def create(cls, tx_signers, recipients,operation=CREATE, metadata=None, asset=None,Relation=None,Contract=None,chainType="",version=None):
         """A simple way to generate a `CREATE` transaction.
 
             Note:
@@ -742,7 +743,7 @@ class Transaction(object):
         # generate inputs
         inputs.append(Fulfillment.generate(tx_signers))
 
-        return cls(operation, asset, fulfillments=inputs, conditions=conditions, metadata=metadata,Relation=Relation,Contract=Contract,version=version)
+        return cls(operation, asset, fulfillments=inputs, conditions=conditions, metadata=metadata,Relation=Relation,Contract=Contract,chainType=chainType,version=version)
 
 
     @classmethod
@@ -918,7 +919,7 @@ class Transaction(object):
         return cls(cls.TRANSFER, asset=asset, fulfillments=inputs, conditions=conditions, metadata=metadata)
 
     @classmethod
-    def savedata(cls, tx_signers, recipients, metadata, operation=METADATA,  asset=None, Relation=None, Contract=None,
+    def savedata(cls, tx_signers, recipients, metadata, operation=METADATA,  asset=None, Relation=None, Contract=None,chainType= "",
                version=None):
         """A simple way to generate a `CREATE` transaction.
 
@@ -972,7 +973,7 @@ class Transaction(object):
         inputs.append(Fulfillment.generate(tx_signers))
 
         return cls(operation, asset, fulfillments=inputs, conditions=conditions, metadata=metadata, Relation=Relation,
-                   Contract=Contract, version=version)
+                   Contract=Contract,chainType = chainType, version=version)
 
     @classmethod
     def freeze_asset(cls, inputs, recipients, asset, metadata=None):
@@ -1120,7 +1121,7 @@ class Transaction(object):
             #       previously signed ones.
             tx_partial = Transaction(self.operation, self.asset, fulfillments=[fulfillment],
                                      conditions=[condition], metadata=self.metadata,
-                                     timestamp=self.timestamp, version=self.version,Relation=self.Relation,Contract=self.Contract)
+                                     timestamp=self.timestamp, version=self.version,Relation=self.Relation,Contract=self.Contract,chainType=self.chainType)
 
             tx_partial_dict = tx_partial.to_dict()
             tx_partial_dict = Transaction._remove_signatures(tx_partial_dict)
@@ -1325,7 +1326,7 @@ class Transaction(object):
             """
             tx = Transaction(self.operation, self.asset, fulfillments=[fulfillment],
                              conditions=[condition], metadata=self.metadata, timestamp=self.timestamp,
-                             version=self.version,Relation=self.Relation,Contract=self.Contract)
+                             version=self.version,Relation=self.Relation,Contract=self.Contract,chainType=self.chainType)
             tx_dict = tx.to_dict()
             tx_dict = Transaction._remove_signatures(tx_dict)
             tx_serialized = Transaction._to_str(tx_dict)
@@ -1417,6 +1418,7 @@ class Transaction(object):
         }
         tx = {
             'version': self.version,
+            'chaintype': self.chainType,
             'transaction': tx_body,
         }
 
@@ -1532,9 +1534,13 @@ class Transaction(object):
                 Contract = None
                 timestamp = tx['timestamp']
             # print("3")
+            chainType = ""
+            if 'chaintype' in tx_body_old.keys():
+                chainType = tx_body_old['chaintype']
+
             fulfillments = [Fulfillment.from_dict(fulfillment) for fulfillment
                             in tx['fulfillments']]
             conditions = [Condition.from_dict(condition) for condition
                           in tx['conditions']]
             return cls(tx['operation'], asset=asset, fulfillments=fulfillments, conditions=conditions, metadata=metadata,
-                       timestamp=timestamp, version=tx_body['version'],Relation=Relation,Contract=Contract)
+                       timestamp=timestamp, version=tx_body['version'],Relation=Relation,Contract=Contract,chainType =chainType)
