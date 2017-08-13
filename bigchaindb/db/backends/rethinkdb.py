@@ -251,7 +251,7 @@ class RethinkDBBackend:
         # TODO: use index!
         return self.connection.run(
             r.table('bigchain').concat_map(lambda var_1: var_1['block']['transactions']).filter(lambda var_2: (
-            var_2['transaction']['id']['ContractId'] == transaction_id)))
+            var_2['id'] == transaction_id)))
 
 
     def get_tx_by_contract_hash_id(self, contract_hash_id):
