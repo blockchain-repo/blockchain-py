@@ -23,6 +23,8 @@ sudo pip3 install --upgrade pip setuptools
 
 ### 3. Install the localdb
 ```
+sudo apt-get install libffi-dev
+
 sudo apt-get install libleveldb1 libleveldb-dev libsnappy1 libsnappy-dev
 sudo pip3 install plyvel
 
