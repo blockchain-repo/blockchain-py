@@ -13,7 +13,7 @@ Ubuntu 14.04 already has Python 3.4, so you don\`t need to install it, but you d
 
 ```
 sudo apt-get update
-sudo apt-get install g++ python3-dev
+sudo apt-get install g++ python3-dev libffi-dev
 ```
 Get the latest version of pip and setuptools:
 ```
@@ -23,8 +23,6 @@ sudo pip3 install --upgrade pip setuptools
 
 ### 3. Install the localdb
 ```
-sudo apt-get install libffi-dev
-
 sudo apt-get install libleveldb1 libleveldb-dev libsnappy1 libsnappy-dev
 sudo pip3 install plyvel
 
