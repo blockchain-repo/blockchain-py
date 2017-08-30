@@ -157,3 +157,22 @@ def is_genesis_block(block):
         return block.transactions[0].operation == 'GENESIS'
     except AttributeError:
         return block['block']['transactions'][0]['transaction']['operation'] == 'GENESIS'
+
+def need_vote_block(block,node_pubkey):
+    flag = False
+    try:
+        vorters = block.voters
+    except AttributeError:
+        vorters = block["block"]["voters"]
+    if node_pubkey in vorters:
+        flag = True
+
+    try:
+        operation = block.transactions[0].operation
+    except AttributeError:
+        operation = block['block']['transactions'][0]['transaction']['operation']
+
+    if operation == 'GENESIS' :
+        flag = False
+
+    return flag

@@ -1,7 +1,7 @@
 # How to read the json file
 import json
 from itertools import compress
-
+from bigchaindb import util
 # # open file
 # f = open("./keypair.json", "r")
 # # load data
@@ -136,11 +136,20 @@ def get_txNumberById(block_id):
     # .filter(r.row['orderType'] == 2).slice(startIndex, endIndex))
 
     orderCodeList = ['D1707141404012364', 'S1707111549432395', 'D1707071325172395', 'D1707111545242395', 'D1707111610442394', 'D1707111723592395', 'D1707111544292395', 'S1707141401422364', 'D1707141404062364', 'S1707111602422395', 'D1707111545182395', 'D1707111545142395', 'D1707111644142395', 'S1707111731432395', 'S1707111722422395', 'D1707111643542395', 'S1707111619422394', 'D1707111517032394', 'S1707141406422364', 'D1707141401052364', 'D1707111723502395', 'S1707111725422395', 'S1707111700422395', 'D1707141401122364', 'D1707111610362394', 'D1707111643492395', 'S1707141105422364', 'D1707111644092395', 'D1707111542212395', 'D1707071407472387', 'D1707111545092395', 'S1703050106442156', 'S1707111658432395', 'D1707111724252395', 'S1707111457432395', 'S1707111709422395', 'S1707111549432395', 'S1707111729432395', 'D1707111545002395', 'D1707141103162364', 'S1707111459422395', 'S1707141402422364', 'D1707111542192395', 'D1707111545392395', 'S1707111727422395', 'D1707111643212395', 'S1707111620432394', 'D1707111724042395', 'D1707111643152395', 'S1707111628422394', 'S1707111707422395', 'D1707111644032395', 'S1707111708422395', 'S1707111701422395', 'D1707111545042395', 'D1707111643442395', 'S1707111712422395', 'D1707111643402395', 'D1707141030372364', 'S1707111705422395', 'D1707111617432395', 'D1707111544402395', 'D1707111544162395', 'S1707111721432395', 'D1707111724082395']
-    s = r.table('bigchain').concat_map(lambda doc: doc['block']['transactions']) \
-        .filter(lambda doc: r.expr(orderCodeList) .contains(doc['transaction']['metadata']['data']['orderCode']))\
-        .get_field("transaction").get_field("metadata").get_field('data').order_by('timestamp') \
-        .filter((r.row['timestamp'] >= '1499765383000') & (r.row['timestamp'] <= '1499765383000')).filter(r.row['orderType'] == 2).slice(0, 5)\
+    # s = r.table('bigchain').concat_map(lambda doc: doc['block']['transactions']) \
+    #     .filter(lambda doc: r.expr(orderCodeList) .contains(doc['transaction']['metadata']['data']['orderCode']))\
+    #     .get_field("transaction").get_field("metadata").get_field('data').order_by('timestamp') \
+    #     .filter((r.row['timestamp'] >= '1499765383000') & (r.row['timestamp'] <= '1499765383000')).filter(r.row['orderType'] == 2).slice(0, 5)\
+    #     .run(conn)
+    node_pubkey = "5mVrPtqUzXwKYL2JeZo4cQq2spt8qfGVx3qE2V7NqgyU"
+    unvoted = r.table('bigchain')\
+        .filter(lambda block: r.table('votes').get_all([block['id'], node_pubkey], index='block_and_voter').is_empty())\
+        .order_by(r.asc(r.row['block']['timestamp']))\
         .run(conn)
+    print(unvoted)
+    unvoted_blocks2 = filter(lambda block: util.need_vote_block(block,node_pubkey), unvoted)
+    for element in unvoted_blocks2:
+        print("key:",element)
     # s = r.table('bigchain').concat_map(lambda doc: doc['block']['transactions'])\
     #     .filter({'transaction': {'metadata': {'data': {'orderCode': 'S1707111712422395'}}}})\
     #     .get_field("transaction").get_field("metadata").get_field('data')\
@@ -160,7 +169,9 @@ def get_txNumberById(block_id):
     # .update({'isfreeze': True})
 
     # s = r.table('rewrite').between('', '', index='block_timestamp').get_field('id').run(conn)
-    print(s)
+    # print(unvoted)
+    # print(unvoted_blocks1)
+    # print(unvoted_blocks2)
 
 get_txNumberById("39d8d3d29554d209a1283b20a1e3e198bdd27c099b8df9042195d7bb0728219f")
 

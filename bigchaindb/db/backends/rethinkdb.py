@@ -442,7 +442,8 @@ class RethinkDBBackend:
 
         # FIXME: I (@vrde) don't like this solution. Filtering should be done at a
         #        database level. Solving issue #444 can help untangling the situation
-        unvoted_blocks = filter(lambda block: not util.is_genesis_block(block), unvoted)
+        # unvoted_blocks = filter(lambda block: not util.is_genesis_block(block), unvoted)
+        unvoted_blocks = filter(lambda block: util.need_vote_block(block, node_pubkey), unvoted)
         return unvoted_blocks
 
     # TODO 需要写一些通用方法，提高代码重用
