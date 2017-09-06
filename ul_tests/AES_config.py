@@ -30,10 +30,12 @@ class aescrypt:
         return plain_text.rstrip('\0')
 
 
+ac = aescrypt('NoVUykFjRmR1CJ2M')
+
 if __name__ == '__main__':
     config = serialize(bigchaindb.config)
-    pc = aescrypt('1234567890123456')  # 初始化密钥
-    e = pc.encrypt(config)
+    # 初始化密钥
+    e = ac.encrypt(config)
     print(e)
-    d = pc.decrypt(e)
+    d = ac.decrypt(e)
     print(d)
