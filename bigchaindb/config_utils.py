@@ -100,6 +100,7 @@ def file_config(filename=None):
     with open(filename) as f:
         try:
             config = json.load(f)
+            return config
         except ValueError:
             pass
     with open(filename) as f:
