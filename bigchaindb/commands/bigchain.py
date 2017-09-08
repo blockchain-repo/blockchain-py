@@ -144,7 +144,10 @@ def run_configure(args, skip_if_exists=False):
         conf['restore_server']['compress'] = compress
 
     if config_path != '-':
-        bigchaindb.config_utils.write_config(conf, config_path)
+        if args.encrypt:
+            bigchaindb.config_utils.write_config_encrypt(conf, config_path)
+        else:
+            bigchaindb.config_utils.write_config(conf, config_path)
     else:
         print(json.dumps(conf, indent=4, sort_keys=True))
     print('Configuration written to {}'.format(config_path), file=sys.stderr)

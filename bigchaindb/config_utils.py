@@ -18,6 +18,7 @@ import logging
 import collections
 
 from bigchaindb.common import exceptions
+from bigchaindb.common.aes_crypt import ac
 
 import bigchaindb
 
@@ -94,15 +95,22 @@ def file_config(filename=None):
 
     if filename is None:
         filename = CONFIG_DEFAULT_PATH
-
+    print("filename",filename)
     logger.debug('file_config() will try to open `{}`'.format(filename))
     with open(filename) as f:
         try:
             config = json.load(f)
+        except ValueError:
+            pass
+    with open(filename) as f:
+        try:
+            line = f.readline()
+            de = ac.decrypt(line)
+            config = json.loads(de)
         except ValueError as err:
             raise exceptions.ConfigurationError(
-                'Failed to parse the JSON configuration from `{}`, {}'.format(filename, err)
-            )
+                'Failed to parse the JSON/encrypt configuration from `{}`, {}'.format(filename, err)
+             )
 
     logger.info('Configuration loaded from `{}`'.format(filename))
 
@@ -215,6 +223,21 @@ def write_config(config, filename=None):
     with open(filename, 'w') as f:
         json.dump(config, f, indent=4)
 
+def write_config_encrypt(config, filename=None):
+    """Write the provided configuration to a specific location.
+
+    Args:
+        config (dict): a dictionary with the configuration to load.
+        filename (str): the name of the file that will store the new configuration. Defaults to ``None``.
+            If ``None``, the HOME of the current user and the string ``.bigchaindb`` will be used.
+    """
+    if not filename:
+        filename = CONFIG_DEFAULT_PATH
+
+    with open(filename, 'w') as f:
+        encrypt_config = ac.encrypt(json.dumps(config))
+        f.write(encrypt_config)
+
 
 def autoconfigure(filename=None, config=None, force=False):
     """Run ``file_config`` and ``env_config`` if the module has not
@@ -240,3 +263,6 @@ def autoconfigure(filename=None, config=None, force=False):
         newconfig = update(newconfig, config)
 
     set_config(newconfig)  # sets bigchaindb.config
+
+if __name__ == '__main__':
+    file_config()

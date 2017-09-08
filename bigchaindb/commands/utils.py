@@ -98,6 +98,10 @@ def start(parser, argv, scope):
 
 base_parser = argparse.ArgumentParser(add_help=False, prog='{}'.format(app_service_name))
 
+base_parser.add_argument('-e', '--encrypt',
+                         action='store_true',
+                         help='Assume "yes" to encrypt config')
+
 base_parser.add_argument('-c', '--config',
                          help='Specify the location of the configuration file '
                               '(use "-" for stdout)')
