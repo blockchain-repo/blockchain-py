@@ -29,7 +29,7 @@ class RethinkDBBackend:
         self.durability = 'soft'
         self.connection = Connection(host=host, port=port, db=db)
 
-    def write_transaction(self, signed_transaction):
+    def write_transaction(self, signed_transaction,node_name =''):
         """Write a transaction to the backlog table.
 
         Args:
@@ -39,11 +39,15 @@ class RethinkDBBackend:
             The result of the operation.
         """
         logger.debug("Writing transaction id = %s", signed_transaction['id'])
+
+        self.connection.run(
+            r.table('backlog'+node_name)
+                .insert(signed_transaction, durability=self.durability))
         return self.connection.run(
                 r.table('backlog')
-                .insert(signed_transaction, durability=self.durability))
+                .insert({'id':signed_transaction['id']}, durability=self.durability))
 
-    def update_transaction(self, transaction_id, doc):
+    def update_transaction(self, transaction_id, doc,node_name =''):
         """Update a transaction in the backlog table.
 
         Args:
@@ -53,13 +57,16 @@ class RethinkDBBackend:
         Returns:
             The result of the operation.
         """
-
         return self.connection.run(
-                r.table('backlog')
+            r.table('backlog' + node_name)
                 .get(transaction_id)
                 .update(doc))
+        # return self.connection.run(
+        #         r.table('backlog')
+        #         .get(transaction_id)
+        #         .update(doc))
 
-    def delete_transaction(self, *transaction_id):
+    def delete_transaction(self, *transaction_id,node_name=''):
         """Delete a transaction from the backlog.
 
         Args:
@@ -68,11 +75,14 @@ class RethinkDBBackend:
         Returns:
             The database response.
         """
-
+        self.connection.run(
+            r.table('backlog'+node_name)
+                .get_all(*transaction_id)
+                .delete())
         return self.connection.run(
                 r.table('backlog')
                 .get_all(*transaction_id)
-                .delete(durability='hard'))
+                .delete())
 
     def get_stale_transactions(self, reassign_delay):
         """Get a cursor of stale transactions.
@@ -87,7 +97,7 @@ class RethinkDBBackend:
         Returns:
             A cursor of transactions.
         """
-
+        #TODO update node_name
         return self.connection.run(
                 r.table('backlog')
                 .filter(lambda tx: time() - tx['assignment_timestamp'] > reassign_delay).limit(10000))
@@ -118,6 +128,7 @@ class RethinkDBBackend:
         Returns:
             The matching transaction.
         """
+        #TODO update node_name or not
         return self.connection.run(
                 r.table('backlog')
                 .get(transaction_id)
@@ -353,7 +364,7 @@ class RethinkDBBackend:
         Returns:
             The number of txs.
         """
-
+        # TODO need update ?
         return self.connection.run(
                 r.table('backlog', read_mode=self.read_mode)
                 .count())
@@ -638,15 +649,16 @@ class RethinkDBBackend:
             # .order_by(index=r.asc('assignee__transaction_timestamp'))
         )
 
-    def update_assign_is_deal(self,tx_id):
-        return self.connection.run(
-                r.table('backlog')
-                .get(tx_id)
-                .update({'assignee_isdeal': True}))
-        # return self.connection.run(r.table('backlog').filter({'id': tx_id}).update({'assignee_isdeal': True}))
+    # def update_assign_is_deal(self,tx_id):
+    #     return self.connection.run(
+    #             r.table('backlog')
+    #             .get(tx_id)
+    #             .update({'assignee_isdeal': True}))
+    #     # return self.connection.run(r.table('backlog').filter({'id': tx_id}).update({'assignee_isdeal': True}))
 
-    def update_assign_flag_limit(self,key,limit=1000):
-        return self.connection.run(r.table('backlog').filter({"assignee":key,"assignee_isdeal":False}).limit(limit).update({'assignee_isdeal': True},return_changes=True))
+    def update_assign_flag_limit(self,key,limit=1000,node_name=''):
+        # logger.info("count undeal:",self.connection.run(r.table('backlog').filter({"assignee":key,"assignee_isdeal":False}).count()))
+        return self.connection.run(r.table('backlog'+node_name).filter({"assignee":key,"assignee_isdeal":False}).limit(limit).update({'assignee_isdeal': True},return_changes=True))
 
     def is_exist_txs(self,tx_ids):
         return self.connection.run(r.table('bigchain').get_all(r.args(tx_ids), index='transaction_id').get_field('block').concat_map(lambda doc: doc['transactions']).get_field('id').distinct())

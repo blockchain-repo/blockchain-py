@@ -190,7 +190,7 @@ def initial():
     bigchain = Bigchain()
 
     return bigchain.connection.run(
-        r.table('backlog')
+        r.table('backlog'+bigchain.me[0:5])
             .between([bigchain.me, r.minval],
                      [bigchain.me, r.maxval],
                      index='assignee__transaction_timestamp')

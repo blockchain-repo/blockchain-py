@@ -141,15 +141,22 @@ def get_txNumberById(block_id):
     #     .get_field("transaction").get_field("metadata").get_field('data').order_by('timestamp') \
     #     .filter((r.row['timestamp'] >= '1499765383000') & (r.row['timestamp'] <= '1499765383000')).filter(r.row['orderType'] == 2).slice(0, 5)\
     #     .run(conn)
-    node_pubkey = "5mVrPtqUzXwKYL2JeZo4cQq2spt8qfGVx3qE2V7NqgyU"
-    unvoted = r.table('bigchain')\
-        .filter(lambda block: r.table('votes').get_all([block['id'], node_pubkey], index='block_and_voter').is_empty())\
-        .order_by(r.asc(r.row['block']['timestamp']))\
-        .run(conn)
-    print(unvoted)
-    unvoted_blocks2 = filter(lambda block: util.need_vote_block(block,node_pubkey), unvoted)
-    for element in unvoted_blocks2:
-        print("key:",element)
+    node_name = "1"
+    # s = r.table('backlog' + node_name).insert("").run(conn)
+
+    s = r.table('backlog').get_all(['5mVrPtqUzXwKYL2JeZo4cQq2spt8qfGVx3qE2V7NqgyU', False], index='assignee_assignee_isdeal').update({'assignee_isdeal': True}, return_changes=True).run(conn)
+    print(s)
+    # .
+
+    # node_pubkey = "5mVrPtqUzXwKYL2JeZo4cQq2spt8qfGVx3qE2V7NqgyU"
+    # unvoted = r.table('bigchain')\
+    #     .filter(lambda block: r.table('votes').get_all([block['id'], node_pubkey], index='block_and_voter').is_empty())\
+    #     .order_by(r.asc(r.row['block']['timestamp']))\
+    #     .run(conn)
+    # print(unvoted)
+    # unvoted_blocks2 = filter(lambda block: util.need_vote_block(block,node_pubkey), unvoted)
+    # for element in unvoted_blocks2:
+    #     print("key:",element)
     # s = r.table('bigchain').concat_map(lambda doc: doc['block']['transactions'])\
     #     .filter({'transaction': {'metadata': {'data': {'orderCode': 'S1707111712422395'}}}})\
     #     .get_field("transaction").get_field("metadata").get_field('data')\

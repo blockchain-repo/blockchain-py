@@ -106,7 +106,8 @@ class Bigchain(object):
         signed_transaction.update({'assignee_isdeal': False})
 
         # write to the backlog
-        return self.backend.write_transaction(signed_transaction)
+        node_name = assignee[0:5]
+        return self.backend.write_transaction(signed_transaction,node_name=node_name)
 
     def reassign_transaction(self, transaction):
         """Assign a transaction to a new node
@@ -146,7 +147,7 @@ class Bigchain(object):
             The database response.
         """
 
-        return self.backend.delete_transaction(*transaction_id)
+        return self.backend.delete_transaction(*transaction_id,node_name=self.me[0:5])
 
     def get_stale_transactions(self):
         """Get a cursor of stale transactions.
@@ -1194,7 +1195,8 @@ class Bigchain(object):
         return self.backend.update_assign_is_deal(tx_id)
 
     def update_assign_flag_limit(self,limit=1000):
-        return self.backend.update_assign_flag_limit(self.me,limit=limit)
+        node_name = self.me[0:5]
+        return self.backend.update_assign_flag_limit(self.me,limit=limit,node_name=node_name)
 
     def get_exist_txs(self,tx_ids):
         tx_ids_all = self.backend.is_exist_txs(tx_ids)

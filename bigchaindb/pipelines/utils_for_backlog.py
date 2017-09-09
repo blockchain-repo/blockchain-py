@@ -41,7 +41,13 @@ class BacklogTxToQueue(Node):
     def get_tx_in_backlog(self):
         # count = 0
         # logger.info('%s before update', datetime.datetime.now().strftime('%Y-%m-%d %H:%M:%S.%f'))
+        start = time.time()*1000
         result = self.bigchain.update_assign_flag_limit(limit=5000)
+        end = time.time()*1000
+        if end-start>2000:
+            print("update: start-",start,",end-",end,",cost-",end-start)
+        if(len(result)):
+            time.sleep(1)
         # logger.info('%s end update', datetime.datetime.now().strftime('%Y-%m-%d %H:%M:%S.%f'))
         if ('changes' in result) and len(result['changes'])>0:
             for tx in result['changes']:
