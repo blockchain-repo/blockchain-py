@@ -78,6 +78,7 @@ install_requires = [
     'requests~=2.9',
     'gunicorn~=19.0',
     'multipipes~=0.1.0',
+    'pycrypto~=2.6.1',
 ]
 
 setup(
