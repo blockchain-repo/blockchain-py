@@ -656,9 +656,10 @@ class RethinkDBBackend:
     #             .update({'assignee_isdeal': True}))
     #     # return self.connection.run(r.table('backlog').filter({'id': tx_id}).update({'assignee_isdeal': True}))
 
-    def update_assign_flag_limit(self,key,limit=1000,node_name=''):
+    def update_assign_flag_limit(self,key,start=0,end=1000,node_name=''):
         # logger.info("count undeal:",self.connection.run(r.table('backlog').filter({"assignee":key,"assignee_isdeal":False}).count()))
-        return self.connection.run(r.table('backlog'+node_name).filter({"assignee":key,"assignee_isdeal":False}).limit(limit).update({'assignee_isdeal': True},return_changes=True))
+        # return self.connection.run(r.table('backlog'+node_name).filter({"assignee":key,"assignee_isdeal":False}).limit(limit).update({'assignee_isdeal': True},return_changes=True))
+        return self.connection.run(r.table('backlog' + node_name).filter({"assignee": key, "assignee_isdeal": False})[start:end].update({'assignee_isdeal': True}, return_changes=True))
 
     def is_exist_txs(self,tx_ids):
         return self.connection.run(r.table('bigchain').get_all(r.args(tx_ids), index='transaction_id').get_field('block').concat_map(lambda doc: doc['transactions']).get_field('id').distinct())
