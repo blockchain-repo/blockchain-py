@@ -9,6 +9,7 @@ pri_n1, pub_n1 = generate_key_pair()
 pri_n2, pub_n2 = generate_key_pair()
 pri_n3, pub_n3 = generate_key_pair()
 
+delay = 4
 msg = "1_to_n"
 asset = Asset(data={'money': 'RMB'}, data_id='20170628150000', divisible=True)
 metadata = {'raw': msg}
@@ -25,13 +26,13 @@ with requests.Session() as session:
     print(res.json())
     assert res.status_code == 202
 print("========wait for block and vote...========")
-time.sleep(3)
+time.sleep(delay)
+inputs = []
 with requests.Session() as session:
     res = session.get(
         'http://localhost:9984/uniledger/v1/condition/getUnspentTxs?unspent=true&public_key={}'.format(pub_1))
     assert res.status_code == 200
     balance = 0
-    inputs = []
     for i in res.json()['data']:
         f = Fulfillment.from_dict({
             'fulfillment': i['details'],
@@ -54,7 +55,7 @@ with requests.Session() as session:
     print(res.json())
     assert res.status_code == 202
 print("========wait for block and vote...========")
-time.sleep(3)
+time.sleep(delay)
 with requests.Session() as session:
     res = session.get(
         'http://localhost:9984/uniledger/v1/condition/getUnspentTxs?unspent=true&public_key={}'.format(pub_1))
@@ -65,11 +66,9 @@ with requests.Session() as session:
     print("========pub_1 balance======\n", balance)
     print(res.json())
 
-
 with requests.Session() as session:
     res = session.get(
         'http://localhost:9984/uniledger/v1/condition/getUnspentTxs?unspent=true&public_key={}'.format(pub_n1))
-
     assert res.status_code == 200
     balance = 0
     for i in res.json()['data']:
@@ -88,7 +87,6 @@ with requests.Session() as session:
 with requests.Session() as session:
     res = session.get(
         'http://localhost:9984/uniledger/v1/condition/getUnspentTxs?unspent=true&public_key={}'.format(pub_n3))
-
     assert res.status_code == 200
     balance = 0
     for i in res.json()['data']:
