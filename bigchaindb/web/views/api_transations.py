@@ -1,4 +1,3 @@
-
 """
 File:  api_timestat
 Date:  2017-02-14
@@ -6,13 +5,13 @@ Date:  2017-02-14
 import rapidjson
 import uuid
 from flask import current_app, request, Blueprint
-from flask_restful import Resource, Api,reqparse
+from flask_restful import Resource, Api, reqparse
 
 import bigchaindb
 from bigchaindb.common.exceptions import InvalidHash, InvalidSignature
 from bigchaindb.models import Transaction
-from bigchaindb.web.views.base import make_response,check_request,make_error
-from bigchaindb.web.views import constant,parameters
+from bigchaindb.web.views.base import make_response, check_request, make_error
+from bigchaindb.web.views import constant, parameters
 
 from bigchaindb.common.exceptions import (
     AmountError,
@@ -28,6 +27,7 @@ from bigchaindb.common.exceptions import (
 transaction_views = Blueprint('transaction_views', __name__)
 transaction_api = Api(transaction_views)
 
+
 class ApiCreateByPayload(Resource):
     def post(self):
         # 单条payload创建交易
@@ -39,7 +39,7 @@ class ApiCreateByPayload(Resource):
         payload_dict = request.get_json(force=True)
 
         with pool() as b:
-            tx = Transaction.create([b.me], [([b.me],1)], metadata=payload_dict)
+            tx = Transaction.create([b.me], [([b.me], 1)], metadata=payload_dict)
             tx = tx.sign([b.me_private])
             rate = bigchaindb.config['statsd']['rate']
             with monitor.timer('write_transaction', rate=rate):
@@ -60,11 +60,12 @@ class ApiCreateByPayload(Resource):
                              result_messages,
                              tx_result)
 
+
 class ApiQueryByID(Resource):
     def post(self):
-    # 根据交易ID获取交易
-    #@common_api.route('/getTxById/', methods=['POST'])
-    #def getTxById():
+        # 根据交易ID获取交易
+        # @common_api.route('/getTxById/', methods=['POST'])
+        # def getTxById():
         type = request.get_json()["type"]
 
         if not check_request(request, "type"):
@@ -74,8 +75,8 @@ class ApiQueryByID(Resource):
         tx_id = request.get_json()["tx_id"]
         if not check_request(request, "tx_id"):
             return make_response(constant.RESPONSE_STATUS_PARAM_ERROE,
-                             constant.RESPONSE_CODE_PARAM_ERROE,
-                             "param tx_id not exist")
+                                 constant.RESPONSE_CODE_PARAM_ERROE,
+                                 "param tx_id not exist")
 
         pool = current_app.config['bigchain_pool']
         with pool() as b:
@@ -109,9 +110,9 @@ class ApiQueryByID(Resource):
 
 class ApiQueryTxsTotal(Resource):
     def post(self):
-    # 获取区块链中的总交易条数
-    # @common_api.route('/getTxNumberInUnichain/', methods=['POST'])
-    # def getTxNumberInUnichain():
+        # 获取区块链中的总交易条数
+        # @common_api.route('/getTxNumberInUnichain/', methods=['POST'])
+        # def getTxNumberInUnichain():
         pool = current_app.config['bigchain_pool']
         with pool() as b:
             number = b.get_txNumber()
@@ -120,16 +121,17 @@ class ApiQueryTxsTotal(Resource):
                              "query success",
                              number)
 
+
 class ApiQueryTxsByRange(Resource):
     def post(self):
-    # 根据指定时间区间获取交易集
-    # @common_api.route('/getTxsByTime/', methods=['POST'])
-    # def getTxsByTime():
+        # 根据指定时间区间获取交易集
+        # @common_api.route('/getTxsByTime/', methods=['POST'])
+        # def getTxsByTime():
         startTime = request.get_json()['beginTime']
         if not check_request(request, "beginTime"):
             return make_response(constant.RESPONSE_STATUS_PARAM_ERROE,
-                             constant.RESPONSE_CODE_PARAM_ERROE,
-                             "param beginTime not exist")
+                                 constant.RESPONSE_CODE_PARAM_ERROE,
+                                 "param beginTime not exist")
 
         endTime = request.get_json()['endTime']
         if not check_request(request, "endTime"):
@@ -146,11 +148,12 @@ class ApiQueryTxsByRange(Resource):
                              "query success",
                              txIdList)
 
+
 class ApiQueryGroupByBlock(Resource):
     def post(self):
-    # 获取每区块中包含的交易条数
-    # @common_api.route('/getTxNumOfAllBlock/', methods=['POST'])
-    # def getTxNumOfAllBlock():
+        # 获取每区块中包含的交易条数
+        # @common_api.route('/getTxNumOfAllBlock/', methods=['POST'])
+        # def getTxNumOfAllBlock():
         pool = current_app.config['bigchain_pool']
         with pool() as b:
             blockIdTxList = b.get_txNumberOfAllBlock()
@@ -159,10 +162,9 @@ class ApiQueryGroupByBlock(Resource):
         return make_response(constant.RESPONSE_STATUS_SUCCESS,
                              constant.RESPONSE_CODE_SUCCESS,
                              "query success",
-                             blockIdTxList)\
-
-
-
+                             blockIdTxList) \
+ \
+ \
 # class ApiCreateByUser(Resource):
 #     def post(self):
 #         pool = current_app.config['bigchain_pool']
@@ -219,6 +221,7 @@ class ApiCreateOrTransferTx(Resource):
 
         return tx, 202
 
+
 class ApiGetTxRecord(Resource):
     def get(self):
         parser = reqparse.RequestParser()
@@ -229,6 +232,35 @@ class ApiGetTxRecord(Resource):
         with pool() as bigchain:
             txRecord = bigchain.gettxRecordByPubkey(args['public_key'])
             return txRecord
+
+
+class ApiRecharge(Resource):
+    def post(self):
+        pool = current_app.config['bigchain_pool']
+        msg = request.get_json()['msg']
+        amount = request.get_json()['amount']
+        target = request.get_json()['target']
+        with pool() as bigchain:
+            try:
+                tx = bigchain.recharge(target, amount, msg)
+                bigchain.validate_transaction(tx)
+            except (ValueError,
+                    OperationError,
+                    TransactionDoesNotExist,
+                    TransactionOwnerError,
+                    FulfillmentNotInValidBlock,
+                    DoubleSpend,
+                    InvalidHash,
+                    InvalidSignature,
+                    AmountError) as e:
+                return make_error(
+                    400,
+                    'Invalid transaction ({}): {}'.format(type(e).__name__, e)
+                )
+            else:
+                bigchain.write_transaction(tx)
+        return tx, 202
+
 
 class ApiOnlySaveData(Resource):
     def post(self):
@@ -261,24 +293,24 @@ class ApiOnlySaveData(Resource):
                              constant.RESPONSE_CODE_SUCCESS,
                              result_messages,
                              tx_result)
+
+
 ##Router display
 transaction_api.add_resource(ApiCreateByPayload,
-                          '/createByPayload',
-                          strict_slashes=False)
+                             '/createByPayload',
+                             strict_slashes=False)
 transaction_api.add_resource(ApiQueryByID,
-                          '/queryByID',
-                          strict_slashes=False)
+                             '/queryByID',
+                             strict_slashes=False)
 transaction_api.add_resource(ApiQueryTxsTotal,
-                          '/queryTxsTotal',
-                          strict_slashes=False)
+                             '/queryTxsTotal',
+                             strict_slashes=False)
 transaction_api.add_resource(ApiQueryTxsByRange,
-                          '/queryTxsByRange',
-                          strict_slashes=False)
+                             '/queryTxsByRange',
+                             strict_slashes=False)
 transaction_api.add_resource(ApiQueryGroupByBlock,
-                          '/queryGroupByBlock',
-                          strict_slashes=False)
-
-
+                             '/queryGroupByBlock',
+                             strict_slashes=False)
 
 # transaction_api.add_resource(ApiCreateByUser,
 #                           '/createByUser',
@@ -286,12 +318,16 @@ transaction_api.add_resource(ApiQueryGroupByBlock,
 
 # CREATE|TRANSFER tx api for client
 transaction_api.add_resource(ApiCreateOrTransferTx,
-                          '/createOrTransferTx',
-                          strict_slashes=False)
+                             '/createOrTransferTx',
+                             strict_slashes=False)
 
 transaction_api.add_resource(ApiGetTxRecord,
-                          '/getTxRecord',
-                          strict_slashes=False)
+                             '/getTxRecord',
+                             strict_slashes=False)
 transaction_api.add_resource(ApiOnlySaveData,
-                          '/saveDataOnly',
-                          strict_slashes=False)
+                             '/saveDataOnly',
+                             strict_slashes=False)
+
+transaction_api.add_resource(ApiRecharge,
+                             '/recharge',
+                             strict_slashes=False)

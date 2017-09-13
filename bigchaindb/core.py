@@ -1,13 +1,13 @@
 import random
 import math
 import collections
-from time import time,mktime,strptime
+from time import time, mktime, strptime
 import requests
 import json
 from itertools import compress
 from bigchaindb.common import crypto, exceptions
 from bigchaindb.common.util import gen_timestamp, serialize
-from bigchaindb.common.transaction import TransactionLink
+from bigchaindb.common.transaction import TransactionLink, Asset
 
 import bigchaindb
 
@@ -107,7 +107,7 @@ class Bigchain(object):
 
         # write to the backlog
         node_name = assignee[0:5]
-        return self.backend.write_transaction(signed_transaction,node_name=node_name)
+        return self.backend.write_transaction(signed_transaction, node_name=node_name)
 
     def reassign_transaction(self, transaction):
         """Assign a transaction to a new node
@@ -134,8 +134,8 @@ class Bigchain(object):
             new_assignee = self.me
         # print("reassign:"+str(transaction['id']))
         return self.backend.update_transaction(
-                transaction['id'],
-                {'assignee': new_assignee, 'assignment_timestamp': time(),'assignee_isdeal': False})
+            transaction['id'],
+            {'assignee': new_assignee, 'assignment_timestamp': time(), 'assignee_isdeal': False})
 
     def delete_transaction(self, *transaction_id):
         """Delete a transaction from the backlog.
@@ -147,7 +147,7 @@ class Bigchain(object):
             The database response.
         """
 
-        return self.backend.delete_transaction(*transaction_id,node_name=self.me[0:5])
+        return self.backend.delete_transaction(*transaction_id, node_name=self.me[0:5])
 
     def get_stale_transactions(self):
         """Get a cursor of stale transactions.
@@ -521,7 +521,7 @@ class Bigchain(object):
         """Prepare a genesis block."""
 
         metadata = {'message': 'Hello World from the BigchainDB'}
-        transaction = Transaction.create([self.me], [([self.me],1)],
+        transaction = Transaction.create([self.me], [([self.me], 1)],
                                          metadata=metadata)
 
         # NOTE: The transaction model doesn't expose an API to generate a
@@ -617,7 +617,7 @@ class Bigchain(object):
             if voter_counts[node] > 1:
                 raise exceptions.MultipleVotesError(
                     'Block {block_id} has multiple votes ({n_votes}) from voting node {node_id}'
-                    .format(block_id=block_id, n_votes=str(voter_counts[node]), node_id=node))
+                        .format(block_id=block_id, n_votes=str(voter_counts[node]), node_id=node))
 
         if len(votes) > n_voters:
             raise exceptions.MultipleVotesError('Block {block_id} has {n_votes} votes cast, but only {n_voters} voters'
@@ -683,7 +683,7 @@ class Bigchain(object):
     # @author lz  for reassignee
     def init_heartbeat_data(self):
         self.backend.delete_heartbeat(self.me)
-        data = {'node_publickey': self.me,'timestamp':time()}
+        data = {'node_publickey': self.me, 'timestamp': time()}
         return self.backend.init_heartbeat(data)
 
     def init_reassignnode_data(self):
@@ -691,18 +691,18 @@ class Bigchain(object):
             data = {"nodeid": 0, 'node_publickey': self.nodelist[0], 'timestamp': time()}
             self.backend.init_reassignnode(data)
 
-    def updateHeartbeat(self,time):
-        return self.backend.updateHeartbeat(self.me,time)
+    def updateHeartbeat(self, time):
+        return self.backend.updateHeartbeat(self.me, time)
 
     def getAssigneekey(self):
         nodeid = self.backend.getAssigneekey().next()['nodeid']
         assigneekey = self.backend.getAssigneekey().next()['node_publickey']
-        return nodeid,assigneekey
+        return nodeid, assigneekey
 
-    def updateAssigneebeat(self,assigneekey,time):
-        return self.backend.updateAssigneebeat(assigneekey,time)
+    def updateAssigneebeat(self, assigneekey, time):
+        return self.backend.updateAssigneebeat(assigneekey, time)
 
-    def is_assignee_alive(self,assigneekey,timeout):
+    def is_assignee_alive(self, assigneekey, timeout):
         try:
             timestamp = self.backend.is_assignee_alive(assigneekey).next()['timestamp']
         except:
@@ -711,7 +711,7 @@ class Bigchain(object):
             return False
         return True
 
-    def is_node_alive(self,txpublickey,timeout):
+    def is_node_alive(self, txpublickey, timeout):
         try:
             timestamp = self.backend.is_node_alive(txpublickey).next()['timestamp']
         except:
@@ -721,14 +721,14 @@ class Bigchain(object):
             return False
         return True
 
-    def update_assign_node(self,updateid,next_assign_node):
-        return self.backend.update_assign_node(updateid,next_assign_node)
+    def update_assign_node(self, updateid, next_assign_node):
+        return self.backend.update_assign_node(updateid, next_assign_node)
 
     # @author lz for rewrite
-    def insertRewrite(self,data):
+    def insertRewrite(self, data):
         return self.backend.insertRewrite(data)
 
-    def selectFromWrite(self,id):
+    def selectFromWrite(self, id):
         return self.backend.isBlockRewrited(id)
 
     ##############################
@@ -736,47 +736,46 @@ class Bigchain(object):
     ##############################
     def get_txCreateAvgTimeByRange(self, begintime, endtime):
         status = True
-        if endtime > gen_timestamp() or  endtime < begintime:
+        if endtime > gen_timestamp() or endtime < begintime:
             status = False
-            return 0,status
-        avgtime,ret = self.backend.get_transaction_createavgtime_by_range(begintime, endtime)
+            return 0, status
+        avgtime, ret = self.backend.get_transaction_createavgtime_by_range(begintime, endtime)
         if not ret:
             status = False
-            return 0,status
-        return avgtime,status
+            return 0, status
+        return avgtime, status
 
     def get_blockCreateAvgTimeByRange(self, begintime, endtime):
         status = True
         if endtime > gen_timestamp() or endtime < begintime:
             status = False
-            return 0,status
-        avgtime,ret = self.backend.get_block_createavgtime_by_range(begintime, endtime)
+            return 0, status
+        avgtime, ret = self.backend.get_block_createavgtime_by_range(begintime, endtime)
         if not ret:
             status = False
-            return 0,status
-        return avgtime,status
+            return 0, status
+        return avgtime, status
 
     def get_voteTimeByBlockID(self, block_id):
         status = True
         if not self.backend.get_block_by_id(block_id):
-            return 0,status
-        avgtime,ret = self.backend.get_vote_time_by_blockid(block_id)
+            return 0, status
+        avgtime, ret = self.backend.get_vote_time_by_blockid(block_id)
         if not ret:
             status = False
-            return 0,status
-        return avgtime,status
+            return 0, status
+        return avgtime, status
 
     def get_voteAvgTimeByRange(self, begintime, endtime):
         status = True
-        if endtime > gen_timestamp() or  endtime < begintime:
+        if endtime > gen_timestamp() or endtime < begintime:
             status = False
-            return 0,status
-        avgtime,ret = self.backend.get_vote_avgtime_by_range(begintime, endtime)
+            return 0, status
+        avgtime, ret = self.backend.get_vote_avgtime_by_range(begintime, endtime)
         if not ret:
             status = False
-            return 0,status
-        return avgtime,status
-
+            return 0, status
+        return avgtime, status
 
     # @author lz For commen-api
     def get_txNumber(self, block_id=None):
@@ -785,10 +784,8 @@ class Bigchain(object):
         else:
             return self.backend.get_txNumberById(block_id)
 
-
     def get_BlockNumber(self):
         return self.backend.get_BlockNumber()
-
 
     def get_invalidBlockIdList(self, startTime=None, endTime=None):
         if startTime is None and endTime is None:
@@ -796,10 +793,8 @@ class Bigchain(object):
         else:
             return self.backend.get_invalidBlockByTime(startTime, endTime)
 
-
     def get_allInvalidBlock_number(self, startTime=None, endTime=None):
         return self.backend.get_allInvalidBlock_number()
-
 
     def get_BlockIdList(self, startTime, endTime):
         if startTime is None and endTime is None:
@@ -813,13 +808,11 @@ class Bigchain(object):
                 return self.backend.get_BlockIdList(startTime=startTime, endTime=endTime, limit=1000)
             return self.backend.get_BlockIdList(startTime=startTime, endTime=endTime)
 
-
     def get_TxIdByTime(self, startTime, endTime):
         txCount = self.backend.get_txNumber(startTime=startTime, endTime=endTime)
         if txCount > 2000:
             return self.backend.get_txIdList(startTime=startTime, endTime=endTime, limit=2000)
         return self.backend.get_txIdList(startTime=startTime, endTime=endTime)
-
 
     def get_txNumberOfAllBlock(self):
         blockCount = self.backend.get_BlockNumber()
@@ -836,16 +829,14 @@ class Bigchain(object):
         self.nodelist.append(self.me)
         return self.nodelist
 
-
     def get_block(self, block_id, include_status=False):
         block = self.backend.get_block(block_id)
         return block
 
-
-    def get_tx_by_id(self,tx_id):
+    def get_tx_by_id(self, tx_id):
         return self.backend.get_tx_by_id(tx_id)
 
-    def get_transaction_no_valid(self,tx_id):
+    def get_transaction_no_valid(self, tx_id):
         return self.backend.get_transaction_no_valid(tx_id)
 
     def get_outputs_not_include_freeze(self, owner):
@@ -930,7 +921,7 @@ class Bigchain(object):
                 # check if the owner is in the condition `owners_after`
                 details = output['condition']['details']
                 amount = output['amount']
-                merged = {'details':details,'amount':amount}
+                merged = {'details': details, 'amount': amount}
 
                 if len(output['owners_after']) == 1:
                     if output['condition']['details']['public_key'] == owner:
@@ -945,11 +936,11 @@ class Bigchain(object):
                         tx_link = TransactionLink(tx['id'], index)
                         links.append(dict(tx_link.to_dict(), **merged))
 
-                # linksAmount.append(amount)
+                        # linksAmount.append(amount)
 
         return links
 
-    def get_outputs_freeze(self, owner,contract_id,task_id,task_num):
+    def get_outputs_freeze(self, owner, contract_id, task_id, task_num):
         """Retrieve a list of links to transaction outputs for a given public
                    key.
 
@@ -961,7 +952,7 @@ class Bigchain(object):
                     pointing to another transaction's condition
                 """
         # get all transactions in which owner is in the `owners_after` list
-        response = self.backend.get_owned_ids_by_task(owner,contract_id,task_id,task_num)
+        response = self.backend.get_owned_ids_by_task(owner, contract_id, task_id, task_num)
         # print("1---",response)
         links = []
         for tx in response:
@@ -1004,6 +995,7 @@ class Bigchain(object):
                         # linksAmount.append(amount)
 
         return links
+
     def get_outputs_freeze_by_id(self, transaction_id):
         """Retrieve a list of links to transaction outputs for a given public
                    key.
@@ -1048,7 +1040,7 @@ class Bigchain(object):
 
         return links
 
-    def filter_unspent(self,outputs):
+    def filter_unspent(self, outputs):
         outputs = [o for o in outputs
                    if not self.get_spent(o['txid'], o['cid'])]
         return outputs
@@ -1056,24 +1048,25 @@ class Bigchain(object):
     def is_asset_transfer(self, txid, cid):
         transactions = list(self.backend.get_spent(txid, cid))
         if transactions:
-            num_valid_transactions =0
+            num_valid_transactions = 0
             for transaction in transactions:
                 if self.get_transaction(transaction['id']):
                     num_valid_transactions += 1
                 if num_valid_transactions > 1:
-                    raise exceptions.DoubleSpend('`{}` was spent more then once. There is a problem with the chain'.format(txid))
+                    raise exceptions.DoubleSpend(
+                        '`{}` was spent more then once. There is a problem with the chain'.format(txid))
             if num_valid_transactions:
                 # only one
                 txDict = transactions[0]
-                tx =  Transaction.from_dict(txDict)
+                tx = Transaction.from_dict(txDict)
                 con = tx.conditions
                 ful = tx.fulfillments
-                if len(ful) >0 and len(con)>0:
+                if len(ful) > 0 and len(con) > 0:
                     ownerbefore = transactions[0]["transaction"]["fulfillments"][0]["owners_before"][0]
                     ownerafter = transactions[0]["transaction"]["conditions"][0]["owners_after"][0]
                     # print(ownerbefore,ownerafter)
                     # print(ownerbefore == ownerafter)
-                    if ownerbefore != ownerafter :
+                    if ownerbefore != ownerafter:
                         return True
                     return False
                 else:
@@ -1081,11 +1074,11 @@ class Bigchain(object):
         return False
 
     # todo check the output is transfer or unfreeze
-    def check_output_transfer(self,outputs):
+    def check_output_transfer(self, outputs):
         flag = False
         outputsafter = [o for o in outputs if self.is_asset_transfer(o['txid'], o['cid'])]
         # print("len(outputs)-->",len(outputs))
-        if len(outputsafter)!=0:
+        if len(outputsafter) != 0:
             flag = True
         return flag
 
@@ -1109,7 +1102,7 @@ class Bigchain(object):
         # return [u.to_dict() for u in outputs]
         return outputs
 
-    def get_freeze_output(self, owner, contract_id,task_id, task_num,include_spent=True):
+    def get_freeze_output(self, owner, contract_id, task_id, task_num, include_spent=True):
         """
         :param owner:
         :param contract_id:
@@ -1125,16 +1118,16 @@ class Bigchain(object):
                     4:has muti-frozen asset
                     )
         """
-        outputs = self.get_outputs_freeze(owner,contract_id,task_id,task_num)
+        outputs = self.get_outputs_freeze(owner, contract_id, task_id, task_num)
         if len(outputs) == 0:
             # print("0---")
-            return 0,outputs
+            return 0, outputs
 
         if not include_spent:
             outputs_after = self.filter_unspent(outputs)
 
         if len(outputs_after) == 1:
-            return 1,outputs_after
+            return 1, outputs_after
 
         if len(outputs_after) == 0:
             flag = self.check_output_transfer(outputs)
@@ -1142,9 +1135,10 @@ class Bigchain(object):
             if flag:
                 # TODO return the outputs_after or outputs?
                 return 3, outputs_after
-            return 2,outputs_after
-        return 4,outputs_after
-    def get_freeze_output_by_id(self, transaction_id,include_spent=True):
+            return 2, outputs_after
+        return 4, outputs_after
+
+    def get_freeze_output_by_id(self, transaction_id, include_spent=True):
         """
         :param owner:
         :param transaction_id:
@@ -1161,13 +1155,13 @@ class Bigchain(object):
         outputs = self.get_outputs_freeze_by_id(transaction_id)
         if len(outputs) == 0:
             # print("0---")
-            return 0,outputs
+            return 0, outputs
 
         if not include_spent:
             outputs_after = self.filter_unspent(outputs)
 
         if len(outputs_after) == 1:
-            return 1,outputs_after
+            return 1, outputs_after
 
         if len(outputs_after) == 0:
             flag = self.check_output_transfer(outputs)
@@ -1175,10 +1169,10 @@ class Bigchain(object):
             if flag:
                 # TODO return the outputs_after or outputs?
                 return 3, outputs_after
-            return 2,outputs_after
-        return 4,outputs_after
+            return 2, outputs_after
+        return 4, outputs_after
 
-    def gettxRecordByPubkey(self,pubkey):
+    def gettxRecordByPubkey(self, pubkey):
 
         return self.backend.get_tx_record_by_pubkey(pubkey)
         # for tx in txlist:
@@ -1188,35 +1182,37 @@ class Bigchain(object):
         #     tx.pop('id')
 
         # print(txlist)
+
     def get_tx_from_backlog(self):
         return self.backend.get_tx_from_backlog(self.me)
 
-    def update_assign_is_deal(self,tx_id):
+    def update_assign_is_deal(self, tx_id):
         return self.backend.update_assign_is_deal(tx_id)
 
-    def update_assign_flag_limit(self,limit=1000):
+    def update_assign_flag_limit(self, limit=1000):
         node_name = self.me[0:5]
-        return self.backend.update_assign_flag_limit(self.me,limit=limit,node_name=node_name)
+        return self.backend.update_assign_flag_limit(self.me, limit=limit, node_name=node_name)
 
-    def get_exist_txs(self,tx_ids):
+    def get_exist_txs(self, tx_ids):
         tx_ids_all = self.backend.is_exist_txs(tx_ids)
         return list(set(tx_ids_all).intersection(set(tx_ids)))
 
-    def get_contract_by_id(self,contract_id):
+    def get_contract_by_id(self, contract_id):
         return self.backend.get_contract_by_id(contract_id)
 
-    def get_contract_txs_by_tx_id(self,tx_id):
+    def get_contract_txs_by_tx_id(self, tx_id):
         return self.backend.get_contract_txs_by_id(tx_id)
 
-    def get_tx_by_contract_hash_id(self,contract_hash_id):
+    def get_tx_by_contract_hash_id(self, contract_hash_id):
         # need to check the tx is validate or not
         return self.backend.get_tx_by_contract_hash_id(contract_hash_id)
+
     def get_contract_record_by_contract_id(self):
 
         pass
 
     # for border trade start
-    def getCustomsList(self,param):
+    def getCustomsList(self, param):
         fuserName = param['fuserName']
         tuserName = param['tuserName']
         itemTitle = param['itemTitle']
@@ -1226,24 +1222,24 @@ class Bigchain(object):
         pageSize = param['pageSize']
         pageNum = param['pageNum']
 
-        startTime = '1262275200000'  #2010-01-01 00:00:00
+        startTime = '1262275200000'  # 2010-01-01 00:00:00
         endTime = gen_timestamp()
         if start != '':
-            startTime = str(round(mktime(strptime(start, '%Y-%m-%d'))*1000))
+            startTime = str(round(mktime(strptime(start, '%Y-%m-%d')) * 1000))
         if end != '':
-            endTime = str(round(mktime(strptime(end, '%Y-%m-%d'))*1000))
+            endTime = str(round(mktime(strptime(end, '%Y-%m-%d')) * 1000))
 
-        startIndex = pageSize * (pageNum -1)
+        startIndex = pageSize * (pageNum - 1)
         endIndex = pageSize * pageNum
 
         if fuserName != '':
-            customList = self.backend.getCustomsListOfFuser(fuserName,startTime,endTime,startIndex,endIndex)
-        elif tuserName!='':
-            customList = self.backend.getCustomsListOfTuser(tuserName,startTime,endTime,startIndex,endIndex)
-        elif itemTitle!='':
-            customList = self.backend.getCustomsListOfTitle(itemTitle,startTime,endTime,startIndex,endIndex)
-        elif orderCode!='':
-            customList = self.backend.getCustomsListOfCode(orderCode,startTime,endTime,startIndex,endIndex)
+            customList = self.backend.getCustomsListOfFuser(fuserName, startTime, endTime, startIndex, endIndex)
+        elif tuserName != '':
+            customList = self.backend.getCustomsListOfTuser(tuserName, startTime, endTime, startIndex, endIndex)
+        elif itemTitle != '':
+            customList = self.backend.getCustomsListOfTitle(itemTitle, startTime, endTime, startIndex, endIndex)
+        elif orderCode != '':
+            customList = self.backend.getCustomsListOfCode(orderCode, startTime, endTime, startIndex, endIndex)
         else:
             customList = self.backend.getCustomsList(startTime, endTime, startIndex, endIndex)
         customList.append(pageNum)
@@ -1253,7 +1249,7 @@ class Bigchain(object):
         orderCode = param['orderCode']
         return self.backend.getCustomsDetailOfCode(orderCode)
 
-    def getTaxList(self,param):
+    def getTaxList(self, param):
         fuserName = param['fuserName']
         tuserName = param['tuserName']
         itemTitle = param['itemTitle']
@@ -1276,7 +1272,7 @@ class Bigchain(object):
             taxlist = self.backend.getTaxListOfFuser(fuserName, startTime, endTime, startIndex, endIndex)
             for tax in taxlist[1]:
                 print(tax)
-                url = self.order_api +'/uniledger/v1/bordertrade/apiGetGoosTitle'
+                url = self.order_api + '/uniledger/v1/bordertrade/apiGetGoosTitle'
                 headers = {'content-type': 'application/json'}
                 print(tax['orderCode'])
                 payload = {
@@ -1291,7 +1287,7 @@ class Bigchain(object):
             taxlist = self.backend.getTaxListOfTuser(tuserName, startTime, endTime, startIndex, endIndex)
             for tax in taxlist[1]:
                 print(tax)
-                url = self.order_api +'/uniledger/v1/bordertrade/apiGetGoosTitle'
+                url = self.order_api + '/uniledger/v1/bordertrade/apiGetGoosTitle'
                 headers = {'content-type': 'application/json'}
                 print(tax['orderCode'])
                 payload = {
@@ -1305,7 +1301,7 @@ class Bigchain(object):
             taxlist = self.backend.getTaxListOfCode(orderCode, startTime, endTime, startIndex, endIndex)
             for tax in taxlist[1]:
                 print(tax)
-                url = self.order_api +'/uniledger/v1/bordertrade/apiGetGoosTitle'
+                url = self.order_api + '/uniledger/v1/bordertrade/apiGetGoosTitle'
                 headers = {'content-type': 'application/json'}
                 print(tax['orderCode'])
                 payload = {
@@ -1329,14 +1325,14 @@ class Bigchain(object):
             for tax in taxlist[1]:
                 tax["goodsTitle"] = itemTitle
             print(taxlist)
-        else :
+        else:
             taxlist = self.backend.getTaxList(startTime, endTime, startIndex, endIndex)
-            print("1--",taxlist)
+            print("1--", taxlist)
             for tax in taxlist[1]:
-                print("2--",tax)
-                url = self.order_api +'/uniledger/v1/bordertrade/apiGetGoosTitle'
+                print("2--", tax)
+                url = self.order_api + '/uniledger/v1/bordertrade/apiGetGoosTitle'
                 headers = {'content-type': 'application/json'}
-                print("3--",tax['orderCode'])
+                print("3--", tax['orderCode'])
                 payload = {
                     "orderCode": tax['orderCode']
                 }
@@ -1344,13 +1340,12 @@ class Bigchain(object):
                 # session = requests.Session()
                 # session.trust_env = False
                 res = requests.post(url, data=data, headers=headers)
-                print("4--",res)
+                print("4--", res)
                 tax["goodsTitle"] = res.json()
         taxlist.append(pageNum)
         return taxlist
 
-
-    def getTaxDeatil(self,param):
+    def getTaxDeatil(self, param):
         orderCode = param['orderCode']
 
         resTax = self.backend.getTaxDetailOfCode(orderCode)
@@ -1363,18 +1358,30 @@ class Bigchain(object):
         data = json.dumps(payload)
         res = requests.post(url, data=data, headers=headers)
         goodsTitle = res.json()
-        return resTax,goodsTitle
+        return resTax, goodsTitle
 
-
-    def getOrderCodeByTitle(self,param):
+    def getOrderCodeByTitle(self, param):
         itemTitle = param['itemTitle']
         orderList = self.backend.getOrderCodeByTitle(itemTitle)
         # print(orderList)
         return list(orderList)
 
-    def getGoosTitleByCode(self,param):
+    def getGoosTitleByCode(self, param):
         orderCode = param['orderCode']
         title = self.backend.getGoosTitleByCode(orderCode)
         # print(orderList)
         return ','.join(list(title))
-     # for border trade end
+        # for border trade end
+
+    def recharge(self, target, amount, msg):
+        # print(verifying_key,signing_key,amount)
+        # Digital Asset Definition (e.g. RMB)
+        asset = Asset(data={'money': 'RMB'}, data_id='20170628150000', divisible=True)
+        # Metadata Definition
+        metadata = {'raw': msg}
+        # create transaction
+        tx = Transaction.create([self.me], [([target], amount)], metadata=metadata, asset=asset)
+        # sign with private key
+        tx = tx.sign([self.me_private])
+        # tx_id = tx.to_dict()['id']
+        return tx
