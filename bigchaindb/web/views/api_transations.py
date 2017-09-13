@@ -2,6 +2,7 @@
 File:  api_timestat
 Date:  2017-02-14
 """
+
 import rapidjson
 import uuid
 from flask import current_app, request, Blueprint
@@ -259,7 +260,7 @@ class ApiRecharge(Resource):
                 )
             else:
                 bigchain.write_transaction(tx)
-        return tx, 202
+        return rapidjson.dumps(tx.to_dict()), 202
 
 
 class ApiOnlySaveData(Resource):
