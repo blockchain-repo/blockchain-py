@@ -51,7 +51,7 @@ class Vote:
     def validate_block(self, block):
         # wsp@monitor
         begin_time = int(round(time.time() * 1000))
-        logger.debug("start validationg block %s", block['id'])
+        logger.info("start validationg block %s", block['id'])
         if not self.bigchain.has_previous_vote(block['id'], block['block']['voters']):
             try:
                 block = Block.from_dict(block)
@@ -81,6 +81,7 @@ class Vote:
                 # transaction and propagate it to the next steps of the
                 # pipeline.
                 return block.id, [self.invalid_dummy_tx], begin_time
+            logger.info("start validationg block %s, cost :%s", block.id,int(round(time.time() * 1000))-begin_time)
             return block.id, block.transactions, begin_time
 
     def ungroup(self, block_id, transactions, begin_time):
@@ -96,10 +97,12 @@ class Vote:
             yields a transaction, block id, and the total number of
             transactions contained in the block otherwise.
         """
-        logger.debug("start ungroup block %s", block_id)
+        time1 = int(round(time.time() * 1000))
+        logger.info("start ungroup block %s", block_id)
         num_tx = len(transactions)
         for tx in transactions:
             yield tx, block_id, num_tx, begin_time
+        logger.info("start ungroup block %s,  cost:%s", block_id, int(round(time.time() * 1000)) - time1)
 
     def validate_tx(self, tx, block_id, num_tx, begin_time):
         """Validate a transaction.
@@ -181,8 +184,8 @@ def create_pipeline():
     voter = Vote()
 
     vote_pipeline = Pipeline([
-        Node(voter.validate_block),
-        Node(voter.ungroup),
+        Node(voter.validate_block, number_of_processes=15),
+        Node(voter.ungroup, number_of_processes=10),
         Node(voter.validate_tx, fraction_of_cores=config['argument_config']['vote_pipeline.fraction_of_cores']),
         Node(voter.vote),
         Node(voter.write_vote)
