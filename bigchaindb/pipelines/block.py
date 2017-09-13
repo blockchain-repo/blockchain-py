@@ -217,7 +217,7 @@ def create_pipeline():
         # Node(block_pipeline.filter_tx),
         Node(block_pipeline.validate_tx, fraction_of_cores=config['argument_config']['block_pipeline.fraction_of_cores']),
         Node(block_pipeline.create, timeout=config['argument_config']['block_pipeline.timeout']),
-        Node(block_pipeline.write),
+        Node(block_pipeline.write,number_of_processes=3),
         Node(block_pipeline.delete_tx),
     ])
 

@@ -62,7 +62,7 @@ class ChangeFeed(Node):
                 time.sleep(1)
 
     def run_changefeed(self):
-        for change in self.bigchain.connection.run(r.table(self.table).changes()):
+        for change in self.bigchain.connection.run(r.table(self.table).changes(squash=0.2)):
             is_insert = change['old_val'] is None
             is_delete = change['new_val'] is None
             is_update = not is_insert and not is_delete

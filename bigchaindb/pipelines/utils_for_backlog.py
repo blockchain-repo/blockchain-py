@@ -39,8 +39,8 @@ class BacklogTxToQueue(Node):
 
 
     def get_tx_in_backlog(self):
-        pool = mp.Pool(processes=int(15))
-        result = pool.map(get_batch_txs, range(15))
+        pool = mp.Pool(processes=int(30))
+        result = pool.map(get_batch_txs, range(30))
         for i in range(len(result)):
             if ('changes' in result[i]) and len(result[i]['changes']) > 0:
                 for tx in result[i]['changes']:
@@ -49,14 +49,14 @@ class BacklogTxToQueue(Node):
         pool.join()
 
 def get_batch_txs(num):
-    start = 500 * num
-    end = 500 * (num+1)
-    # start_time = time.time() * 1000
+    start = 200 * num
+    end = 200 * (num+1)
+    start_time = time.time() * 1000
     bigchain = Bigchain()
     result = bigchain.update_assign_flag_limit(start=start,end=end)
-    # end_time = time.time() * 1000
-    # if 'changes' in result:
-    #     print('len::',len(result['changes']),",update: start-", start_time, ",end-", end_time, ",cost-", end_time - start_time)
+    end_time = time.time() * 1000
+    if 'changes' in result:
+        print('len::',len(result['changes']),",update: start-", start_time, ",end-", end_time, ",cost-", end_time - start_time)
     if (len(result)):
         time.sleep(1)
     return result

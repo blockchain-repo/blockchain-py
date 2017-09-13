@@ -45,7 +45,7 @@ class RethinkDBBackend:
                 .insert(signed_transaction, durability=self.durability))
         return self.connection.run(
                 r.table('backlog')
-                .insert({'id':signed_transaction['id']}, durability=self.durability))
+                .insert({'id':signed_transaction['id'],'node_name':'backlog'+node_name}, durability=self.durability))
 
     def update_transaction(self, transaction_id, doc,node_name =''):
         """Update a transaction in the backlog table.
@@ -75,14 +75,14 @@ class RethinkDBBackend:
         Returns:
             The database response.
         """
-        self.connection.run(
+        return self.connection.run(
             r.table('backlog'+node_name)
                 .get_all(*transaction_id)
                 .delete())
-        return self.connection.run(
-                r.table('backlog')
-                .get_all(*transaction_id)
-                .delete())
+        #return self.connection.run(
+        #        r.table('backlog')
+        #        .get_all(*transaction_id)
+        #        .delete())
 
     def get_stale_transactions(self, reassign_delay):
         """Get a cursor of stale transactions.
@@ -128,9 +128,16 @@ class RethinkDBBackend:
         Returns:
             The matching transaction.
         """
-        #TODO update node_name or not
+        try:
+            node_name = self.connection.run(r.table('backlog').get(transaction_id).get_field('node_name'))
+        except r.ReqlNonExistenceError:
+            node_name = ""
+
+        if node_name == "":
+            return None
+
         return self.connection.run(
-                r.table('backlog')
+                r.table(node_name)
                 .get(transaction_id)
                 .without('assignee', 'assignment_timestamp','assignee_isdeal')
                 .default(None))

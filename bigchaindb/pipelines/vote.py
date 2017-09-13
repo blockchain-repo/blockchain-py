@@ -52,9 +52,12 @@ class Vote:
         # wsp@monitor
         begin_time = int(round(time.time() * 1000))
         logger.info("start validationg block %s", block['id'])
+        time1 = int(round(time.time() * 1000))
         if not self.bigchain.has_previous_vote(block['id'], block['block']['voters']):
             try:
                 block = Block.from_dict(block)
+                time2 = int(round(time.time() * 1000))
+                logger.info("start from dict block cost %s",time2-time1)
             except (exceptions.InvalidHash):
                 # XXX: if a block is invalid we should skip the `validate_tx`
                 # step, but since we are in a pipeline we cannot just jump to
@@ -67,7 +70,10 @@ class Vote:
                 if monitor is not None:
                     #with monitor.timer('validate_block', rate=config['statsd']['rate']):
                     with monitor.timer('validate_block'):
+                        time3 = int(round(time.time() * 1000))
                         block._validate_block(self.bigchain)
+                        time4 = int(round(time.time() * 1000))
+                        logger.info("start validationg block cost %s",time4-time3)
                         # self.consensus.validate_block(self.bigchain, block)
                 else:
                     block._validate_block(self.bigchain)
@@ -184,8 +190,8 @@ def create_pipeline():
     voter = Vote()
 
     vote_pipeline = Pipeline([
-        Node(voter.validate_block, number_of_processes=15),
-        Node(voter.ungroup, number_of_processes=10),
+        Node(voter.validate_block, number_of_processes=30),
+        Node(voter.ungroup, number_of_processes=25),
         Node(voter.validate_tx, fraction_of_cores=config['argument_config']['vote_pipeline.fraction_of_cores']),
         Node(voter.vote),
         Node(voter.write_vote)
