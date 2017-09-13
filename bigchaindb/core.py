@@ -1189,9 +1189,9 @@ class Bigchain(object):
     def update_assign_is_deal(self, tx_id):
         return self.backend.update_assign_is_deal(tx_id)
 
-    def update_assign_flag_limit(self, limit=1000):
+    def update_assign_flag_limit(self, start=0, end=1000):
         node_name = self.me[0:5]
-        return self.backend.update_assign_flag_limit(self.me, limit=limit, node_name=node_name)
+        return self.backend.update_assign_flag_limit(self.me, start=start, end=end, node_name=node_name)
 
     def get_exist_txs(self, tx_ids):
         tx_ids_all = self.backend.is_exist_txs(tx_ids)
