@@ -65,7 +65,7 @@ class BlockPipeline:
             :class:`~bigchaindb.models.Transaction`: The transaction if valid,
             ``None`` otherwise.
         """
-        logger.debug("Validating transaction %s", tx['id'])
+        logger.debug("Start validating transaction %s", tx['id'])
         # print(tx)
         tx.pop('assignee')
         tx.pop('assignment_timestamp')
@@ -120,7 +120,7 @@ class BlockPipeline:
         if tx:
             self.txs.append(tx)
             self.txsId.append(tx.id)
-            logger.debug("Validated transaction %s, txs.len = %d", tx.id,len(self.txs))
+            logger.debug("End validating transaction %s, txs.len = %d", tx.id,len(self.txs))
         else:
             self.bigchain.updateHeartbeat(time.time())
 
@@ -179,6 +179,7 @@ class BlockPipeline:
         Returns:
             :class:`~bigchaindb.models.Block`: The block.
         """
+        logger.debug('Delete %s transactions in backlog for block %s',len(block.transactions), block.id)
         self.bigchain.delete_transaction(*[tx.id for tx in block.transactions])
 
         return block

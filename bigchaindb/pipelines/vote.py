@@ -51,13 +51,13 @@ class Vote:
     def validate_block(self, block):
         # wsp@monitor
         begin_time = int(round(time.time() * 1000))
-        logger.info("start validationg block %s", block['id'])
+        logger.debug("Start validationg block %s", block['id'])
         time1 = int(round(time.time() * 1000))
         if not self.bigchain.has_previous_vote(block['id'], block['block']['voters']):
             try:
                 block = Block.from_dict(block)
                 time2 = int(round(time.time() * 1000))
-                logger.info("start from dict block cost %s",time2-time1)
+                logger.debug("start from dict block cost %s",time2-time1)
             except (exceptions.InvalidHash):
                 # XXX: if a block is invalid we should skip the `validate_tx`
                 # step, but since we are in a pipeline we cannot just jump to
@@ -73,7 +73,7 @@ class Vote:
                         time3 = int(round(time.time() * 1000))
                         block._validate_block(self.bigchain)
                         time4 = int(round(time.time() * 1000))
-                        logger.info("start validationg block cost %s",time4-time3)
+                        logger.debug("start validationg block cost %s",time4-time3)
                         # self.consensus.validate_block(self.bigchain, block)
                 else:
                     block._validate_block(self.bigchain)
@@ -87,7 +87,7 @@ class Vote:
                 # transaction and propagate it to the next steps of the
                 # pipeline.
                 return block.id, [self.invalid_dummy_tx], begin_time
-            logger.info("start validationg block %s, cost :%s", block.id,int(round(time.time() * 1000))-begin_time)
+            logger.debug("End validationg block %s, cost :%s", block.id,int(round(time.time() * 1000))-begin_time)
             return block.id, block.transactions, begin_time
 
     def ungroup(self, block_id, transactions, begin_time):
@@ -104,11 +104,11 @@ class Vote:
             transactions contained in the block otherwise.
         """
         time1 = int(round(time.time() * 1000))
-        logger.info("start ungroup block %s", block_id)
+        logger.debug("Start ungroup block %s", block_id)
         num_tx = len(transactions)
         for tx in transactions:
             yield tx, block_id, num_tx, begin_time
-        logger.info("start ungroup block %s,  cost:%s", block_id, int(round(time.time() * 1000)) - time1)
+        logger.debug("End ungroup block %s, cost:%s", block_id, int(round(time.time() * 1000)) - time1)
 
     def validate_tx(self, tx, block_id, num_tx, begin_time):
         """Validate a transaction.
@@ -122,7 +122,7 @@ class Vote:
             Three values are returned, the validity of the transaction,
             ``block_id``, ``num_tx``.
         """
-        logger.debug("validate a tx in block %s", block_id)
+        logger.debug("Validate tx %s in block %s", tx['id'],block_id)
         return bool(self.bigchain.is_valid_transaction(tx)), block_id, num_tx, begin_time
 
     def vote(self, tx_validity, block_id, num_tx, begin_time):
@@ -136,7 +136,7 @@ class Vote:
         Returns:
             None, or a vote if a decision has been reached.
         """
-        logger.debug("validated a tx block %s", block_id)
+        logger.debug("Validated %s/%s tx in block ",self.counters[block_id]+1,num_tx)
         self.counters[block_id] += 1
         self.validity[block_id] = tx_validity and self.validity.get(block_id,
                                                                     True)
