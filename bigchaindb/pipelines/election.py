@@ -45,7 +45,7 @@ class Election:
 
         #block_status = self.bigchain.block_election_status(next_block['id'],
         #                                                   next_block['block']['voters'])
-        logger.debug('Blocke %s electionstatus %s',next_block['id'] ,block_status)
+        logger.debug('Blocke %s election status %s',next_block['id'] ,block_status)
         if block_status == self.bigchain.BLOCK_INVALID:
             return Block.from_dict(next_block)
 
