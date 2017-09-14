@@ -70,7 +70,7 @@ class Bigchain(object):
         self.consensus = BaseConsensusRules
         # change RethinkDB read mode to majority.  This ensures consistency in query results
         self.read_mode = 'majority'
-
+        self.split_backlog = False or bigchaindb.config['argument_config']['split_backlog']
         if not self.me or not self.me_private:
             raise exceptions.KeypairNotFoundException()
 
@@ -104,10 +104,11 @@ class Bigchain(object):
         signed_transaction.update({'assignee': assignee})
         signed_transaction.update({'assignment_timestamp': time()})
         signed_transaction.update({'assignee_isdeal': False})
-
-        # write to the backlog
-        node_name = assignee[0:5]
-        return self.backend.write_transaction(signed_transaction, node_name=node_name)
+        if self.split_backlog:
+            # write to the backlog
+            node_name = assignee[0:5]
+            return self.backend.write_transaction_to_all(signed_transaction, node_name=node_name)
+        return self.backend.write_transaction(signed_transaction)
 
     def reassign_transaction(self, transaction):
         """Assign a transaction to a new node
@@ -133,9 +134,14 @@ class Bigchain(object):
             # There is no other node to assign to
             new_assignee = self.me
         # print("reassign:"+str(transaction['id']))
+        if self.split_backlog:
+            node_name =  self.me[0:5]
+        else:
+            node_name = ''
+
         return self.backend.update_transaction(
             transaction['id'],
-            {'assignee': new_assignee, 'assignment_timestamp': time(), 'assignee_isdeal': False})
+            {'assignee': new_assignee, 'assignment_timestamp': time(), 'assignee_isdeal': False},node_name=node_name)
 
     def delete_transaction(self, *transaction_id):
         """Delete a transaction from the backlog.
@@ -146,8 +152,11 @@ class Bigchain(object):
         Returns:
             The database response.
         """
-
-        return self.backend.delete_transaction(*transaction_id, node_name=self.me[0:5])
+        if self.split_backlog:
+            node_name = self.me[0:5]
+        else:
+            node_name = ''
+        return self.backend.delete_transaction(*transaction_id, node_name=node_name)
 
     def get_stale_transactions(self):
         """Get a cursor of stale transactions.
@@ -1190,7 +1199,10 @@ class Bigchain(object):
         return self.backend.update_assign_is_deal(tx_id)
 
     def update_assign_flag_limit(self, start=0, end=1000):
-        node_name = self.me[0:5]
+        if self.split_backlog:
+            node_name = self.me[0:5]
+        else:
+            node_name = ''
         return self.backend.update_assign_flag_limit(self.me, start=start, end=end, node_name=node_name)
 
     def get_exist_txs(self, tx_ids):

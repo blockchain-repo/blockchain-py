@@ -42,12 +42,16 @@ config = {
     'backlog_reassign_delay': 120,
     'logger_config' : {
         'debug_to_console' : False,
-        'debug_to_file' : False
+        'debug_to_file' : True
     },
     'argument_config' : {
+        'split_backlog': False,
         'block_pipeline.block_size' : 2000,
         'block_pipeline.pipe_maxsize' : 4000,
         'block_pipeline.fraction_of_cores':1,
+        'block_pipeline.get_txs_processes_num':30,
+        'block_pipeline.get_txs_everytime':200,
+        'block_pipeline.write.number_of_processes':3,
         'block_pipeline.timeout':1,
         'block_pipeline.block_timeout':15,
         'block_pipeline.block_size_detal':100,
@@ -55,7 +59,9 @@ config = {
         'stale_pipeline.timeout':10,
         'stale_pipeline.assignee_timeout':100,
         'stale_pipeline.heartbeat_timeout':20,
-        'vote_pipeline.fraction_of_cores':1
+        'vote_pipeline.fraction_of_cores':1,
+        'vote_pipeline.validate_processes_num':30,
+        'vote_pipeline.ungroup_processes_num':20
     },
     'order_api':'http://36.110.71.170:41',
     'restore_server': {

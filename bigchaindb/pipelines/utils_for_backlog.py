@@ -7,7 +7,7 @@ import rethinkdb as r
 import logging
 from multipipes import Node
 import multiprocessing as mp
-from bigchaindb import Bigchain
+from bigchaindb import Bigchain, config
 
 
 logger = logging.getLogger(__name__)
@@ -39,8 +39,9 @@ class BacklogTxToQueue(Node):
 
 
     def get_tx_in_backlog(self):
-        pool = mp.Pool(processes=int(30))
-        result = pool.map(get_batch_txs, range(30))
+        processes_num = config['argument_config']['block_pipeline.get_txs_processes_num']
+        pool = mp.Pool(processes=int(processes_num))
+        result = pool.map(get_batch_txs, range(processes_num))
         for i in range(len(result)):
             if ('changes' in result[i]) and len(result[i]['changes']) > 0:
                 for tx in result[i]['changes']:
@@ -49,8 +50,9 @@ class BacklogTxToQueue(Node):
         pool.join()
 
 def get_batch_txs(num):
-    start = 200 * num
-    end = 200 * (num+1)
+    get_txs_everytime = config['argument_config']['block_pipeline.get_txs_everytime']
+    start = get_txs_everytime * num
+    end = get_txs_everytime * (num+1)
     start_time = time.time() * 1000
     bigchain = Bigchain()
     result = bigchain.update_assign_flag_limit(start=start,end=end)

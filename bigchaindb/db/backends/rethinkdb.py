@@ -40,6 +40,21 @@ class RethinkDBBackend:
         """
         logger.debug("Writing transaction id = %s", signed_transaction['id'])
 
+        return self.connection.run(
+                r.table('backlog')
+                .insert(signed_transaction, durability=self.durability))
+
+    def write_transaction_to_all(self, signed_transaction,node_name =''):
+        """Write a transaction to the backlog table.
+
+        Args:
+            signed_transaction (dict): a signed transaction.
+
+        Returns:
+            The result of the operation.
+        """
+        logger.debug("Writing transaction id = %s", signed_transaction['id'])
+
         self.connection.run(
             r.table('backlog'+node_name)
                 .insert(signed_transaction, durability=self.durability))

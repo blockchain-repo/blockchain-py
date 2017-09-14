@@ -190,8 +190,8 @@ def create_pipeline():
     voter = Vote()
 
     vote_pipeline = Pipeline([
-        Node(voter.validate_block, number_of_processes=30),
-        Node(voter.ungroup, number_of_processes=25),
+        Node(voter.validate_block, number_of_processes=config['argument_config']['vote_pipeline.validate_processes_num']),
+        Node(voter.ungroup, number_of_processes=config['argument_config']['vote_pipeline.ungroup_processes_num']),
         Node(voter.validate_tx, fraction_of_cores=config['argument_config']['vote_pipeline.fraction_of_cores']),
         Node(voter.vote),
         Node(voter.write_vote)

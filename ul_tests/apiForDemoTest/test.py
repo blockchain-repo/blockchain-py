@@ -144,7 +144,10 @@ def get_txNumberById(block_id):
     node_name = "1"
     # s = r.table('backlog' + node_name).insert("").run(conn)
 
-    s = r.table('backlog').get_all(['5mVrPtqUzXwKYL2JeZo4cQq2spt8qfGVx3qE2V7NqgyU', False], index='assignee_assignee_isdeal').update({'assignee_isdeal': True}, return_changes=True).run(conn)
+    # s = r.table('backlog').get_all(['5mVrPtqUzXwKYL2JeZo4cQq2spt8qfGVx3qE2V7NqgyU', False], index='assignee_assignee_isdeal').update({'assignee_isdeal': True}, return_changes=True).run(conn)
+
+    s = r.table('backlog').get('1c424db85c402af3eeb0fb4a8f87a4f27a5a3766c4550bbedcbe4f40f7eabb0b').get_field('node_name').run(conn)
+    print(s == "backlog5mVrP")
     print(s)
     # .
 
