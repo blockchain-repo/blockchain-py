@@ -122,7 +122,7 @@ class Vote:
             Three values are returned, the validity of the transaction,
             ``block_id``, ``num_tx``.
         """
-        logger.debug("Validate tx %s in block %s", tx['id'],block_id)
+        logger.debug("Validate tx %s in block %s", tx.id,block_id)
         return bool(self.bigchain.is_valid_transaction(tx)), block_id, num_tx, begin_time
 
     def vote(self, tx_validity, block_id, num_tx, begin_time):
