@@ -135,13 +135,13 @@ class Bigchain(object):
             new_assignee = self.me
         # print("reassign:"+str(transaction['id']))
         if self.split_backlog:
-            node_name =  self.me[0:5]
+            node_name = self.me[0:5]
         else:
             node_name = ''
 
         return self.backend.update_transaction(
             transaction['id'],
-            {'assignee': new_assignee, 'assignment_timestamp': time(), 'assignee_isdeal': False},node_name=node_name)
+            {'assignee': new_assignee, 'assignment_timestamp': time(), 'assignee_isdeal': False}, node_name=node_name)
 
     def delete_transaction(self, *transaction_id):
         """Delete a transaction from the backlog.
@@ -1181,9 +1181,10 @@ class Bigchain(object):
             return 2, outputs_after
         return 4, outputs_after
 
-    def gettxRecordByPubkey(self, pubkey):
-
-        return self.backend.get_tx_record_by_pubkey(pubkey)
+    def gettxRecordByPubkey(self, pubkey, pageSize, pageNum):
+        startIndex = pageSize * (pageNum - 1)
+        endIndex = pageSize * pageNum
+        return self.backend.get_tx_record_by_pubkey(pubkey, startIndex, endIndex)
         # for tx in txlist:
         #     for c in tx['conditions']:
         #         c.pop('condition')

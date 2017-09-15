@@ -166,8 +166,10 @@ class ApiQueryGroupByBlock(Resource):
                              blockIdTxList) \
  \
  \
-# class ApiCreateByUser(Resource):
-#     def post(self):
+            # class ApiCreateByUser(Resource):
+
+
+# def post(self):
 #         pool = current_app.config['bigchain_pool']
 #         monitor = current_app.config['monitor']
 #
@@ -227,11 +229,13 @@ class ApiGetTxRecord(Resource):
     def get(self):
         parser = reqparse.RequestParser()
         parser.add_argument('public_key', type=parameters.valid_ed25519, required=True)
+        parser.add_argument('pageSize', type=int, required=True)
+        parser.add_argument('pageNum', type=int, required=True)
         args = parser.parse_args()
 
         pool = current_app.config['bigchain_pool']
         with pool() as bigchain:
-            txRecord = bigchain.gettxRecordByPubkey(args['public_key'])
+            txRecord = bigchain.gettxRecordByPubkey(args['public_key'], args['pageSize'], args['pageNum'])
             return txRecord
 
 

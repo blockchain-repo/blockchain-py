@@ -14,8 +14,8 @@ from bigchaindb.common import exceptions
 
 logger = logging.getLogger(__name__)
 
-class RethinkDBBackend:
 
+class RethinkDBBackend:
     def __init__(self, host=None, port=None, db=None):
         """Initialize a new RethinkDB Backend instance.
 
@@ -29,7 +29,7 @@ class RethinkDBBackend:
         self.durability = 'soft'
         self.connection = Connection(host=host, port=port, db=db)
 
-    def write_transaction(self, signed_transaction,node_name =''):
+    def write_transaction(self, signed_transaction, node_name=''):
         """Write a transaction to the backlog table.
 
         Args:
@@ -41,10 +41,10 @@ class RethinkDBBackend:
         logger.debug("Writing transaction id = %s", signed_transaction['id'])
 
         return self.connection.run(
-                r.table('backlog')
+            r.table('backlog')
                 .insert(signed_transaction, durability=self.durability))
 
-    def write_transaction_to_all(self, signed_transaction,node_name =''):
+    def write_transaction_to_all(self, signed_transaction, node_name=''):
         """Write a transaction to the backlog table.
 
         Args:
@@ -56,13 +56,14 @@ class RethinkDBBackend:
         logger.debug("Writing transaction id = %s", signed_transaction['id'])
 
         self.connection.run(
-            r.table('backlog'+node_name)
+            r.table('backlog' + node_name)
                 .insert(signed_transaction, durability=self.durability))
         return self.connection.run(
-                r.table('backlog')
-                .insert({'id':signed_transaction['id'],'node_name':'backlog'+node_name}, durability=self.durability))
+            r.table('backlog')
+                .insert({'id': signed_transaction['id'], 'node_name': 'backlog' + node_name},
+                        durability=self.durability))
 
-    def update_transaction(self, transaction_id, doc,node_name =''):
+    def update_transaction(self, transaction_id, doc, node_name=''):
         """Update a transaction in the backlog table.
 
         Args:
@@ -81,7 +82,7 @@ class RethinkDBBackend:
         #         .get(transaction_id)
         #         .update(doc))
 
-    def delete_transaction(self, *transaction_id,node_name=''):
+    def delete_transaction(self, *transaction_id, node_name=''):
         """Delete a transaction from the backlog.
 
         Args:
@@ -91,10 +92,10 @@ class RethinkDBBackend:
             The database response.
         """
         return self.connection.run(
-            r.table('backlog'+node_name)
+            r.table('backlog' + node_name)
                 .get_all(*transaction_id)
                 .delete())
-        #return self.connection.run(
+        # return self.connection.run(
         #        r.table('backlog')
         #        .get_all(*transaction_id)
         #        .delete())
@@ -112,9 +113,9 @@ class RethinkDBBackend:
         Returns:
             A cursor of transactions.
         """
-        #TODO update node_name
+        # TODO update node_name
         return self.connection.run(
-                r.table('backlog')
+            r.table('backlog')
                 .filter(lambda tx: time() - tx['assignment_timestamp'] > reassign_delay).limit(10000))
 
     def get_transaction_from_block(self, transaction_id, block_id):
@@ -128,7 +129,7 @@ class RethinkDBBackend:
             The matching transaction.
         """
         return self.connection.run(
-                r.table('bigchain', read_mode=self.read_mode)
+            r.table('bigchain', read_mode=self.read_mode)
                 .get(block_id)
                 .get_field('block')
                 .get_field('transactions')
@@ -152,9 +153,9 @@ class RethinkDBBackend:
             return None
 
         return self.connection.run(
-                r.table(node_name)
+            r.table(node_name)
                 .get(transaction_id)
-                .without('assignee', 'assignment_timestamp','assignee_isdeal')
+                .without('assignee', 'assignment_timestamp', 'assignee_isdeal')
                 .default(None))
 
     def get_blocks_status_from_transaction(self, transaction_id):
@@ -169,7 +170,7 @@ class RethinkDBBackend:
         """
 
         return self.connection.run(
-                r.table('bigchain', read_mode=self.read_mode)
+            r.table('bigchain', read_mode=self.read_mode)
                 .get_all(transaction_id, index='transaction_id')
                 .pluck('votes', 'id', {'block': ['voters']}))
 
@@ -190,7 +191,7 @@ class RethinkDBBackend:
             returns an empty list `[]`
         """
         return self.connection.run(
-                r.table('bigchain', read_mode=self.read_mode)
+            r.table('bigchain', read_mode=self.read_mode)
                 .get_all(metadata_id, index='metadata_id')
                 .concat_map(lambda block: block['block']['transactions'])
                 .filter(lambda transaction: transaction['transaction']['metadata']['id'] == metadata_id))
@@ -211,9 +212,9 @@ class RethinkDBBackend:
 
         return self.connection.run(
             r.table('bigchain', read_mode=self.read_mode)
-             .get_all(asset_id, index='asset_id')
-             .concat_map(lambda block: block['block']['transactions'])
-             .filter(lambda transaction: transaction['transaction']['asset']['id'] == asset_id))
+                .get_all(asset_id, index='asset_id')
+                .concat_map(lambda block: block['block']['transactions'])
+                .filter(lambda transaction: transaction['transaction']['asset']['id'] == asset_id))
 
     def get_spent(self, transaction_id, condition_id):
         """Check if a `txid` was already used as an input.
@@ -231,10 +232,10 @@ class RethinkDBBackend:
 
         # TODO: use index!
         return self.connection.run(
-                r.table('bigchain', read_mode=self.read_mode)
+            r.table('bigchain', read_mode=self.read_mode)
                 .concat_map(lambda doc: doc['block']['transactions'])
                 .filter(lambda transaction: transaction['transaction']['fulfillments'].contains(
-                    lambda fulfillment: fulfillment['input'] == {'txid': transaction_id, 'cid': condition_id})))
+                lambda fulfillment: fulfillment['input'] == {'txid': transaction_id, 'cid': condition_id})))
 
     def get_owned_ids(self, owner):
         """Retrieve a list of `txids` that can we used has inputs.
@@ -248,11 +249,12 @@ class RethinkDBBackend:
         # print(owner)
         # TODO: use index!
         return self.connection.run(
-                r.table('bigchain', read_mode=self.read_mode)
+            r.table('bigchain', read_mode=self.read_mode)
                 .concat_map(lambda doc: doc['block']['transactions'])
                 .filter(lambda tx: tx['transaction']['conditions'].contains(
-                    lambda c: c['owners_after'].contains(owner))))
-    def get_owned_ids_by_task(self, owner,contract_id,task_id,task_num):
+                lambda c: c['owners_after'].contains(owner))))
+
+    def get_owned_ids_by_task(self, owner, contract_id, task_id, task_num):
         """Retrieve a list of `txids` that can we used has inputs.
 
         Args:
@@ -265,13 +267,13 @@ class RethinkDBBackend:
         # TODO: use index!
         return self.connection.run(
             r.table('bigchain').concat_map(lambda var_1: var_1['block']['transactions']).filter(lambda var_2: (
-            var_2['transaction']['Relation']['ContractId'] == contract_id)).filter(
+                var_2['transaction']['Relation']['ContractId'] == contract_id)).filter(
                 lambda var_3: (var_3['transaction']['Relation']['TaskId'] == task_id)).filter(
                 lambda var_4: (var_4['transaction']['Relation']['TaskExecuteIdx'] == int(task_num))).filter(
                 lambda var_5: var_5['transaction']['conditions'].contains(
                     lambda var_6: var_6['owners_after'].contains(owner))))
 
-    def get_owned_ids_by_id(self,transaction_id):
+    def get_owned_ids_by_id(self, transaction_id):
         """Retrieve a list of `txids` that can we used has inputs.
 
         Args:
@@ -284,8 +286,7 @@ class RethinkDBBackend:
         # TODO: use index!
         return self.connection.run(
             r.table('bigchain').concat_map(lambda var_1: var_1['block']['transactions']).filter(lambda var_2: (
-            var_2['id'] == transaction_id)))
-
+                var_2['id'] == transaction_id)))
 
     def get_tx_by_contract_hash_id(self, contract_hash_id):
         """Retrieve a list of `txids` that can we used has inputs.
@@ -299,8 +300,9 @@ class RethinkDBBackend:
         # print(owner)
         # TODO: use index!
         return self.connection.run(
-                r.table('bigchain', read_mode=self.read_mode)
-                .concat_map(lambda doc: doc['block']['transactions']).filter(lambda tx: tx['transaction']['Relation']['ContractHashId']==contract_hash_id))
+            r.table('bigchain', read_mode=self.read_mode)
+                .concat_map(lambda doc: doc['block']['transactions']).filter(
+                lambda tx: tx['transaction']['Relation']['ContractHashId'] == contract_hash_id))
 
     def get_votes_by_block_id(self, block_id):
         """Get all the votes casted for a specific block.
@@ -312,7 +314,7 @@ class RethinkDBBackend:
             A cursor for the matching votes.
         """
         return self.connection.run(
-                r.table('votes', read_mode=self.read_mode)
+            r.table('votes', read_mode=self.read_mode)
                 .between([block_id, r.minval], [block_id, r.maxval], index='block_and_voter'))
 
     def get_votes_by_block_id_and_voter(self, block_id, node_pubkey):
@@ -326,7 +328,7 @@ class RethinkDBBackend:
             A cursor for the matching votes.
         """
         return self.connection.run(
-                r.table('votes', read_mode=self.read_mode)
+            r.table('votes', read_mode=self.read_mode)
                 .get_all([block_id, node_pubkey], index='block_and_voter'))
 
     def write_block(self, block, durability='soft'):
@@ -339,7 +341,7 @@ class RethinkDBBackend:
             The database response.
         """
         return self.connection.run(
-                r.table('bigchain')
+            r.table('bigchain')
                 .insert(r.json(block), durability=durability))
 
     def has_transaction(self, transaction_id):
@@ -352,11 +354,12 @@ class RethinkDBBackend:
             ``True`` if the transaction exists, ``False`` otherwise.
         """
         return bool(self.connection.run(
-                r.table('bigchain', read_mode=self.read_mode)
+            r.table('bigchain', read_mode=self.read_mode)
                 .get_all(transaction_id, index='transaction_id').count()))
 
-    def has_transactions_list(self,transactions):
-        return self.connection.run(r.table('bigchain').get_all(r.args(transactions), index='transaction_id').get_field(id))
+    def has_transactions_list(self, transactions):
+        return self.connection.run(
+            r.table('bigchain').get_all(r.args(transactions), index='transaction_id').get_field(id))
 
     def count_blocks(self):
         """Count the number of blocks in the bigchain table.
@@ -366,7 +369,7 @@ class RethinkDBBackend:
         """
 
         return self.connection.run(
-                r.table('bigchain', read_mode=self.read_mode)
+            r.table('bigchain', read_mode=self.read_mode)
                 .count())
 
     def count_votes(self):
@@ -377,7 +380,7 @@ class RethinkDBBackend:
         """
 
         return self.connection.run(
-                r.table('votes', read_mode=self.read_mode)
+            r.table('votes', read_mode=self.read_mode)
                 .count())
 
     def count_backlog_txs(self):
@@ -388,7 +391,7 @@ class RethinkDBBackend:
         """
         # TODO need update ?
         return self.connection.run(
-                r.table('backlog', read_mode=self.read_mode)
+            r.table('backlog', read_mode=self.read_mode)
                 .count())
 
     def write_vote(self, vote):
@@ -401,7 +404,7 @@ class RethinkDBBackend:
             The database response.
         """
         return self.connection.run(
-                r.table('votes')
+            r.table('votes')
                 .insert(vote))
 
     def get_last_voted_block(self, node_pubkey):
@@ -417,21 +420,21 @@ class RethinkDBBackend:
         try:
             # get the latest value for the vote timestamp (over all votes)
             max_timestamp = self.connection.run(
-                    r.table('votes', read_mode=self.read_mode)
+                r.table('votes', read_mode=self.read_mode)
                     .filter(r.row['node_pubkey'] == node_pubkey)
                     .max(r.row['vote']['timestamp']))['vote']['timestamp']
 
             last_voted = list(self.connection.run(
                 r.table('votes', read_mode=self.read_mode)
-                .filter(r.row['vote']['timestamp'] == max_timestamp)
-                .filter(r.row['node_pubkey'] == node_pubkey)))
+                    .filter(r.row['vote']['timestamp'] == max_timestamp)
+                    .filter(r.row['node_pubkey'] == node_pubkey)))
 
         except r.ReqlNonExistenceError:
             # return last vote if last vote exists else return Genesis block
             return self.connection.run(
                 r.table('bigchain', read_mode=self.read_mode)
-                .filter(util.is_genesis_block)
-                .nth(0))
+                    .filter(util.is_genesis_block)
+                    .nth(0))
 
         # Now the fun starts. Since the resolution of timestamp is a second,
         # we might have more than one vote per timestamp. If this is the case
@@ -464,7 +467,7 @@ class RethinkDBBackend:
                 break
 
         return self.connection.run(
-                r.table('bigchain', read_mode=self.read_mode)
+            r.table('bigchain', read_mode=self.read_mode)
                 .get(last_block_id))
 
     def get_unvoted_blocks(self, node_pubkey):
@@ -478,10 +481,10 @@ class RethinkDBBackend:
         """
 
         unvoted = self.connection.run(
-                r.table('bigchain', read_mode=self.read_mode)
+            r.table('bigchain', read_mode=self.read_mode)
                 .filter(lambda block: r.table('votes', read_mode=self.read_mode)
-                                       .get_all([block['id'], node_pubkey], index='block_and_voter')
-                                       .is_empty())
+                        .get_all([block['id'], node_pubkey], index='block_and_voter')
+                        .is_empty())
                 .order_by(r.asc(r.row['block']['timestamp'])))
 
         # FIXME: I (@vrde) don't like this solution. Filtering should be done at a
@@ -492,95 +495,106 @@ class RethinkDBBackend:
 
     # TODO 需要写一些通用方法，提高代码重用
 
-    def delete_heartbeat(self,node_pubkey):
+    def delete_heartbeat(self, node_pubkey):
         return self.connection.run(r.table('heartbeat').filter({'node_publickey': node_pubkey}).delete())
 
-    def init_heartbeat(self,data):
+    def init_heartbeat(self, data):
         return self.connection.run(r.table('heartbeat').insert(data))
 
     def isReassignnodeExist(self):
         return self.connection.run(r.table('reassignnode').count())
 
-    def init_reassignnode(self,data):
+    def init_reassignnode(self, data):
         return self.connection.run(r.table('reassignnode').insert(data))
 
-    def updateHeartbeat(self,node_pubkey,time):
-        return self.connection.run(r.table('heartbeat').filter({'node_publickey': node_pubkey}).update({'timestamp':time},durability='hard'))
+    def updateHeartbeat(self, node_pubkey, time):
+        return self.connection.run(
+            r.table('heartbeat').filter({'node_publickey': node_pubkey}).update({'timestamp': time}, durability='hard'))
 
     def getAssigneekey(self):
         return self.connection.run(r.table('reassignnode'))
 
-    def updateAssigneebeat(self,node_pubkey,time):
-        return self.connection.run(r.table('reassignnode').filter({'node_publickey': node_pubkey}).update({'timestamp':time}))
+    def updateAssigneebeat(self, node_pubkey, time):
+        return self.connection.run(
+            r.table('reassignnode').filter({'node_publickey': node_pubkey}).update({'timestamp': time}))
 
-    def is_assignee_alive(self,assigneekey):
+    def is_assignee_alive(self, assigneekey):
         return self.connection.run(r.table('reassignnode').filter({'node_publickey': assigneekey}))
 
-    def is_node_alive(self,txpublickey):
-        return self.connection.run(r.table('heartbeat', read_mode=self.read_mode).filter({'node_publickey': txpublickey}))
+    def is_node_alive(self, txpublickey):
+        return self.connection.run(
+            r.table('heartbeat', read_mode=self.read_mode).filter({'node_publickey': txpublickey}))
 
-    def update_assign_node(self,updateid,next_assign_node):
-        return self.connection.run(r.table('reassignnode').update({"nodeid":updateid,'node_publickey':next_assign_node,'timestamp':time()}))
+    def update_assign_node(self, updateid, next_assign_node):
+        return self.connection.run(r.table('reassignnode').update(
+            {"nodeid": updateid, 'node_publickey': next_assign_node, 'timestamp': time()}))
 
-    def insertRewrite(self,data):
+    def insertRewrite(self, data):
         return self.connection.run(r.table('rewrite').insert(data))
 
-    def isBlockRewrited(self,id):
+    def isBlockRewrited(self, id):
         return self.connection.run(r.table('rewrite').filter({'id': id}).count())
 
     ##############################################
     ####    unichain api query method     ########
     ##############################################
     def get_block_by_id(self, block_id):
-        #return self.connection.run(r.table('bigchain', read_mode=self.read_mode).filter({'id':block_id}))
+        # return self.connection.run(r.table('bigchain', read_mode=self.read_mode).filter({'id':block_id}))
         return self.connection.run(
             r.table('bigchain', read_mode=self.read_mode)
-             .get(block_id))
+                .get(block_id))
 
     def get_transaction_createavgtime_by_range(self, begintime, endtime):
         time_range = int(endtime) - int(begintime)
         if time_range < 0:
-            return 0,False
+            return 0, False
         # transaction_count =  self.connection.run(
         #     r.table('bigchain', read_mode=self.read_mode)
         #      .between(begintime, endtime, index='tx_timestamp').count())  # tx time
-        transaction_count = self.connection.run(r.table("bigchain").concat_map(lambda block: block['block']['transactions']).filter((r.row["transaction"]['timestamp'] > begintime) & (r.row["transaction"]['timestamp'] < endtime)).count())
+        transaction_count = self.connection.run(
+            r.table("bigchain").concat_map(lambda block: block['block']['transactions']).filter(
+                (r.row["transaction"]['timestamp'] > begintime) & (
+                r.row["transaction"]['timestamp'] < endtime)).count())
         if not transaction_count:
-            return 0,False
+            return 0, False
         if time_range == 0:
             time_range = 1
-        return round(time_range/transaction_count,3),True
+        return round(time_range / transaction_count, 3), True
 
     def get_block_createavgtime_by_range(self, begintime, endtime):
         time_range = int(endtime) - int(begintime)
         if time_range < 0:
-            return 0,False
-        block_count =  self.connection.run(r.table('bigchain', read_mode=self.read_mode).between(begintime, endtime, index='block_timestamp').count())  # block time
+            return 0, False
+        block_count = self.connection.run(r.table('bigchain', read_mode=self.read_mode).between(begintime, endtime,
+                                                                                                index='block_timestamp').count())  # block time
         if not block_count:
-            return 0,False
+            return 0, False
         if time_range == 0:
             time_range = 1
-        return round(time_range/block_count,3),True
+        return round(time_range / block_count, 3), True
 
     def get_vote_time_by_blockid(self, block_id):
-        vote_begin_time = self.connection.run(r.table('bigchain', read_mode=self.read_mode).get(block_id).get_field('block').get_field('timestamp'))
-        vote_end_time = self.connection.run(r.table('votes').filter(r.row['vote']['voting_for_block'] == block_id).max(r.row['vote']['timestamp']).get_field('vote').get_field('timestamp'))
+        vote_begin_time = self.connection.run(
+            r.table('bigchain', read_mode=self.read_mode).get(block_id).get_field('block').get_field('timestamp'))
+        vote_end_time = self.connection.run(r.table('votes').filter(r.row['vote']['voting_for_block'] == block_id).max(
+            r.row['vote']['timestamp']).get_field('vote').get_field('timestamp'))
         vote_time = int(vote_end_time) - int(vote_begin_time)
         if not vote_time:
             vote_time = 1
-        return vote_time,True
+        return vote_time, True
 
     def get_vote_avgtime_by_range(self, begintime, endtime):
         time_range = int(endtime) - int(begintime)
         if time_range < 0:
-            return 0,False
-        vote_count =  self.connection.run(r.table('votes', read_mode=self.read_mode).between(begintime, endtime, index='vote_timestamp').get_field('vote').get_field('voting_for_block').distinct().count())
+            return 0, False
+        vote_count = self.connection.run(
+            r.table('votes', read_mode=self.read_mode).between(begintime, endtime, index='vote_timestamp').get_field(
+                'vote').get_field('voting_for_block').distinct().count())
         if not vote_count:
-            return 0,False
+            return 0, False
         if not time_range:
             vote_time = 1
-        return round(time_range/vote_count,3),True
-
+        return round(time_range / vote_count, 3), True
 
     # @author lz for api
 
@@ -592,7 +606,8 @@ class RethinkDBBackend:
         :return:
         """
 
-        return self.connection.run(r.table('bigchain').get_all(block_id, index='id').concat_map(lambda block: block['block']['transactions']).count())
+        return self.connection.run(r.table('bigchain').get_all(block_id, index='id').concat_map(
+            lambda block: block['block']['transactions']).count())
 
     def get_txNumber(self, startTime=r.minval, endTime=r.maxval):
         """Get the numbers of the special block by the index block_timestamp.
@@ -610,12 +625,12 @@ class RethinkDBBackend:
     def get_BlockNumber(self, startTime=r.minval, endTime=r.maxval):
         return self.connection.run(r.table('bigchain').between(startTime, endTime, index="block_timestamp").count())
 
-    def get_allInvalidBlock(self,limit=None):
-        if limit==None:
+    def get_allInvalidBlock(self, limit=None):
+        if limit == None:
             return self.connection.run(r.table('rewrite').order_by(r.desc(r.row['timestamp'])).get_field('id'))
         else:
-            return self.connection.run(r.table('rewrite').order_by(r.desc(r.row['timestamp'])).get_field('id').limit(1000))
-
+            return self.connection.run(
+                r.table('rewrite').order_by(r.desc(r.row['timestamp'])).get_field('id').limit(1000))
 
     def get_allInvalidBlock_number(self, startTime=r.minval, endTime=r.maxval):
         return self.connection.run(r.table('rewrite').between(startTime, endTime, index="block_timestamp").count())
@@ -626,46 +641,67 @@ class RethinkDBBackend:
     # def get_invalidBlockByE(self,endtime):
     #     return self.connection.run(r.table('rewrite').between(r.minval, endtime, index='block_timestamp').get_field('id'))
 
-    def get_invalidBlockByTime(self,startTime,endTime):
-        return self.connection.run(r.table('rewrite').between(startTime, endTime, index='block_timestamp').get_field('id'))
+    def get_invalidBlockByTime(self, startTime, endTime):
+        return self.connection.run(
+            r.table('rewrite').between(startTime, endTime, index='block_timestamp').get_field('id'))
 
-    def get_BlockIdList(self,startTime=r.minval,endTime=r.maxval,limit=None):
+    def get_BlockIdList(self, startTime=r.minval, endTime=r.maxval, limit=None):
         if limit == None:
-            return self.connection.run(r.table('bigchain').between(startTime, endTime, index='block_timestamp').order_by(index=r.desc('block_timestamp')).get_field('id'))
+            return self.connection.run(
+                r.table('bigchain').between(startTime, endTime, index='block_timestamp').order_by(
+                    index=r.desc('block_timestamp')).get_field('id'))
         else:
-            return self.connection.run(r.table('bigchain').between(startTime, endTime, index='block_timestamp').order_by(index=r.desc('block_timestamp')).get_field('id').limit(limit))
+            return self.connection.run(
+                r.table('bigchain').between(startTime, endTime, index='block_timestamp').order_by(
+                    index=r.desc('block_timestamp')).get_field('id').limit(limit))
 
     def get_txIdList(self, startTime=r.minval, endTime=r.maxval, limit=None):
         if limit == None:
-            return self.connection.run(r.table("bigchain").concat_map(lambda block: block['block']['transactions']).order_by(r.desc(r.row['block']['transactions']['transaction']['timestamp'])).filter((r.row["transaction"]['timestamp'] >= startTime) & (r.row["transaction"]['timestamp'] <= endTime)))
+            return self.connection.run(
+                r.table("bigchain").concat_map(lambda block: block['block']['transactions']).order_by(
+                    r.desc(r.row['block']['transactions']['transaction']['timestamp'])).filter(
+                    (r.row["transaction"]['timestamp'] >= startTime) & (r.row["transaction"]['timestamp'] <= endTime)))
         else:
-            return self.connection.run(r.table("bigchain").concat_map(lambda block: block['block']['transactions']).order_by(r.desc(r.row['block']['transactions']['transaction']['timestamp'])).filter((r.row["transaction"]['timestamp'] >= startTime) & (r.row["transaction"]['timestamp'] <= endTime)).limit(limit))
+            return self.connection.run(
+                r.table("bigchain").concat_map(lambda block: block['block']['transactions']).order_by(
+                    r.desc(r.row['block']['transactions']['transaction']['timestamp'])).filter(
+                    (r.row["transaction"]['timestamp'] >= startTime) & (
+                    r.row["transaction"]['timestamp'] <= endTime)).limit(limit))
 
-    def get_txNumberOfEachBlock(self,limit=None):
+    def get_txNumberOfEachBlock(self, limit=None):
         if limit == None:
-            return self.connection.run(r.table("bigchain").map({'id':r.row['id'],'count':r.row['block']['transactions'].count()}))
+            return self.connection.run(
+                r.table("bigchain").map({'id': r.row['id'], 'count': r.row['block']['transactions'].count()}))
         else:
-            return self.connection.run(r.table("bigchain").order_by(index=r.desc('block_timestamp')).map({'id':r.row['id'],'count':r.row['block']['transactions'].count()}).limit(limit))
+            return self.connection.run(r.table("bigchain").order_by(index=r.desc('block_timestamp')).map(
+                {'id': r.row['id'], 'count': r.row['block']['transactions'].count()}).limit(limit))
 
-    def get_block(self,block_id):
+    def get_block(self, block_id):
         return self.connection.run(r.table('bigchain').get(block_id))
 
-    def get_tx_by_id(self,tx_id):
-        return self.connection.run(r.table('bigchain').get_all(tx_id,index='transaction_id'))
+    def get_tx_by_id(self, tx_id):
+        return self.connection.run(r.table('bigchain').get_all(tx_id, index='transaction_id'))
 
-    def get_transaction_no_valid(self,tx_id):
-        return self.connection.run(r.table('bigchain').get_all(tx_id,index='transaction_id').concat_map(lambda block: block['block']['transactions']).filter(lambda transaction: transaction['id'] == tx_id))
+    def get_transaction_no_valid(self, tx_id):
+        return self.connection.run(r.table('bigchain').get_all(tx_id, index='transaction_id').concat_map(
+            lambda block: block['block']['transactions']).filter(lambda transaction: transaction['id'] == tx_id))
 
-
-    def get_tx_record_by_pubkey(self,pubkey):
+    def get_tx_record_by_pubkey(self, pubkey, startIndex, endIndex):
         return self.connection.run(r.table('bigchain').concat_map(lambda doc: doc['block']['transactions'])
-                                                    .filter(lambda tx: ((tx['transaction']['fulfillments'][0]['owners_before'][0]==pubkey)
-                                                                    | (tx['transaction']['conditions'][0]['owners_after'][0]==pubkey)))
-                                                    .map({'id':r.row['id'],'owner_before':r.row['transaction']['fulfillments'][0]['owners_before'][0],'operation':r.row['transaction']['operation'],'amount':r.row['transaction']['conditions'][0]['amount'],'owners_after':r.row['transaction']['conditions'][0]['owners_after'][0],'timestamp':r.row['transaction']['timestamp']})
-                                                    .order_by(r.asc(r.row['timestamp'])))
-    def get_tx_from_backlog(self,myNodePubkey):
+                                   .filter(
+            lambda tx: ((tx['transaction']['fulfillments'][0]['owners_before'][0] == pubkey)
+                        | (tx['transaction']['conditions'][0]['owners_after'][0] == pubkey)))
+                                   .map(
+            {'id': r.row['id'], 'owner_before': r.row['transaction']['fulfillments'][0]['owners_before'][0],
+             'operation': r.row['transaction']['operation'], 'amount': r.row['transaction']['conditions'][0]['amount'],
+             'owners_after': r.row['transaction']['conditions'][0]['owners_after'][0],
+             'timestamp': r.row['transaction']['timestamp'], 'version': r.row['version']})
+                                   .order_by(r.asc(r.row['timestamp'])).slice(startIndex, endIndex))
+
+    def get_tx_from_backlog(self, myNodePubkey):
         return self.connection.run(
-            r.table('backlog').filter((r.row["assignee"] == myNodePubkey) & (r.row["assignee_isdeal"] == False)).limit(1000)
+            r.table('backlog').filter((r.row["assignee"] == myNodePubkey) & (r.row["assignee_isdeal"] == False)).limit(
+                1000)
             #
             # r.table('backlog').filter((r.row["assignee_node"] == myNodePubkey).limit(1000))
             # .order_by(index=r.asc('assignee__transaction_timestamp'))
@@ -678,165 +714,217 @@ class RethinkDBBackend:
     #             .update({'assignee_isdeal': True}))
     #     # return self.connection.run(r.table('backlog').filter({'id': tx_id}).update({'assignee_isdeal': True}))
 
-    def update_assign_flag_limit(self,key,start=0,end=1000,node_name=''):
+    def update_assign_flag_limit(self, key, start=0, end=1000, node_name=''):
         # logger.info("count undeal:",self.connection.run(r.table('backlog').filter({"assignee":key,"assignee_isdeal":False}).count()))
         # return self.connection.run(r.table('backlog'+node_name).filter({"assignee":key,"assignee_isdeal":False}).limit(limit).update({'assignee_isdeal': True},return_changes=True))
-        return self.connection.run(r.table('backlog' + node_name).filter({"assignee": key, "assignee_isdeal": False})[start:end].update({'assignee_isdeal': True}, return_changes=True))
+        return self.connection.run(
+            r.table('backlog' + node_name).filter({"assignee": key, "assignee_isdeal": False})[start:end].update(
+                {'assignee_isdeal': True}, return_changes=True))
 
-    def is_exist_txs(self,tx_ids):
-        return self.connection.run(r.table('bigchain').get_all(r.args(tx_ids), index='transaction_id').get_field('block').concat_map(lambda doc: doc['transactions']).get_field('id').distinct())
+    def is_exist_txs(self, tx_ids):
+        return self.connection.run(
+            r.table('bigchain').get_all(r.args(tx_ids), index='transaction_id').get_field('block').concat_map(
+                lambda doc: doc['transactions']).get_field('id').distinct())
 
-
-    def get_contract_by_id(self,contract_id):
+    def get_contract_by_id(self, contract_id):
         return self.connection.run(r.table('bigchain').concat_map(lambda doc: doc['block']['transactions'])
-                                   .filter(r.row["transaction"]["operation"]=="CONTRACT")
-                                   .filter(r.row["transaction"]["Contract"]["ContractBody"]["ContractId"] == contract_id).limit(1)
+                                   .filter(r.row["transaction"]["operation"] == "CONTRACT")
+                                   .filter(
+            r.row["transaction"]["Contract"]["ContractBody"]["ContractId"] == contract_id).limit(1)
                                    .get_field("transaction").get_field("Contract"))
 
-    def get_contract_txs_by_id(self,tx_id):
+    def get_contract_txs_by_id(self, tx_id):
         return self.connection.run(r.table('bigchain', read_mode=self.read_mode).get_all(tx_id, index='transaction_id'))
 
     # for border trade start
     # order
-    def getCustomsList(self,startTime,endTime,startIndex,endIndex):
+    def getCustomsList(self, startTime, endTime, startIndex, endIndex):
         count = self.connection.run(r.table('bigchain').concat_map(lambda doc: doc['block']['transactions'])
                                     .filter({'transaction': {'operation': 'METADATA'}})
-                                    .get_field("transaction").get_field("metadata").get_field('data').order_by('timestamp')
-                                    .filter((r.row['timestamp'] >= startTime) & (r.row['timestamp'] <= endTime)).filter(r.row['orderType'] == 2).count())
+                                    .get_field("transaction").get_field("metadata").get_field('data').order_by(
+            'timestamp')
+                                    .filter((r.row['timestamp'] >= startTime) & (r.row['timestamp'] <= endTime)).filter(
+            r.row['orderType'] == 2).count())
         return [count, self.connection.run(r.table('bigchain').concat_map(lambda doc: doc['block']['transactions'])
                                            .filter({'transaction': {'operation': 'METADATA'}})
-                                           .get_field("transaction").get_field("metadata").get_field('data').order_by('timestamp')
-                                           .filter((r.row['timestamp'] >= startTime) & (r.row['timestamp'] <= endTime)).filter(r.row['orderType'] == 2).slice(startIndex, endIndex))]
+                                           .get_field("transaction").get_field("metadata").get_field('data').order_by(
+            'timestamp')
+                                           .filter(
+            (r.row['timestamp'] >= startTime) & (r.row['timestamp'] <= endTime)).filter(r.row['orderType'] == 2).slice(
+            startIndex, endIndex))]
 
-    def getCustomsListOfFuser(self,fuserName,startTime,endTime,startIndex,endIndex):
-        count = self.connection.run(r.table('bigchain').concat_map(lambda doc: doc['block']['transactions'])
-                            .filter({'transaction': {'metadata': {'data': {'from': {'userName': fuserName}}}}})
-                            .get_field("transaction").get_field("metadata").get_field('data').order_by('timestamp')
-                            .filter((r.row['timestamp'] >= startTime) & (r.row['timestamp'] <= endTime)).filter(r.row['orderType'] == 2).count())
-
-        return [count,self.connection.run(r.table('bigchain').concat_map(lambda doc: doc['block']['transactions'])
-                                   .filter({'transaction':{'metadata':{'data':{'from':{'userName':fuserName}}}}})
-                                   .get_field("transaction").get_field("metadata").get_field('data').order_by('timestamp')
-                                   .filter((r.row['timestamp'] >= startTime) & (r.row['timestamp'] <= endTime)).filter(r.row['orderType'] == 2).slice(startIndex,endIndex))]
-
-
-    def getCustomsListOfTuser(self,tuserName,startTime,endTime,startIndex,endIndex):
-        count = self.connection.run(r.table('bigchain').concat_map(lambda doc: doc['block']['transactions'])
-                            .filter({'transaction': {'metadata': {'data': {'to': {'userName': tuserName}}}}})
-                            .get_field("transaction").get_field("metadata").get_field('data').order_by('timestamp')
-                            .filter((r.row['timestamp'] >= startTime) & (r.row['timestamp'] <= endTime)).filter(r.row['orderType'] == 2).count())
-
-        return [count,self.connection.run(r.table('bigchain').concat_map(lambda doc: doc['block']['transactions'])
-                                   .filter({'transaction': {'metadata': {'data': {'to': {'userName': tuserName}}}}})
-                                   .get_field("transaction").get_field("metadata").get_field('data').order_by('timestamp')
-                                   .filter((r.row['timestamp'] >= startTime) & (r.row['timestamp'] <= endTime)).filter(r.row['orderType'] == 2).slice(startIndex, endIndex))]
-
-
-    def getCustomsListOfTitle(self,itemTitle,startTime,endTime,startIndex,endIndex):
-        count = self.connection.run(r.table('bigchain').concat_map(lambda doc: doc['block']['transactions'])
-                            .filter({'transaction': {'operation': 'METADATA'}})
-                            .filter(lambda tx: tx['transaction']['metadata']['data']['goodsinfo'].contains(lambda gi: gi['itemTitle'] == itemTitle))
-                            .get_field("transaction").get_field("metadata").get_field('data').order_by('timestamp')
-                            .filter((r.row['timestamp'] >= startTime) & (r.row['timestamp'] <= endTime)).filter(r.row['orderType'] == 2).count())
-
-        return [count,self.connection.run(r.table('bigchain').concat_map(lambda doc: doc['block']['transactions'])
-                                   .filter({'transaction':{'operation':'METADATA'}})
-                                   .filter(lambda tx: tx['transaction']['metadata']['data']['goodsinfo'].contains(lambda gi: gi['itemTitle']==itemTitle))
-                                   .get_field("transaction").get_field("metadata").get_field('data').order_by('timestamp')
-                                   .filter((r.row['timestamp'] >= startTime) & (r.row['timestamp'] <= endTime)).filter(r.row['orderType'] == 2).slice(startIndex, endIndex))]
-
-
-    def getCustomsListOfCode(self,orderCode,startTime,endTime,startIndex,endIndex):
-        count = self.connection.run(r.table('bigchain').concat_map(lambda doc: doc['block']['transactions'])
-                            .filter({'transaction': {'metadata': {'data':{'orderCode': orderCode}}}})
-                            .get_field("transaction").get_field("metadata").get_field('data').order_by('timestamp')
-                            .filter((r.row['timestamp'] >= startTime) & (r.row['timestamp'] <= endTime)).filter(r.row['orderType'] == 2).count())
-
-        return [count,self.connection.run(r.table('bigchain').concat_map(lambda doc: doc['block']['transactions'])
-                                   .filter({'transaction': {'metadata': {'data':{'orderCode': orderCode}}}})
-                                   .get_field("transaction").get_field("metadata").get_field('data').order_by('timestamp')
-                                   .filter((r.row['timestamp'] >= startTime) & (r.row['timestamp'] <= endTime)).filter(r.row['orderType'] == 2).slice(startIndex, endIndex))]
-
-
-    def getCustomsDetailOfCode(self,orderCode):
-        return self.connection.run(r.table('bigchain').concat_map(lambda doc: doc['block']['transactions'])
-                                          .filter({'transaction': {'metadata': {'data':{'orderCode': orderCode}}}})
-                                          .get_field("transaction").get_field("metadata").get_field('data').limit(1))
-
-    # tax
-    def getTaxList(self,startTime,endTime,startIndex,endIndex):
-        count = self.connection.run(r.table('bigchain').concat_map(lambda doc: doc['block']['transactions'])
-                                    .filter({'transaction': {'operation': 'METADATA'}})
-                                    .get_field("transaction").get_field("metadata").get_field('data').order_by('timestamp')
-                                    .filter((r.row['timestamp'] >= startTime) & (r.row['timestamp'] <= endTime)).count())
-        return [count, self.connection.run(r.table('bigchain').concat_map(lambda doc: doc['block']['transactions'])
-                                           .filter({'transaction': {'operation': 'METADATA'}})
-                                           .get_field("transaction").get_field("metadata").get_field('data').order_by('timestamp')
-                                           .filter((r.row['timestamp'] >= startTime) & (r.row['timestamp'] <= endTime)).slice(startIndex, endIndex))]
-
-    def getTaxListOfFuser(self,fuserName, startTime, endTime, startIndex, endIndex):
+    def getCustomsListOfFuser(self, fuserName, startTime, endTime, startIndex, endIndex):
         count = self.connection.run(r.table('bigchain').concat_map(lambda doc: doc['block']['transactions'])
                                     .filter({'transaction': {'metadata': {'data': {'from': {'userName': fuserName}}}}})
-                                    .get_field("transaction").get_field("metadata").get_field('data').order_by('timestamp')
-                                    .filter((r.row['timestamp'] >= startTime) & (r.row['timestamp'] <= endTime)).count())
+                                    .get_field("transaction").get_field("metadata").get_field('data').order_by(
+            'timestamp')
+                                    .filter((r.row['timestamp'] >= startTime) & (r.row['timestamp'] <= endTime)).filter(
+            r.row['orderType'] == 2).count())
 
         return [count, self.connection.run(r.table('bigchain').concat_map(lambda doc: doc['block']['transactions'])
-                                           .filter({'transaction': {'metadata': {'data': {'from': {'userName': fuserName}}}}})
-                                           .get_field("transaction").get_field("metadata").get_field('data').order_by('timestamp')
-                                           .filter((r.row['timestamp'] >= startTime) & (r.row['timestamp'] <= endTime)).slice(startIndex, endIndex))]
+                                           .filter(
+            {'transaction': {'metadata': {'data': {'from': {'userName': fuserName}}}}})
+                                           .get_field("transaction").get_field("metadata").get_field('data').order_by(
+            'timestamp')
+                                           .filter(
+            (r.row['timestamp'] >= startTime) & (r.row['timestamp'] <= endTime)).filter(r.row['orderType'] == 2).slice(
+            startIndex, endIndex))]
 
-    def getTaxListOfTuser(self,tuserName, startTime, endTime, startIndex, endIndex):
+    def getCustomsListOfTuser(self, tuserName, startTime, endTime, startIndex, endIndex):
         count = self.connection.run(r.table('bigchain').concat_map(lambda doc: doc['block']['transactions'])
                                     .filter({'transaction': {'metadata': {'data': {'to': {'userName': tuserName}}}}})
-                                    .get_field("transaction").get_field("metadata").get_field('data').order_by('timestamp')
-                                    .filter((r.row['timestamp'] >= startTime) & (r.row['timestamp'] <= endTime)).count())
+                                    .get_field("transaction").get_field("metadata").get_field('data').order_by(
+            'timestamp')
+                                    .filter((r.row['timestamp'] >= startTime) & (r.row['timestamp'] <= endTime)).filter(
+            r.row['orderType'] == 2).count())
 
         return [count, self.connection.run(r.table('bigchain').concat_map(lambda doc: doc['block']['transactions'])
-                                           .filter({'transaction': {'metadata': {'data': {'to': {'userName': tuserName}}}}})
-                                           .get_field("transaction").get_field("metadata").get_field('data').order_by('timestamp')
-                                           .filter((r.row['timestamp'] >= startTime) & (r.row['timestamp'] <= endTime)).slice(startIndex, endIndex))]
+                                           .filter(
+            {'transaction': {'metadata': {'data': {'to': {'userName': tuserName}}}}})
+                                           .get_field("transaction").get_field("metadata").get_field('data').order_by(
+            'timestamp')
+                                           .filter(
+            (r.row['timestamp'] >= startTime) & (r.row['timestamp'] <= endTime)).filter(r.row['orderType'] == 2).slice(
+            startIndex, endIndex))]
 
+    def getCustomsListOfTitle(self, itemTitle, startTime, endTime, startIndex, endIndex):
+        count = self.connection.run(r.table('bigchain').concat_map(lambda doc: doc['block']['transactions'])
+                                    .filter({'transaction': {'operation': 'METADATA'}})
+                                    .filter(lambda tx: tx['transaction']['metadata']['data']['goodsinfo'].contains(
+            lambda gi: gi['itemTitle'] == itemTitle))
+                                    .get_field("transaction").get_field("metadata").get_field('data').order_by(
+            'timestamp')
+                                    .filter((r.row['timestamp'] >= startTime) & (r.row['timestamp'] <= endTime)).filter(
+            r.row['orderType'] == 2).count())
 
-    def getTaxListOfCode(self,orderCode, startTime, endTime, startIndex, endIndex):
+        return [count, self.connection.run(r.table('bigchain').concat_map(lambda doc: doc['block']['transactions'])
+                                           .filter({'transaction': {'operation': 'METADATA'}})
+                                           .filter(
+            lambda tx: tx['transaction']['metadata']['data']['goodsinfo'].contains(
+                lambda gi: gi['itemTitle'] == itemTitle))
+                                           .get_field("transaction").get_field("metadata").get_field('data').order_by(
+            'timestamp')
+                                           .filter(
+            (r.row['timestamp'] >= startTime) & (r.row['timestamp'] <= endTime)).filter(r.row['orderType'] == 2).slice(
+            startIndex, endIndex))]
+
+    def getCustomsListOfCode(self, orderCode, startTime, endTime, startIndex, endIndex):
         count = self.connection.run(r.table('bigchain').concat_map(lambda doc: doc['block']['transactions'])
                                     .filter({'transaction': {'metadata': {'data': {'orderCode': orderCode}}}})
-                                    .get_field("transaction").get_field("metadata").get_field('data').order_by('timestamp')
-                                    .filter((r.row['timestamp'] >= startTime) & (r.row['timestamp'] <= endTime)).count())
+                                    .get_field("transaction").get_field("metadata").get_field('data').order_by(
+            'timestamp')
+                                    .filter((r.row['timestamp'] >= startTime) & (r.row['timestamp'] <= endTime)).filter(
+            r.row['orderType'] == 2).count())
 
         return [count, self.connection.run(r.table('bigchain').concat_map(lambda doc: doc['block']['transactions'])
                                            .filter({'transaction': {'metadata': {'data': {'orderCode': orderCode}}}})
-                                           .get_field("transaction").get_field("metadata").get_field('data').order_by('timestamp')
-                                           .filter((r.row['timestamp'] >= startTime) & (r.row['timestamp'] <= endTime)).slice(startIndex, endIndex))]
+                                           .get_field("transaction").get_field("metadata").get_field('data').order_by(
+            'timestamp')
+                                           .filter(
+            (r.row['timestamp'] >= startTime) & (r.row['timestamp'] <= endTime)).filter(r.row['orderType'] == 2).slice(
+            startIndex, endIndex))]
 
-
-    def getTaxListOfTitle(self, orderCodeList, startTime, endTime, startIndex, endIndex):
-
-        count = self.connection.run(r.table('bigchain').concat_map(lambda doc: doc['block']['transactions'])
-                                    .filter( lambda doc: r.expr(orderCodeList).contains(doc['transaction']['metadata']['data']['orderCode']))
-                                    .get_field("transaction").get_field("metadata").get_field('data').order_by('timestamp')
-                                    .filter((r.row['timestamp'] >= startTime) & (r.row['timestamp'] <= endTime)).count())
-
-        return [count, self.connection.run(r.table('bigchain').concat_map(lambda doc: doc['block']['transactions'])
-                                           .filter( lambda doc: r.expr(orderCodeList).contains(doc['transaction']['metadata']['data']['orderCode']))
-                                           .get_field("transaction").get_field("metadata").get_field('data').order_by('timestamp')
-                                           .filter((r.row['timestamp'] >= startTime) & (r.row['timestamp'] <= endTime)).slice(startIndex, endIndex))]
-
-
-    def getOrderCodeByTitle(self,itemTitle):
-        return self.connection.run(r.table('bigchain').concat_map(lambda doc: doc['block']['transactions'])
-                            .filter({'transaction': {'operation': 'METADATA'}})
-                            .filter(lambda tx: tx['transaction']['metadata']['data']['goodsinfo'].contains(lambda gi: gi['itemTitle'] == itemTitle))
-                            .get_field("transaction").get_field("metadata").get_field('data').get_field('orderCode'))
-
-
-    def getTaxDetailOfCode(self,orderCode):
+    def getCustomsDetailOfCode(self, orderCode):
         return self.connection.run(r.table('bigchain').concat_map(lambda doc: doc['block']['transactions'])
                                    .filter({'transaction': {'metadata': {'data': {'orderCode': orderCode}}}})
                                    .get_field("transaction").get_field("metadata").get_field('data').limit(1))
 
-    def getGoosTitleByCode(self,orderCode):
+    # tax
+    def getTaxList(self, startTime, endTime, startIndex, endIndex):
+        count = self.connection.run(r.table('bigchain').concat_map(lambda doc: doc['block']['transactions'])
+                                    .filter({'transaction': {'operation': 'METADATA'}})
+                                    .get_field("transaction").get_field("metadata").get_field('data').order_by(
+            'timestamp')
+                                    .filter(
+            (r.row['timestamp'] >= startTime) & (r.row['timestamp'] <= endTime)).count())
+        return [count, self.connection.run(r.table('bigchain').concat_map(lambda doc: doc['block']['transactions'])
+                                           .filter({'transaction': {'operation': 'METADATA'}})
+                                           .get_field("transaction").get_field("metadata").get_field('data').order_by(
+            'timestamp')
+                                           .filter(
+            (r.row['timestamp'] >= startTime) & (r.row['timestamp'] <= endTime)).slice(startIndex, endIndex))]
+
+    def getTaxListOfFuser(self, fuserName, startTime, endTime, startIndex, endIndex):
+        count = self.connection.run(r.table('bigchain').concat_map(lambda doc: doc['block']['transactions'])
+                                    .filter({'transaction': {'metadata': {'data': {'from': {'userName': fuserName}}}}})
+                                    .get_field("transaction").get_field("metadata").get_field('data').order_by(
+            'timestamp')
+                                    .filter(
+            (r.row['timestamp'] >= startTime) & (r.row['timestamp'] <= endTime)).count())
+
+        return [count, self.connection.run(r.table('bigchain').concat_map(lambda doc: doc['block']['transactions'])
+                                           .filter(
+            {'transaction': {'metadata': {'data': {'from': {'userName': fuserName}}}}})
+                                           .get_field("transaction").get_field("metadata").get_field('data').order_by(
+            'timestamp')
+                                           .filter(
+            (r.row['timestamp'] >= startTime) & (r.row['timestamp'] <= endTime)).slice(startIndex, endIndex))]
+
+    def getTaxListOfTuser(self, tuserName, startTime, endTime, startIndex, endIndex):
+        count = self.connection.run(r.table('bigchain').concat_map(lambda doc: doc['block']['transactions'])
+                                    .filter({'transaction': {'metadata': {'data': {'to': {'userName': tuserName}}}}})
+                                    .get_field("transaction").get_field("metadata").get_field('data').order_by(
+            'timestamp')
+                                    .filter(
+            (r.row['timestamp'] >= startTime) & (r.row['timestamp'] <= endTime)).count())
+
+        return [count, self.connection.run(r.table('bigchain').concat_map(lambda doc: doc['block']['transactions'])
+                                           .filter(
+            {'transaction': {'metadata': {'data': {'to': {'userName': tuserName}}}}})
+                                           .get_field("transaction").get_field("metadata").get_field('data').order_by(
+            'timestamp')
+                                           .filter(
+            (r.row['timestamp'] >= startTime) & (r.row['timestamp'] <= endTime)).slice(startIndex, endIndex))]
+
+    def getTaxListOfCode(self, orderCode, startTime, endTime, startIndex, endIndex):
+        count = self.connection.run(r.table('bigchain').concat_map(lambda doc: doc['block']['transactions'])
+                                    .filter({'transaction': {'metadata': {'data': {'orderCode': orderCode}}}})
+                                    .get_field("transaction").get_field("metadata").get_field('data').order_by(
+            'timestamp')
+                                    .filter(
+            (r.row['timestamp'] >= startTime) & (r.row['timestamp'] <= endTime)).count())
+
+        return [count, self.connection.run(r.table('bigchain').concat_map(lambda doc: doc['block']['transactions'])
+                                           .filter({'transaction': {'metadata': {'data': {'orderCode': orderCode}}}})
+                                           .get_field("transaction").get_field("metadata").get_field('data').order_by(
+            'timestamp')
+                                           .filter(
+            (r.row['timestamp'] >= startTime) & (r.row['timestamp'] <= endTime)).slice(startIndex, endIndex))]
+
+    def getTaxListOfTitle(self, orderCodeList, startTime, endTime, startIndex, endIndex):
+
+        count = self.connection.run(r.table('bigchain').concat_map(lambda doc: doc['block']['transactions'])
+                                    .filter(
+            lambda doc: r.expr(orderCodeList).contains(doc['transaction']['metadata']['data']['orderCode']))
+                                    .get_field("transaction").get_field("metadata").get_field('data').order_by(
+            'timestamp')
+                                    .filter(
+            (r.row['timestamp'] >= startTime) & (r.row['timestamp'] <= endTime)).count())
+
+        return [count, self.connection.run(r.table('bigchain').concat_map(lambda doc: doc['block']['transactions'])
+                                           .filter(
+            lambda doc: r.expr(orderCodeList).contains(doc['transaction']['metadata']['data']['orderCode']))
+                                           .get_field("transaction").get_field("metadata").get_field('data').order_by(
+            'timestamp')
+                                           .filter(
+            (r.row['timestamp'] >= startTime) & (r.row['timestamp'] <= endTime)).slice(startIndex, endIndex))]
+
+    def getOrderCodeByTitle(self, itemTitle):
+        return self.connection.run(r.table('bigchain').concat_map(lambda doc: doc['block']['transactions'])
+                                   .filter({'transaction': {'operation': 'METADATA'}})
+                                   .filter(lambda tx: tx['transaction']['metadata']['data']['goodsinfo'].contains(
+            lambda gi: gi['itemTitle'] == itemTitle))
+                                   .get_field("transaction").get_field("metadata").get_field('data').get_field(
+            'orderCode'))
+
+    def getTaxDetailOfCode(self, orderCode):
+        return self.connection.run(r.table('bigchain').concat_map(lambda doc: doc['block']['transactions'])
+                                   .filter({'transaction': {'metadata': {'data': {'orderCode': orderCode}}}})
+                                   .get_field("transaction").get_field("metadata").get_field('data').limit(1))
+
+    def getGoosTitleByCode(self, orderCode):
         return self.connection.run(r.table('bigchain').concat_map(lambda doc: doc['block']['transactions'])
                                    .filter({'transaction': {'metadata': {'data': {'orderCode': orderCode}}}})
                                    .get_field("transaction").get_field("metadata").get_field('data')
                                    .concat_map(lambda goods: goods['goodsinfo']).get_field('itemTitle'))
-     # for border trade end
+        # for border trade end
