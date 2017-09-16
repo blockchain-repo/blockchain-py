@@ -146,11 +146,10 @@ def get_txNumberById(block_id):
 
     # s = r.table('backlog').get_all(['5mVrPtqUzXwKYL2JeZo4cQq2spt8qfGVx3qE2V7NqgyU', False], index='assignee_assignee_isdeal').update({'assignee_isdeal': True}, return_changes=True).run(conn)
 
-    s = r.table('backlog').get('1c424db85c402af3eeb0fb4a8f87a4f27a5a3766c4550bbedcbe4f40f7eabb0b').get_field('node_name').run(conn)
-    print(s == "backlog5mVrP")
-    print(s)
-    # .
+    # s = r.table('backlog').get('1c424db85c402af3eeb0fb4a8f87a4f27a5a3766c4550bbedcbe4f40f7eabb0b').get_field('node_name').run(conn)
+    # print(s == "backlog5mVrP")
 
+    # .
     # node_pubkey = "5mVrPtqUzXwKYL2JeZo4cQq2spt8qfGVx3qE2V7NqgyU"
     # unvoted = r.table('bigchain')\
     #     .filter(lambda block: r.table('votes').get_all([block['id'], node_pubkey], index='block_and_voter').is_empty())\
@@ -182,6 +181,15 @@ def get_txNumberById(block_id):
     # print(unvoted)
     # print(unvoted_blocks1)
     # print(unvoted_blocks2)
+
+
+    di = {'state': 1, 'roleID': 1, 'name': '张三1', 'validFlag': True}
+
+    s = r.table('bigchain').concat_map(lambda doc: doc['block']['transactions'])\
+        .filter({'transaction': {'metadata': {'data': di}}})\
+        .get_field("transaction").get_field("metadata").get_field('data').run(conn)
+    print(s)
+
 
 get_txNumberById("39d8d3d29554d209a1283b20a1e3e198bdd27c099b8df9042195d7bb0728219f")
 

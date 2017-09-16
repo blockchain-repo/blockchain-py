@@ -1398,3 +1398,35 @@ class Bigchain(object):
         tx = tx.sign([self.me_private])
         # tx_id = tx.to_dict()['id']
         return tx
+
+    # start user account
+    def getAccountInfo(self,param):
+        try:
+            name = param['name']
+        except KeyError:
+            name = None
+        try:
+            roleID = param['roleID']
+        except KeyError:
+            roleID = None
+        try:
+            state = param['state']
+        except KeyError:
+            state = None
+        try:
+            validFlag = param['validFlag']
+        except KeyError:
+            validFlag = None
+
+        account_info = self.backend.getAccountInfo(name,roleID,state,validFlag)
+
+        return account_info
+
+
+    def getAccountRecord(self,param):
+        name = param['name']
+        account_record = self.backend.getAccountRecord(name)
+        return account_record
+
+    # end user account
+
