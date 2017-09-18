@@ -843,15 +843,14 @@ class RethinkDBBackend:
 
 
     # for user account start
-
-    def getAccountInfo(self,name,roleID,state,validFlag):
+    def getAccountInfo(self,username,role,status,validFlag):
         s = {}
-        if name !=None:
-            s['name'] = name
-        if roleID !=None:
-            s['roleID'] = roleID
-        if state != None:
-            s['state'] = state
+        if username !=None:
+            s['username'] = username
+        if role !=None:
+            s['role'] = role
+        if status != None:
+            s['status'] = status
         if validFlag != None:
             s['validFlag'] = validFlag
         print(s)
@@ -859,9 +858,9 @@ class RethinkDBBackend:
                              .filter({'transaction': {'metadata': {'data': s}}})
                              .get_field("transaction").get_field("metadata").get_field('data'))
 
-    def getAccountRecord(self,name):
+    def getAccountRecord(self,username):
         return self.connection.run(r.table('bigchain').concat_map(lambda doc: doc['block']['transactions'])
-                                   .filter({'transaction': {'metadata': {'data': {'name': name}}}})
+                                   .filter({'transaction': {'metadata': {'data': {'username': username}}}})
                                    .get_field("transaction").get_field("metadata").get_field('data'))
 
     # for user account start

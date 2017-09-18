@@ -1402,30 +1402,30 @@ class Bigchain(object):
     # start user account
     def getAccountInfo(self,param):
         try:
-            name = param['name']
+            username = param['username']
         except KeyError:
-            name = None
+            username = None
         try:
-            roleID = param['roleID']
+            role = param['role']
         except KeyError:
-            roleID = None
+            role = None
         try:
-            state = param['state']
+            status = param['status']
         except KeyError:
-            state = None
+            status = None
         try:
             validFlag = param['validFlag']
         except KeyError:
             validFlag = None
 
-        account_info = self.backend.getAccountInfo(name,roleID,state,validFlag)
+        account_info = self.backend.getAccountInfo(username,role,status,validFlag)
 
         return account_info
 
 
     def getAccountRecord(self,param):
-        name = param['name']
-        account_record = self.backend.getAccountRecord(name)
+        username = param['username']
+        account_record = self.backend.getAccountRecord(username)
         return account_record
 
     # end user account
