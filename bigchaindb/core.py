@@ -1187,7 +1187,7 @@ class Bigchain(object):
 
         startTime = '1262275200000'  # 2010-01-01 00:00:00
         endTime = gen_timestamp()
-        print(type(start), type(end), start, end)
+
         if start is None or end is None:
             return self.backend.get_tx_record_by_pubkey(pubkey, startIndex, endIndex, startTime, endTime)
         else:

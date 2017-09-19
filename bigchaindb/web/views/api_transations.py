@@ -239,7 +239,8 @@ class ApiGetTxRecord(Resource):
         with pool() as bigchain:
             txRecord = bigchain.gettxRecordByPubkey(args['public_key'], args['pageSize'], args['pageNum'],
                                                     args['startTime'], args['endTime'])
-            return txRecord
+
+            return {"count": txRecord[0], "record": txRecord[1]}
 
 
 class ApiRecharge(Resource):
