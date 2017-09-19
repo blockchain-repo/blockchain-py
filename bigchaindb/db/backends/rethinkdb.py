@@ -701,7 +701,7 @@ class RethinkDBBackend:
                                     .order_by(r.asc(r.row['timestamp']))
                                     .filter(
             (r.row['timestamp'] >= startTime) & (r.row['timestamp'] <= endTime))
-                                    .slice(startIndex, endIndex).count())
+                                    .count())
 
         return [count,
                 self.connection.run(r.table('bigchain').concat_map(lambda doc: doc['block']['transactions']).filter(
