@@ -186,8 +186,8 @@ def get_txNumberById(block_id):
     di = {'state': 1, 'roleID': 1, 'name': '张三1', 'validFlag': True}
 
     s = r.table('bigchain').concat_map(lambda doc: doc['block']['transactions'])\
-        .filter({'transaction': {'metadata': {'data': di}}})\
-        .get_field("transaction").get_field("metadata").get_field('data').run(conn)
+        .filter({'transaction': {'metadata': {'data': {'username': 'zhangsan'}}}})\
+        .get_field("transaction").get_field("metadata").get_field('data').order_by('timestamp').run(conn)
     print(s)
 
 

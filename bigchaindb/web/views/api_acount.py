@@ -18,10 +18,7 @@ class ApiGetAccountInfos(Resource):
 
         print(account_info)
 
-        return make_response(constant.RESPONSE_STATUS_SUCCESS,
-                     constant.RESPONSE_CODE_SUCCESS,
-                     "query success",
-                     list(account_info))
+        return list(account_info)
 
 
 class ApiUserAccountChangeRecord(Resource):
