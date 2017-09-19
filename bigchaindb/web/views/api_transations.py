@@ -231,11 +231,14 @@ class ApiGetTxRecord(Resource):
         parser.add_argument('public_key', type=parameters.valid_ed25519, required=True)
         parser.add_argument('pageSize', type=int, required=True)
         parser.add_argument('pageNum', type=int, required=True)
+        parser.add_argument('startTime', type=str)
+        parser.add_argument('endTime', type=str)
         args = parser.parse_args()
 
         pool = current_app.config['bigchain_pool']
         with pool() as bigchain:
-            txRecord = bigchain.gettxRecordByPubkey(args['public_key'], args['pageSize'], args['pageNum'])
+            txRecord = bigchain.gettxRecordByPubkey(args['public_key'], args['pageSize'], args['pageNum'],
+                                                    args['startTime'], args['endTime'])
             return txRecord
 
 

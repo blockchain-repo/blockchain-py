@@ -1181,17 +1181,17 @@ class Bigchain(object):
             return 2, outputs_after
         return 4, outputs_after
 
-    def gettxRecordByPubkey(self, pubkey, pageSize, pageNum):
+    def gettxRecordByPubkey(self, pubkey, pageSize, pageNum, start, end):
         startIndex = pageSize * (pageNum - 1)
         endIndex = pageSize * pageNum
-        return self.backend.get_tx_record_by_pubkey(pubkey, startIndex, endIndex)
-        # for tx in txlist:
-        #     for c in tx['conditions']:
-        #         c.pop('condition')
-        #         c.pop('cid')
-        #     tx.pop('id')
 
-        # print(txlist)
+        startTime = '1262275200000'  # 2010-01-01 00:00:00
+        endTime = gen_timestamp()
+        print(type(start), type(end), start, end)
+        if start is None or end is None:
+            return self.backend.get_tx_record_by_pubkey(pubkey, startIndex, endIndex, startTime, endTime)
+        else:
+            return self.backend.get_tx_record_by_pubkey(pubkey, startIndex, endIndex, start, end)
 
     def get_tx_from_backlog(self):
         return self.backend.get_tx_from_backlog(self.me)
@@ -1400,7 +1400,7 @@ class Bigchain(object):
         return tx
 
     # start user account
-    def getAccountInfo(self,param):
+    def getAccountInfo(self, param):
         try:
             username = param['username']
         except KeyError:
@@ -1418,15 +1418,13 @@ class Bigchain(object):
         except KeyError:
             validFlag = None
 
-        account_info = self.backend.getAccountInfo(username,role,status,validFlag)
+        account_info = self.backend.getAccountInfo(username, role, status, validFlag)
 
         return account_info
 
-
-    def getAccountRecord(self,param):
+    def getAccountRecord(self, param):
         username = param['username']
         account_record = self.backend.getAccountRecord(username)
         return account_record
 
-    # end user account
-
+        # end user account
