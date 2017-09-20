@@ -95,7 +95,6 @@ def file_config(filename=None):
 
     if filename is None:
         filename = CONFIG_DEFAULT_PATH
-    print("filename",filename)
     logger.debug('file_config() will try to open `{}`'.format(filename))
     with open(filename) as f:
         try:
