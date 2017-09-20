@@ -714,7 +714,8 @@ class RethinkDBBackend:
                      'operation': r.row['transaction']['operation'],
                      'amount': r.row['transaction']['conditions'][0]['amount'],
                      'owners_after': r.row['transaction']['conditions'][0]['owners_after'][0],
-                     'timestamp': r.row['transaction']['timestamp']
+                     'timestamp': r.row['transaction']['timestamp'],
+                     'version': r.row['version']
                      })
                                     .order_by(r.asc(r.row['timestamp']))
                                     .filter(
