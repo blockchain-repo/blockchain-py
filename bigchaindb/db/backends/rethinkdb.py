@@ -970,6 +970,6 @@ class RethinkDBBackend:
     def getAccountRecord(self, username):
         return self.connection.run(r.table('bigchain').concat_map(lambda doc: doc['block']['transactions'])
                                    .filter({'transaction': {'metadata': {'data': {'username': username}}}})
-                                   .get_field("transaction").get_field("metadata").get_field('data').order_by('timestamp'))
+                                   .get_field("transaction").get_field("metadata").get_field('data').order_by(r.desc(r.row['timestamp'])))
 
         # for user account start
