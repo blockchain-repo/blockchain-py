@@ -57,7 +57,7 @@ class Election:
         if self.bigchain.me == invalid_block.node_pubkey and isHandled ==False:
             logger.info('Rewriting %s transactions from invalid block %s', len(invalid_block.transactions), invalid_block.id)
             if monitor is not None:
-                monitor.incr('rewrite_block', value=1)
+                monitor.incr('rewrite_block', 1)
             data = {'id':invalid_block.id,'node_publickey': invalid_block.node_pubkey,'timestamp':invalid_block.timestamp}
             self.bigchain.insertRewrite(data)
             for tx in invalid_block.transactions:
