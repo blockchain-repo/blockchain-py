@@ -36,8 +36,6 @@ def home():
     })
 
 
-#定义一个装饰器用于拦截用户登录
-#func是使用该修饰符的地方是视图函数
 def per_acconut(func):
     def decorator(*args,**kwargs):
         need_per = bigchaindb.config['api_need_permission']
