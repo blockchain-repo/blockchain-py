@@ -4,12 +4,14 @@ from bigchaindb.web.views.base import make_response, check_request, make_error
 from bigchaindb.web.views import constant, parameters
 
 from bigchaindb.web.views import parameters
+from bigchaindb.web.views.info import per_trans
 
 condition_views = Blueprint('condition_views', __name__)
 condition_api = Api(condition_views)
 
 
 class ApiGetUnspentTxs(Resource):
+    @per_trans
     def get(self):
         """API endpoint to retrieve a list of links to transaction
         outputs.
@@ -36,6 +38,7 @@ class ApiGetUnspentTxs(Resource):
 
 
 class ApiGetFreezeUnspentTx(Resource):
+    @per_trans
     def get(self):
         print('ApiGetFreezeUnspentTx')
         parser = reqparse.RequestParser()
@@ -61,6 +64,7 @@ class ApiGetFreezeUnspentTx(Resource):
                                  outputs)
 
 class ApiGetFreezeByTransId(Resource):
+    @per_trans
     def get(self):
         print('ApiGetFreezeByTransId')
         parser = reqparse.RequestParser()

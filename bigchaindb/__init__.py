@@ -37,6 +37,7 @@ config = {
         'port': 8125,
         'rate': 0.01,
     },
+    'api_need_permission':False,
     'api_endpoint': os.environ.get('BIGCHAINDB_API_ENDPOINT') or 'http://localhost:{}/uniledger/v1'
         .format(unichain_config['server_config']['server_port']),
     'backlog_reassign_delay': 120,
