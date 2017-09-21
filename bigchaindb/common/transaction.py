@@ -371,7 +371,7 @@ class Condition(object):
                 ffill = Ed25519Fulfillment(public_key=public_keys[0])
             except TypeError:
                 ffill = public_keys[0]
-            return cls(ffill, public_keys, amount=amount)
+            return cls(ffill, public_keys, amount=amount,isfreeze=isfreeze)
         else:
             initial_cond = ThresholdSha256Fulfillment(threshold=threshold)
             threshold_cond = reduce(cls._gen_condition, public_keys,
@@ -991,11 +991,11 @@ class Transaction(object):
 
         conditions = []
         for recipient in recipients:
-            if not isinstance(recipient, tuple) or len(recipient) != 2:
+            if not isinstance(recipient, tuple):
                 raise ValueError(('Each `recipient` in the list must be a'
                                   ' <amount>)`'))
-            pub_keys, amount = recipient
-            conditions.append(Condition.generate(pub_keys, amount))
+            pub_keys, amount, isfreeze = recipient
+            conditions.append(Condition.generate(pub_keys, amount,isfreeze))
 
         # if not isinstance(asset_id, str):
         #     raise TypeError('`asset_id` must be a string')

@@ -185,9 +185,13 @@ def get_txNumberById(block_id):
 
     di = {'state': 1, 'roleID': 1, 'name': '张三1', 'validFlag': True}
 
-    s = r.table('bigchain').concat_map(lambda doc: doc['block']['transactions'])\
-        .filter({'transaction': {'metadata': {'data': {'username': 'zhangsan'}}}})\
-        .get_field("transaction").get_field("metadata").get_field('data').order_by(r.desc(r.row['timestamp'])).run(conn)
+    # s = r.table('bigchain').concat_map(lambda doc: doc['block']['transactions'])\
+    #     .filter({'transaction': {'metadata': {'data': {'username': 'zhangsan'}}}})\
+    #     .get_field("transaction").get_field("metadata").get_field('data').order_by(r.desc(r.row['timestamp'])).run(conn)
+    s = r.table('bigchain')\
+        .concat_map(lambda doc: doc['block']['transactions'])\
+        .filter(lambda tx: tx['transaction']['conditions'].contains(
+        lambda c: c['owners_after'].contains('EXJqxCeYNMxYriTKsdxHFHAJ4Qtm6Qn5gif1zpQkrtvN'))).run(conn)
     print(s)
 
 
