@@ -82,10 +82,10 @@ def per_trans(func):
             if key and key == '3viQSvdWJc5AwAu8adKiMajfPDKPv2s7b55LcpVudKLn':
                 return func(*args, **kwargs)
             else:
-                return flask.redirect("/")
+                return make_response(flask.jsonify({'error': 'Unauthorized access'}), 401)
+                # return flask.redirect("/")
         else:
-            return make_response(flask.jsonify({'error': 'Unauthorized access'}), 401)
-            # return func(*args, **kwargs)
+            return func(*args, **kwargs)
     return decorator
 
 
