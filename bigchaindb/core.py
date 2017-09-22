@@ -1252,9 +1252,14 @@ class Bigchain(object):
         endTime = gen_timestamp()
 
         if start is None or end is None:
-            return self.backend.get_tx_record_by_pubkey(pubkey, startIndex, endIndex, startTime, endTime)
+            res = self.backend.get_tx_record_by_pubkey(pubkey, startIndex, endIndex, startTime, endTime)
         else:
-            return self.backend.get_tx_record_by_pubkey(pubkey, startIndex, endIndex, start, end)
+            res = self.backend.get_tx_record_by_pubkey(pubkey, startIndex, endIndex, start, end)
+        for i, u in enumerate(res[1]):
+            if res[1][i]["product_id"]:
+                res[1][i]["product_id"] = res[1][i]["product_id"]["ContractBody"]["ContractProductID"]
+                res[1][i]["contract_id"] = res[1][i]["contract_id"]["ContractBody"]["ContractID"]
+        return res
 
     def get_tx_from_backlog(self):
         return self.backend.get_tx_from_backlog(self.me)

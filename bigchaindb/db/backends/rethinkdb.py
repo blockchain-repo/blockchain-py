@@ -697,7 +697,9 @@ class RethinkDBBackend:
              'amount': r.row['transaction']['conditions'][0]['amount'],
              'owners_after': r.row['transaction']['conditions'][0]['owners_after'][0],
              'timestamp': r.row['transaction']['timestamp'],
-             'version': r.row['version']
+             'version': r.row['version'],
+             'product_id': r.row['transaction']["Contract"],
+             'contract_id': r.row['transaction']["Contract"]
              })
                                     .order_by(r.asc(r.row['timestamp']))
                                     .filter(
@@ -715,7 +717,9 @@ class RethinkDBBackend:
                      'amount': r.row['transaction']['conditions'][0]['amount'],
                      'owners_after': r.row['transaction']['conditions'][0]['owners_after'][0],
                      'timestamp': r.row['transaction']['timestamp'],
-                     'version': r.row['version']
+                     'version': r.row['version'],
+                     'product_id': r.row['transaction']["Contract"],
+                     'contract_id': r.row['transaction']["Contract"]
                      })
                                     .order_by(r.asc(r.row['timestamp']))
                                     .filter(
@@ -971,7 +975,8 @@ class RethinkDBBackend:
 
     def getAccountRecord(self, username):
         return self.connection.run(r.table('bigchain').concat_map(lambda doc: doc['block']['transactions'])
-                                   .filter({'transaction': {'metadata': {'data': {'username': username}}}})
-                                   .get_field("transaction").get_field("metadata").get_field('data').order_by(r.desc(r.row['timestamp'])))
+            .filter({'transaction': {'metadata': {'data': {'username': username}}}})
+            .get_field("transaction").get_field("metadata").get_field('data').order_by(
+            r.desc(r.row['timestamp'])))
 
         # for user account start
