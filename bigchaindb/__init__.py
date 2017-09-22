@@ -37,6 +37,7 @@ config = {
         'port': 8125,
         'rate': 0.01,
     },
+    'api_need_permission':False,
     'api_endpoint': os.environ.get('BIGCHAINDB_API_ENDPOINT') or 'http://localhost:{}/uniledger/v1'
         .format(unichain_config['server_config']['server_port']),
     'backlog_reassign_delay': 120,
@@ -47,7 +48,7 @@ config = {
     'argument_config' : {
         'split_backlog': False,
         'block_pipeline.block_size' : 2000,
-        'block_pipeline.pipe_maxsize' : 4000,
+        'block_pipeline.pipe_maxsize' : 5000,
         'block_pipeline.fraction_of_cores':1,
         'block_pipeline.get_txs_processes_num':30,
         'block_pipeline.get_txs_everytime':200,

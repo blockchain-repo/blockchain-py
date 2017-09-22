@@ -24,12 +24,14 @@ from bigchaindb.common.exceptions import (
     TransactionDoesNotExist,
     TransactionOwnerError,
 )
+from bigchaindb.web.views.info import per_trans
 
 transaction_views = Blueprint('transaction_views', __name__)
 transaction_api = Api(transaction_views)
 
 
 class ApiCreateByPayload(Resource):
+    @per_trans
     def post(self):
         # 单条payload创建交易
         # @common_api.route('/createTxByPayload/', methods=['POST'])
@@ -63,6 +65,7 @@ class ApiCreateByPayload(Resource):
 
 
 class ApiQueryByID(Resource):
+    @per_trans
     def post(self):
         # 根据交易ID获取交易
         # @common_api.route('/getTxById/', methods=['POST'])
@@ -110,6 +113,7 @@ class ApiQueryByID(Resource):
 
 
 class ApiQueryTxsTotal(Resource):
+    @per_trans
     def post(self):
         # 获取区块链中的总交易条数
         # @common_api.route('/getTxNumberInUnichain/', methods=['POST'])
@@ -124,6 +128,7 @@ class ApiQueryTxsTotal(Resource):
 
 
 class ApiQueryTxsByRange(Resource):
+    @per_trans
     def post(self):
         # 根据指定时间区间获取交易集
         # @common_api.route('/getTxsByTime/', methods=['POST'])
@@ -151,6 +156,7 @@ class ApiQueryTxsByRange(Resource):
 
 
 class ApiQueryGroupByBlock(Resource):
+    @per_trans
     def post(self):
         # 获取每区块中包含的交易条数
         # @common_api.route('/getTxNumOfAllBlock/', methods=['POST'])
@@ -199,6 +205,7 @@ class ApiQueryGroupByBlock(Resource):
 
 
 class ApiCreateOrTransferTx(Resource):
+    @per_trans
     def post(self):
         pool = current_app.config['bigchain_pool']
         tx = request.get_json(force=True)
@@ -226,6 +233,7 @@ class ApiCreateOrTransferTx(Resource):
 
 
 class ApiGetTxRecord(Resource):
+    @per_trans
     def get(self):
         parser = reqparse.RequestParser()
         parser.add_argument('public_key', type=parameters.valid_ed25519, required=True)
@@ -244,6 +252,7 @@ class ApiGetTxRecord(Resource):
 
 
 class ApiRecharge(Resource):
+    @per_trans
     def post(self):
         pool = current_app.config['bigchain_pool']
         msg = request.get_json()['msg']
@@ -272,6 +281,7 @@ class ApiRecharge(Resource):
 
 
 class ApiOnlySaveData(Resource):
+    @per_trans
     def post(self):
         # print("ApiOnlySaveData:--",request.get_json())
         pool = current_app.config['bigchain_pool']

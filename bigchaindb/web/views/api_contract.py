@@ -14,6 +14,7 @@ from bigchaindb.common.exceptions import (
     TransactionDoesNotExist,
     TransactionOwnerError,
 )
+from bigchaindb.web.views.info import per_contract
 
 contract_views = Blueprint('contract_views', __name__)
 contract_api = Api(contract_views)
@@ -55,6 +56,7 @@ contract_api = Api(contract_views)
 
 
 class ApiCreateContractTx(Resource):
+    @per_contract
     def post(self):
         print("createContractTx")
 
@@ -94,6 +96,7 @@ class ApiCreateContractTx(Resource):
 
 
 class ApiGetContract(Resource):
+    @per_contract
     def post(self):
         print("getContract")
 
@@ -121,6 +124,7 @@ class ApiGetContract(Resource):
 
 
 class ApiGetContractTx(Resource):
+    @per_contract
     def post(self):
         print("getContractTx")
 
@@ -147,6 +151,7 @@ class ApiGetContractTx(Resource):
 
 
 class ApiGetContractRecord(Resource):
+    @per_contract
     def post(self):
         print("getContractRecord")
 
@@ -275,6 +280,7 @@ class ApiGetContractRecord(Resource):
 #                                      result)
 
 class ApiGetTxByConHashId(Resource):
+    @per_contract
     def post(self):
         print("ApiGetTxByConHashId")
         contract_hash_id = request.get_json()["contract_hash_id"]

@@ -13,12 +13,14 @@ from bigchaindb.common.exceptions import InvalidHash, InvalidSignature
 from bigchaindb.models import Transaction
 from bigchaindb.web.views.base import make_response,check_request
 from bigchaindb.web.views import constant
+from bigchaindb.web.views.info import per_query
 
 block_views = Blueprint('block_views', __name__)
 block_api = Api(block_views)
 
 
 class ApiQueryByID(Resource):
+    @per_query
     def post(self):
     # 根据区块ID获取区块
         if not check_request(request, "block_id"):
@@ -40,6 +42,7 @@ class ApiQueryByID(Resource):
                              block)
 
 class ApiQueryTxsByID(Resource):
+    @per_query
     def post(self):
     # 根据区块ID获取区块中的交易
         if not check_request(request, "block_id"):
@@ -63,6 +66,7 @@ class ApiQueryTxsByID(Resource):
                              txList)
 
 class ApiQueryTxsCountByID(Resource):
+    @per_query
     def post(self):
     # 根据区块ID获取区块中的交易条数
         if not check_request(request, "block_id"):
@@ -84,6 +88,7 @@ class ApiQueryTxsCountByID(Resource):
                              number)
 
 class ApiQueryBlockCount(Resource):
+    @per_query
     def post(self):
     # 获取区块链中的总区块数
         pool = current_app.config['bigchain_pool']
@@ -100,6 +105,7 @@ class ApiQueryBlockCount(Resource):
                              number)
 
 class ApiQueryBlocksByRange(Resource):
+    @per_query
     def post(self):
     # 根据指定时间区间获取区块集
         if not check_request(request, "beginTime"):
@@ -128,6 +134,7 @@ class ApiQueryBlocksByRange(Resource):
                              list(blockIdList))
 
 class ApiQueryInvalidBlockTotal(Resource):
+    @per_query
     def post(self):
     # 获取所有无效区块集
         pool = current_app.config['bigchain_pool']
@@ -144,6 +151,7 @@ class ApiQueryInvalidBlockTotal(Resource):
                              list(invalidBlockIdList))
 
 class ApiQueryInvalidBlockByRange(Resource):
+    @per_query
     def post(self):
     # 获取指定时间区间内的无效区块集
         if not check_request(request, "beginTime"):

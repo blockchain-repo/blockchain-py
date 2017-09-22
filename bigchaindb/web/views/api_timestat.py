@@ -12,12 +12,14 @@ from bigchaindb.common.exceptions import InvalidHash, InvalidSignature
 from bigchaindb.models import Transaction
 from bigchaindb.web.views.base import make_response,check_request
 from bigchaindb.web.views import constant
+from bigchaindb.web.views.info import per_query
 
 timestat_views = Blueprint('timestat_views', __name__)
 timestat_api = Api(timestat_views)
 
 
 class ApiTxCreateAvgTimeByRange(Resource):
+    @per_query
     def post(self):
         print("txCreateAvgTime")
         if not check_request(request, "beginTime"):
@@ -45,6 +47,7 @@ class ApiTxCreateAvgTimeByRange(Resource):
                              avgtime_dict)
 
 class ApiBlockCreateAvgTimeByRange(Resource):
+    @per_query
     def post(self):
         if not check_request(request, "beginTime"):
             return make_response(constant.RESPONSE_STATUS_PARAM_ERROE,
@@ -71,6 +74,7 @@ class ApiBlockCreateAvgTimeByRange(Resource):
                              avgtime_dict)
 
 class ApiVoteTimeByBlockID(Resource):
+    @per_query
     def post(self):
         if not check_request(request, "block_id"):
             return make_response(constant.RESPONSE_STATUS_PARAM_ERROE,
@@ -92,6 +96,7 @@ class ApiVoteTimeByBlockID(Resource):
                              avgtime_dict)
 
 class ApiVoteAvgTimeByRange(Resource):
+    @per_query
     def post(self):
         if not check_request(request, "beginTime"):
             return make_response(constant.RESPONSE_STATUS_PARAM_ERROE,

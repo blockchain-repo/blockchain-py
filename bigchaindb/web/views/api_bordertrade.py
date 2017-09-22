@@ -1,18 +1,20 @@
 from flask import current_app, request, Blueprint
 from flask_restful import Resource, Api,reqparse
 from bigchaindb.web.views import constant,parameters
-
+from bigchaindb.web.views.info import per_query
 
 bordertrade_views = Blueprint('bordertrade_views', __name__)
 bordertrade_api = Api(bordertrade_views)
 
 
 class Test(Resource):
+    @per_query
     def post(self):
         print("test!---------------")
 
 
 class ApiCustomsList(Resource):
+    @per_query
     def post(self):
         print("ApiCustomsList")
         pool = current_app.config['bigchain_pool']
@@ -24,6 +26,7 @@ class ApiCustomsList(Resource):
         return customsList
 
 class ApiCustomsDetail(Resource):
+    @per_query
     def post(self):
         print("ApiCustomsDetail")
         pool = current_app.config['bigchain_pool']
@@ -41,6 +44,7 @@ class ApiCustomsDetail(Resource):
 
 
 class ApiTaxList(Resource):
+    @per_query
     def post(self):
         print("ApiTaxList")
         pool = current_app.config['bigchain_pool']
@@ -60,6 +64,7 @@ class ApiTaxList(Resource):
         return taxList
 
 class ApiTaxDetail(Resource):
+    @per_query
     def post(self):
         print("ApiTaxDetail")
         pool = current_app.config['bigchain_pool']
@@ -77,6 +82,7 @@ class ApiTaxDetail(Resource):
 
 # apiGetOrderCodeByTitle
 class ApiGetOrderCodeByTitle(Resource):
+    @per_query
     def post(self):
         print("ApiGetOrderCodeByTitle")
         pool = current_app.config['bigchain_pool']
@@ -89,6 +95,7 @@ class ApiGetOrderCodeByTitle(Resource):
 
 
 class ApiGetGoosTitle(Resource):
+    @per_query
     def post(self):
         print("ApiGetGoosTitle")
         pool = current_app.config['bigchain_pool']
