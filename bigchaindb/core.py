@@ -1257,8 +1257,8 @@ class Bigchain(object):
             res = self.backend.get_tx_record_by_pubkey(pubkey, startIndex, endIndex, start, end)
         for i, u in enumerate(res[1]):
             if res[1][i]["product_id"]:
-                res[1][i]["product_id"] = res[1][i]["product_id"]["ContractBody"]["ContractProductID"]
-                res[1][i]["contract_id"] = res[1][i]["contract_id"]["ContractBody"]["ContractID"]
+                res[1][i]["product_id"] = res[1][i]["product_id"]["ContractBody"]["ContractProductId"]
+                res[1][i]["contract_id"] = res[1][i]["contract_id"]["ContractBody"]["ContractId"]
         return res
 
     def get_tx_from_backlog(self):
