@@ -189,9 +189,16 @@ def initial():
     """Return old transactions from the backlog."""
 
     bigchain = Bigchain()
-
+    split_backlog = config['argument_config']['split_backlog']
+    if split_backlog:
+        return bigchain.connection.run(
+            r.table('backlog' + bigchain.me[0:5])
+                .between([bigchain.me, r.minval],
+                         [bigchain.me, r.maxval],
+                         index='assignee__transaction_timestamp')
+                .order_by(index=r.asc('assignee__transaction_timestamp')))
     return bigchain.connection.run(
-        r.table('backlog'+bigchain.me[0:5])
+        r.table('backlog')
             .between([bigchain.me, r.minval],
                      [bigchain.me, r.maxval],
                      index='assignee__transaction_timestamp')
