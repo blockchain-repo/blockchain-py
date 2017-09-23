@@ -137,16 +137,18 @@ def create_bigchain_secondary_index(conn, dbname):
 
 def create_backlog_secondary_index(conn, dbname):
     logger.info('Create `backlog-s` secondary index.')
-    # # to order transactions by timestamp
-    # r.db(dbname).table('backlog') \
-    #     .index_create('transaction_timestamp',
-    #                   r.row['transaction']['timestamp']) \
-    #     .run(conn)
-    # # compound index to read transactions from the backlog per assignee
-    # r.db(dbname).table('backlog') \
-    #     .index_create('assignee__transaction_timestamp',
-    #                   [r.row['assignee'], r.row['transaction']['timestamp']]) \
-    #     .run(conn)
+    splitbacklog = bigchaindb.config['argument_config']['split_backlog']
+    if splitbacklog is False:
+        # to order transactions by timestamp
+        r.db(dbname).table('backlog') \
+            .index_create('transaction_timestamp',
+                          r.row['transaction']['timestamp']) \
+            .run(conn)
+        # compound index to read transactions from the backlog per assignee
+        r.db(dbname).table('backlog') \
+            .index_create('assignee__transaction_timestamp',
+                          [r.row['assignee'], r.row['transaction']['timestamp']]) \
+            .run(conn)
 
     allkey = bigchaindb.config['keyring'] + [bigchaindb.config['keypair']['public']]
     for key in allkey:
