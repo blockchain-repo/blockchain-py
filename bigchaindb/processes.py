@@ -24,6 +24,18 @@ BANNER = """
 def start():
     logger.info('Initializing {}...'.format(app_setup_name))
 
+    need_split_backlog = bigchaindb.config['argument_config']['split_backlog']
+    if need_split_backlog:
+        logger.info("NEED SIGNLE NODE BACKLOG T")
+    else:
+        logger.info("NEED SIGNLE NODE BACKLOG F")
+
+    need_localdb = bigchaindb.config['need_local']
+    if bigchaindb.config['api_need_permission']:
+        logger.info("LOCAL LEVEL T")
+    else:
+        logger.info("LOCAL LEVEL F")
+
     # start the processes
     logger.info('Starting block')
     block.start()
@@ -38,15 +50,15 @@ def start():
     logger.info('Starting election')
     election.start()
 
+    if need_localdb:
+        # must start the localdb pipeline after origin pipeline
+        # local_block pipeline store the cluster changefeed for table bigchain
+        logger.info('Starting localblock')
+        local_block.start()
 
-    # must start the localdb pipeline after origin pipeline
-    # local_block pipeline store the cluster changefeed for table bigchain
-    logger.info('Starting localblock')
-    local_block.start()
-
-    # local_block pipeline store the cluster changefeed for table votes
-    logger.info('Starting localvoter')
-    local_vote.start()
+        # local_block pipeline store the cluster changefeed for table votes
+        logger.info('Starting localvoter')
+        local_vote.start()
 
     # start message
     # logger.info(BANNER.format(bigchaindb.config['server']['bind']))
@@ -58,4 +70,9 @@ def start_api():
     p_webapi.start()
 
     # start message
+    if bigchaindb.config['api_need_permission']:
+        logger.info("API PERMISSION LEVEL T")
+    else:
+        logger.info("API PERMISSION LEVEL F")
+
     logger.info(BANNER.format(bigchaindb.config['server']['bind']))

@@ -188,10 +188,12 @@ def get_txNumberById(block_id):
     # s = r.table('bigchain').concat_map(lambda doc: doc['block']['transactions'])\
     #     .filter({'transaction': {'metadata': {'data': {'username': 'zhangsan'}}}})\
     #     .get_field("transaction").get_field("metadata").get_field('data').order_by(r.desc(r.row['timestamp'])).run(conn)
-    s = r.table('bigchain')\
-        .concat_map(lambda doc: doc['block']['transactions'])\
-        .filter(lambda tx: tx['transaction']['conditions'].contains(
-        lambda c: c['owners_after'].contains('EXJqxCeYNMxYriTKsdxHFHAJ4Qtm6Qn5gif1zpQkrtvN'))).run(conn)
+    # s = r.table('bigchain')\
+    #     .concat_map(lambda doc: doc['block']['transactions'])\
+    #     .filter(lambda tx: tx['transaction']['conditions'].contains(
+    #     lambda c: c['owners_after'].contains('EXJqxCeYNMxYriTKsdxHFHAJ4Qtm6Qn5gif1zpQkrtvN'))).run(conn)
+    transaction_id = '6a289cf22dee7cdeb8b15176379dc82ba7976dde2ee795e667ac53fad7849c69'
+    s = r.table('bigchain').filter(lambda txt: txt['block']['transactions']['id'].contains(transaction_id)).run(conn)
     print(s)
 
 
