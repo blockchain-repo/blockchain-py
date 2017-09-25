@@ -48,7 +48,6 @@ class ApiGenerateKeyPairs(Resource):
         pool = current_app.config['bigchain_pool']
         with pool() as bigchain:
             new_keypair = generate_key_pair()
-            print(new_keypair)
             new_keypair_dict = {'private': new_keypair[0], 'public': new_keypair[1]}
 
         return make_response(constant.RESPONSE_STATUS_SUCCESS,
