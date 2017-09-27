@@ -24,6 +24,7 @@ BANNER = """
 def start():
     logger.info('Initializing {}...'.format(app_setup_name))
     logger.info('dianxin test =====================================')
+    logger.info('dianxin test22222222222 =====================================')
 
     need_split_backlog = bigchaindb.config['argument_config']['split_backlog']
     if need_split_backlog:
