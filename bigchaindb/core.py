@@ -866,9 +866,11 @@ class Bigchain(object):
             # disregard transactions from invalid blocks
             validity = self.get_blocks_status_containing_tx(tx['id'])
             if Bigchain.BLOCK_VALID not in validity.values():
-                if Bigchain.BLOCK_UNDECIDED not in validity.values():
-                    continue
+                continue
 
+                # if Bigchain.BLOCK_UNDECIDED not in validity.values():
+                #     continue
+            # if
             # NOTE: It's OK to not serialize the transaction here, as we do not
             # use it after the execution of this function.
             # a transaction can contain multiple outputs so we need to iterate over all of them
