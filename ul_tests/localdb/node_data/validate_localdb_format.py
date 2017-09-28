@@ -1,4 +1,3 @@
-
 import argparse
 from ul_tests.db.utils_localdb import LocaldbUtils
 from ul_tests.db.utils_rethinkdb import RethinkdbUtils
@@ -104,7 +103,8 @@ if __name__ == "__main__":
 
     statics_info = ""
     if not ignore_diff_infos:
-        localtime_info = "localtime[{}]\n".format(time.localtime())
+        #localtime_info = "localtime[{}]\n".format(time.localtime())
+        localtime_info = "localtime[{}]\n".format(time.strftime("%Y-%m-%d %H:%M:%S", time.localtime()))
         print(localtime_info)
         statics_info += localtime_info
 
