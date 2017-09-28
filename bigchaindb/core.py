@@ -1257,11 +1257,20 @@ class Bigchain(object):
             res = self.backend.get_tx_record_by_pubkey(pubkey, startIndex, endIndex, startTime, endTime)
         else:
             res = self.backend.get_tx_record_by_pubkey(pubkey, startIndex, endIndex, start, end)
+        # res[0],res[1]
         for i, u in enumerate(res[1]):
             if res[1][i]["product_id"]:
                 res[1][i]["product_id"] = res[1][i]["product_id"]["ContractBody"]["ContractProductId"]
                 res[1][i]["contract_id"] = res[1][i]["contract_id"]["ContractBody"]["ContractId"]
-        return res
+        # block election
+        valid_record = []
+        for tx in res[1]:
+            # disregard transactions from invalid/undecided blocks
+            validity = self.get_blocks_status_containing_tx(tx['id'])
+            if Bigchain.BLOCK_VALID not in validity.values():
+                continue
+            valid_record.append(tx)
+        return [res[0], valid_record]
 
     def get_tx_from_backlog(self):
         return self.backend.get_tx_from_backlog(self.me)
