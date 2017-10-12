@@ -47,6 +47,8 @@ config = {
         'debug_to_file' : True
     },
     'argument_config' : {
+        'use_local_keyrings':False,
+        'query_all_txs':False,
         'split_backlog': False,
         'block_pipeline.block_size' : 2000,
         'block_pipeline.pipe_maxsize' : 5000,

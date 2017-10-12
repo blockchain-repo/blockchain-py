@@ -35,6 +35,7 @@ class BlockPipeline:
         self.starttime = 0
         self.block_size = config['argument_config']['block_pipeline.block_size']+self.bigchain.nodelist.index(self.bigchain.me)*config['argument_config']['block_pipeline.block_size_detal']
         self.block_timeout = config['argument_config']['block_pipeline.block_timeout']
+        self.query_all_txs = config['argument_config']['query_all_txs']
 
     def filter_tx(self, tx):
         """Filter a transaction.
@@ -132,19 +133,24 @@ class BlockPipeline:
             req_result = self.bigchain.get_exist_txs(self.txsId)
             exist_tx = list(set(req_result).intersection(set(self.txsId)))
 
-            if False:
-            #todo open it
-            #if exist_tx:
+            # if False:
+            # todo open it
+            if not self.query_all_txs:
+                exist_tx = False
+            if exist_tx:
                 for txid in exist_tx:
                     tx, status = self.bigchain.get_transaction(txid, include_status=True)
+                    logger.info('duplicate tx in %s  block ,tx id : %s ',status,txid)
                     if status == self.bigchain.TX_VALID or status == self.bigchain.TX_UNDECIDED:
                         index = self.txsId.index(txid)
+                        self.bigchain.delete_transaction(txid)
                         self.txsId.remove(self.txsId[index])
                         self.txs.remove(self.txs[index])
-            block = self.bigchain.create_block(self.txs)
-            self.txs = []
-            self.txsId = []
-            return block
+            if len(self.txs):
+                block = self.bigchain.create_block(self.txs)
+                self.txs = []
+                self.txsId = []
+                return block
 
     def write(self, block):
         """Write the block to the Database.
