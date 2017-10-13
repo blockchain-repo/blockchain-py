@@ -12,9 +12,12 @@ from bigchaindb.common.util import gen_timestamp
 
 CryptoKeypair = namedtuple('CryptoKeypair', ('private_key', 'public_key'))
 
-delay = 10  # block,vote
+host = "localhost"
+port = "9984"
+db_port = "28015"
+
 num_clients = 10
-count = 100
+count = 1000
 create_queue = multiprocessing.Queue(maxsize=count)
 transfer_queue = multiprocessing.Queue(maxsize=count)
 
@@ -62,7 +65,7 @@ def create_transfer(p_num):
 def post_create(p_num):
     while True:
         headers = {'content-type': 'application/json'}
-        url = 'http://localhost:9984/uniledger/v1/transaction/createOrTransferTx'
+        url = 'http://{}:{}/uniledger/v1/transaction/createOrTransferTx'.format(host, port)
         try:
             value = create_queue.get(False)
         except Empty:
@@ -78,7 +81,7 @@ def post_create(p_num):
 def post_transfer(p_num):
     while True:
         headers = {'content-type': 'application/json'}
-        url = 'http://localhost:9984/uniledger/v1/transaction/createOrTransferTx'
+        url = 'http://{}:{}/uniledger/v1/transaction/createOrTransferTx'.format(host, port)
         try:
             value = transfer_queue.get(False)
         except Empty:
@@ -93,6 +96,7 @@ def post_transfer(p_num):
 
 if __name__ == '__main__':
     # create_queue and transfer_queue
+    print("step 1 :generate kaypair, create tx(create_queue), transfer(transfer_queue)")
     for x in range(num_clients):
         p = multiprocessing.Process(target=create_transfer, args=(x,))
         p.start()
@@ -101,12 +105,13 @@ if __name__ == '__main__':
     while True:
         if transfer_queue.full():
             break
-        time.sleep(delay)
+        time.sleep(1)
         print("m :transfer qsize:", transfer_queue.qsize())
 
     input("Press enter key to continue...")
 
     # post create
+    print("step 2 :post create tx ,please wait for all create tx valid")
     for x in range(num_clients):
         p = multiprocessing.Process(target=post_create, args=(x,))
         p.start()
@@ -129,6 +134,7 @@ if __name__ == '__main__':
     print(BANNER)
 
     # post transfer
+    print("step 3 :post transfer tx ,please wait for all transfer tx valid")
     transfer_start = gen_timestamp()
     for x in range(num_clients):
         p = multiprocessing.Process(target=post_transfer, args=(x,))

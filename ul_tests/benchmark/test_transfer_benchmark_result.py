@@ -1,12 +1,13 @@
 import rethinkdb as r
+from ul_tests.benchmark.test_transfer_benchmark import host, db_port
+
+begin_timestamp = "1507871543104"
+end_timestamp = "1607871578425"
 
 
 def transaction_sum():
     stat_method = "half"
     vote_valid_num = 1
-
-    begin_timestamp = "1506505226205"
-    end_timestamp = "1506505238241"
 
     if stat_method == "half":
         vote_valid_num = int(vote_valid_num) / 2
@@ -15,7 +16,7 @@ def transaction_sum():
 
     tx_sum = 0
 
-    conn = r.connect(db="bigchain")
+    conn = r.connect(host=host, port=db_port, db="bigchain")
     block_ids = r.table('votes').between(begin_timestamp, end_timestamp, index='vote_timestamp').get_field(
         'vote').group(
         'voting_for_block').count().run(conn)
