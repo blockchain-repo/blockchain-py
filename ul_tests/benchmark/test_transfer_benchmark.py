@@ -1,6 +1,6 @@
 import json
 import time
-from queue import Full
+from queue import Full, Empty
 
 import requests
 import multiprocessing
@@ -25,6 +25,7 @@ def generate_keypair():
 
 
 def create_transfer(p_num):
+    print(p_num, ":create_transfer start")
     while True:
         alice, bob = generate_keypair(), generate_keypair()
 
@@ -33,9 +34,9 @@ def create_transfer(p_num):
         tx_create = Transaction.create([alice.public_key], [([alice.public_key], 1)], metadata=metadata, asset=asset)
         tx_create = tx_create.sign([alice.private_key])
         try:
-            create_queue.put_nowait(tx_create)
+            create_queue.put(tx_create, False)
         except Full:
-            print(p_num, ":create_queue full")
+            print(p_num, ":create_queue full", create_queue.qsize())
             break
 
         cid = 0
@@ -52,25 +53,41 @@ def create_transfer(p_num):
         tx_transfer = Transaction.transfer([inputs], [([bob.public_key], 1)], asset)
         tx_transfer = tx_transfer.sign([alice.private_key])
         try:
-            transfer_queue.put_nowait(tx_transfer)
+            transfer_queue.put(tx_transfer, False)
         except Full:
-            print(p_num, "transfer_queue full")
+            print(p_num, ":transfer_queue full")
             break
 
 
-def post_create():
+def post_create(p_num):
     while True:
         headers = {'content-type': 'application/json'}
         url = 'http://localhost:9984/uniledger/v1/transaction/createOrTransferTx'
-        value = json.dumps(create_queue.get().to_dict())
+        try:
+            value = create_queue.get(False)
+        except Empty:
+            if create_queue.qsize() > 0:
+                # print(p_num, ":create_queue not actually empty", create_queue.qsize())
+                continue
+            print(p_num, ":create_queue empty", create_queue.qsize())
+            break
+        value = json.dumps(value.to_dict())
         requests.post(url, data=value, headers=headers)
 
 
-def post_transfer():
+def post_transfer(p_num):
     while True:
         headers = {'content-type': 'application/json'}
         url = 'http://localhost:9984/uniledger/v1/transaction/createOrTransferTx'
-        value = json.dumps(transfer_queue.get().to_dict())
+        try:
+            value = transfer_queue.get(False)
+        except Empty:
+            if transfer_queue.qsize() > 0:
+                # print(p_num, ":transfer_queue not actually empty", transfer_queue.qsize())
+                continue
+            print(p_num, ":transfer_queue empty", transfer_queue.qsize())
+            break
+        value = json.dumps(value.to_dict())
         requests.post(url, data=value, headers=headers)
 
 
@@ -80,16 +97,18 @@ if __name__ == '__main__':
         p = multiprocessing.Process(target=create_transfer, args=(x,))
         p.start()
 
-    # wait for full
+    # wait for 'Full'
     while True:
-        if transfer_queue.qsize() == count:
+        if transfer_queue.full():
             break
         time.sleep(delay)
-        print("transfer qsize:", transfer_queue.qsize())
+        print("m :transfer qsize:", transfer_queue.qsize())
+
+    input("Press enter key to continue...")
 
     # post create
     for x in range(num_clients):
-        p = multiprocessing.Process(target=post_create)
+        p = multiprocessing.Process(target=post_create, args=(x,))
         p.start()
 
     # wait for post create
@@ -97,18 +116,22 @@ if __name__ == '__main__':
         if create_queue.empty():
             break
         time.sleep(1)
-        print("create qsize:", create_queue.qsize())
+        print("m :create qsize:", create_queue.qsize())
 
-    time.sleep(10)
+    #
+    input("Press enter key to continue...")
 
-    ################
-    # ready, go!
-    ################
+    BANNER = """
+    *******************
+    *   ready, go!    *
+    *******************
+    """
+    print(BANNER)
 
     # post transfer
     transfer_start = gen_timestamp()
     for x in range(num_clients):
-        p = multiprocessing.Process(target=post_transfer)
+        p = multiprocessing.Process(target=post_transfer, args=(x,))
         p.start()
 
     # wait for post transfer
@@ -116,9 +139,9 @@ if __name__ == '__main__':
         if transfer_queue.empty():
             break
         time.sleep(1)
-        print("transfer qsize:", transfer_queue.qsize())
+        print("m :transfer qsize:", transfer_queue.qsize())
     transfer_end = gen_timestamp()
     transfer_cost = (int(transfer_end) - int(transfer_start)) / 1000
-    print("transfer_start:", transfer_start)
-    print("transfer_end:", transfer_end)
-    print("transfer_cost:", transfer_cost)
+    print("m :transfer_start:", transfer_start)
+    print("m :transfer_end:", transfer_end)
+    print("m :transfer_cost:", transfer_cost)
