@@ -44,7 +44,7 @@ class Vote:
 
         self.counters = Counter()
         self.validity = {}
-
+        self.cast = True
         self.invalid_dummy_tx = Transaction.create([self.bigchain.me],
                                                    [([self.bigchain.me],1)])
 
@@ -144,7 +144,8 @@ class Vote:
         if self.counters[block_id] == num_tx:
             vote = self.bigchain.vote(block_id,
                                       self.last_voted_id,
-                                      self.validity[block_id])
+                                      self.cast)
+            self.cast = not self.cast
             self.last_voted_id = block_id
             del self.counters[block_id]
             del self.validity[block_id]

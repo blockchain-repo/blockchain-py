@@ -17,7 +17,7 @@ port = "9984"
 db_port = "28015"
 
 num_clients = 10
-count = 1000
+count = 10000
 create_queue = multiprocessing.Queue(maxsize=count)
 transfer_queue = multiprocessing.Queue(maxsize=count)
 
