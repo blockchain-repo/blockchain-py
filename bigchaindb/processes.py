@@ -6,6 +6,7 @@ from bigchaindb.pipelines import vote, block, election, stale, monitor
 from bigchaindb.web import server
 
 from extend.localdb.pipelines import local_block, local_vote
+
 app_setup_name = bigchaindb.config['app']['setup_name']
 
 logger = logging.getLogger(__name__)
@@ -23,8 +24,6 @@ BANNER = """
 
 def start():
     logger.info('Initializing {}...'.format(app_setup_name))
-    logger.info('dianxin test =====================================')
-    logger.info('dianxin test22222222222 =====================================')
 
     need_split_backlog = bigchaindb.config['argument_config']['split_backlog']
     if need_split_backlog:
@@ -46,8 +45,8 @@ def start():
     vote.start()
 
     logger.info('Starting stale transaction monitor')
-    #todo open it
-    #stale.start()
+    # todo open it
+    # stale.start()
     monitor.start()
     logger.info('Starting election')
     election.start()
@@ -62,8 +61,9 @@ def start():
         logger.info('Starting localvoter')
         local_vote.start()
 
-    # start message
-    # logger.info(BANNER.format(bigchaindb.config['server']['bind']))
+        # start message
+        # logger.info(BANNER.format(bigchaindb.config['server']['bind']))
+
 
 def start_api():
     # start the web api
