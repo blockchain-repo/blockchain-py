@@ -1,8 +1,8 @@
 import rethinkdb as r
 from ul_tests.benchmark.test_transfer_benchmark import host, db_port
 
-begin_timestamp = "1507871543104"
-end_timestamp = "1607871578425"
+begin_timestamp = "1"
+end_timestamp = "2"
 
 
 def transaction_sum():

@@ -65,7 +65,7 @@ def create_transfer(p_num):
 def post_create(p_num):
     while True:
         headers = {'content-type': 'application/json'}
-        url = 'http://{}:{}/uniledger/v1/transaction/createOrTransferTx'.format(host, port)
+        url = 'http://{}:{}/uniledger/v1/transaction/fastCreateOrTransferTx'.format(host, port)
         try:
             value = create_queue.get(False)
         except Empty:
@@ -81,7 +81,7 @@ def post_create(p_num):
 def post_transfer(p_num):
     while True:
         headers = {'content-type': 'application/json'}
-        url = 'http://{}:{}/uniledger/v1/transaction/createOrTransferTx'.format(host, port)
+        url = 'http://{}:{}/uniledger/v1/transaction/fastCreateOrTransferTx'.format(host, port)
         try:
             value = transfer_queue.get(False)
         except Empty:
@@ -96,7 +96,7 @@ def post_transfer(p_num):
 
 if __name__ == '__main__':
     # create_queue and transfer_queue
-    print("step 1 :generate kaypair, create tx(create_queue), transfer(transfer_queue)")
+    print("step 1 :generate keypair, create tx(create_queue), transfer(transfer_queue)")
     for x in range(num_clients):
         p = multiprocessing.Process(target=create_transfer, args=(x,))
         p.start()

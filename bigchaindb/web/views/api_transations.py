@@ -212,7 +212,37 @@ class ApiCreateOrTransferTx(Resource):
         tx_obj = Transaction.from_dict(tx)
         with pool() as bigchain:
             try:
+                pass
                 bigchain.validate_transaction(tx_obj)
+            except (ValueError,
+                    OperationError,
+                    TransactionDoesNotExist,
+                    TransactionOwnerError,
+                    FulfillmentNotInValidBlock,
+                    DoubleSpend,
+                    InvalidHash,
+                    InvalidSignature,
+                    AmountError) as e:
+                return make_error(
+                    400,
+                    'Invalid transaction ({}): {}'.format(type(e).__name__, e)
+                )
+            else:
+                bigchain.write_transaction(tx_obj)
+
+        return tx, 202
+
+
+class ApiFastCreateOrTransferTx(Resource):
+    @per_trans
+    def post(self):
+        pool = current_app.config['bigchain_pool']
+        tx = request.get_json(force=True)
+        tx_obj = Transaction.from_dict(tx)
+        with pool() as bigchain:
+            try:
+                pass
+                # bigchain.validate_transaction(tx_obj)
             except (ValueError,
                     OperationError,
                     TransactionDoesNotExist,
@@ -338,6 +368,10 @@ transaction_api.add_resource(ApiQueryGroupByBlock,
 # CREATE|TRANSFER tx api for client
 transaction_api.add_resource(ApiCreateOrTransferTx,
                              '/createOrTransferTx',
+                             strict_slashes=False)
+
+transaction_api.add_resource(ApiFastCreateOrTransferTx,
+                             '/fastCreateOrTransferTx',
                              strict_slashes=False)
 
 transaction_api.add_resource(ApiGetTxRecord,
