@@ -1,19 +1,19 @@
-import random
-import math
 import collections
-from time import time, mktime, strptime
-import requests
 import json
+import math
+import random
 from itertools import compress
-from bigchaindb.common import crypto, exceptions
-from bigchaindb.common.util import gen_timestamp, serialize
-from bigchaindb.common.transaction import TransactionLink, Asset
+from time import time, mktime, strptime
+
+import requests
 
 import bigchaindb
-
-from bigchaindb.db.utils import Connection, get_backend
 from bigchaindb import config_utils, util
+from bigchaindb.common import crypto, exceptions
+from bigchaindb.common.transaction import TransactionLink, Asset
+from bigchaindb.common.util import gen_timestamp, serialize
 from bigchaindb.consensus import BaseConsensusRules
+from bigchaindb.db.utils import Connection, get_backend
 from bigchaindb.models import Block, Transaction
 
 
@@ -1544,3 +1544,57 @@ class Bigchain(object):
         if node_pubkey == None:
             return self.backend.count_valid_txs()
         return self.backend.count_valid_txs_by_node_pubkey(node_pubkey)
+
+    def get_block_chain_node_detail(self, node_pubkey_list):
+        """根据给定的 节点 pubkey list 查询节点信息.
+        Args:
+            node_pubkey_list (list): 节点公钥数组.
+
+        Returns:
+            dict 包含节点信息, 节点区块信息等.
+        """
+
+        current_node = self.me
+        keyring = [current_node]
+
+        if len(self.nodes_except_me) != 0:
+            keyring = keyring.append(self.nodes_except_me)
+
+        # print("current_node: {}".format(current_node))
+        statistic_info = []
+        # print(keyring)
+        if node_pubkey_list is None or len(node_pubkey_list) == 0:
+            statistic_info_node = {
+                "node_pubkey": "",
+                "txs_count": self.backend.count_txs(),
+                "block_count": self.backend.count_blocks(),
+                "vote_count": self.backend.count_votes(),
+                "valid_block_count": self.backend.count_valid_blocks(),
+                "valid_txs_count": self.backend.count_valid_txs()
+            }
+            statistic_info.append(statistic_info_node)
+
+        else:
+            for node_pubkey in iter(keyring):
+                statistic_info_node = {
+                    "node_pubkey": node_pubkey,
+                    "txs_count": self.backend.count_txs_by_node_pubkey(node_pubkey),
+                    "block_count": self.backend.count_blocks_by_node_pubkey(node_pubkey),
+                    "vote_count": self.backend.count_votes_by_node_pubkey(node_pubkey),
+                    "valid_block_count": self.backend.count_valid_blocks_by_node_pubkey(node_pubkey),
+                    "valid_txs_count": self.backend.count_valid_txs_by_node_pubkey(node_pubkey)
+                }
+                statistic_info.append(statistic_info_node)
+
+        result = {
+            "node_info": {
+                "count": len(keyring),
+                "key_rings": keyring
+            },
+            "statistic_info": statistic_info,
+            "read_from_node": current_node
+        }
+        # print("get_block_chain_node_detail:\n{}".format(result))
+        return result
+
+
