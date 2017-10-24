@@ -372,6 +372,73 @@ class RethinkDBBackend:
             r.table('bigchain', read_mode=self.read_mode)
                 .count())
 
+    def count_blocks_by_node_pubkey(self,node_pubkey):
+        """Count the number of blocks in the bigchain table.
+
+        Returns:
+            The number of blocks.
+        """
+
+        return self.connection.run(r.table('bigchain', read_mode=self.read_mode).filter(r.row['block']['node_pubkey'] == node_pubkey).count())
+
+    def count_valid_blocks(self):
+        """Count the number of blocks in the bigchain table.
+
+        Returns:
+            The number of blocks.
+        """
+        return self.connection.run(
+            r.table('decided_block', read_mode=self.read_mode).filter(r.row['block_status'] == 'valid').count())
+
+    def count_valid_blocks_by_node_pubkey(self,node_pubkey):
+        """Count the number of blocks in the bigchain table.
+
+        Returns:
+            The number of blocks.
+        """
+        return self.connection.run(
+            r.table('decided_block', read_mode=self.read_mode).filter(r.row['node_pubkey'] == node_pubkey).filter(r.row['block_status'] == 'valid')
+                .count())
+
+    def count_invalid_blocks(self):
+        """Count the number of blocks in the bigchain table.
+
+        Returns:
+            The number of blocks.
+        """
+
+        return self.connection.run(
+            r.table('decided_block', read_mode=self.read_mode).filter(r.row['block_status'] == 'invalid')
+                .count())
+
+    def count_invalid_blocks_by_node_pubkey(self,node_pubkey):
+        """Count the number of blocks in the bigchain table.
+
+        Returns:
+            The number of blocks.
+        """
+
+        return self.connection.run(
+            r.table('decided_block', read_mode=self.read_mode).filter(r.row['node_pubkey'] == node_pubkey).filter(r.row['block_status'] == 'invalid')
+                .count())
+
+    def count_txs(self):
+        return self.connection.run(r.table('decided_block', read_mode=self.read_mode).sum('txs_count'))
+
+    def count_txs_by_node_pubkey(self,node_pubkey):
+        return self.connection.run(r.table('decided_block', read_mode=self.read_mode).filter(r.row['node_pubkey'] == node_pubkey).sum('txs_count'))
+
+    def count_valid_txs(self):
+        return self.connection.run(
+            r.table('decided_block', read_mode=self.read_mode).filter(r.row['block_status'] == 'valid').sum('txs_count'))
+
+    def count_valid_txs_by_node_pubkey(self,node_pubkey):
+        return self.connection.run(
+            r.table('decided_block', read_mode=self.read_mode).filter(r.row['node_pubkey'] == node_pubkey).filter(
+                r.row['block_status'] == 'valid')
+                .sum('txs_count'))
+
+
     def count_votes(self):
         """Count the number of blocks in the bigchain table.
 
@@ -381,6 +448,11 @@ class RethinkDBBackend:
 
         return self.connection.run(
             r.table('votes', read_mode=self.read_mode)
+                .count())
+
+    def count_votes_by_node_pubkey(self,node_pubkey):
+        return self.connection.run(
+            r.table('votes', read_mode=self.read_mode).filter(r.row['node_pubkey'] == node_pubkey)
                 .count())
 
     def count_backlog_txs(self):
@@ -980,3 +1052,8 @@ class RethinkDBBackend:
             r.desc(r.row['timestamp'])))
 
         # for user account start
+
+
+    def save_block_status(self,node_pubkey,block_id,block_status,txs_count):
+        return self.connection.run(
+            r.table('decided_block').insert({'block_id': block_id, 'node_pubkey':node_pubkey,'block_status': block_status ,'txs_count':txs_count},durability=self.durability))

@@ -34,8 +34,29 @@ class ApiPublickeySet(Resource):
                              "query success",
                              pubkeyList)
 
+class ApiGetVotesTotalAmount(Resource):
+    def post(self):
+        print("ApiGetVotesTotalAmount")
+
+        node_pubkey = request.json.get("node_pubkey")
+        print(node_pubkey)
+        pool = current_app.config['bigchain_pool']
+        with pool() as b:
+            try:
+                voteCount = b.get_vote_count_by_pubkey(node_pubkey)
+            except:
+                return make_response(constant.RESPONSE_STATUS_SERVER_ERROR,
+                                     constant.RESPONSE_CODE_SERVER_ERROR,
+                                     "None")
+        return make_response(constant.RESPONSE_STATUS_SUCCESS,
+                             constant.RESPONSE_CODE_SUCCESS,
+                             "query success",
+                             voteCount)
 
 ##Router display
 vote_api.add_resource(ApiPublickeySet,
                           '/publickeySet',
+                          strict_slashes=False)
+vote_api.add_resource(ApiGetVotesTotalAmount,
+                          '/getVotesTotalAmount',
                           strict_slashes=False)

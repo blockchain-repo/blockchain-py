@@ -343,6 +343,42 @@ class ApiOnlySaveData(Resource):
                              result_messages,
                              tx_result)
 
+class ApiGetTxtsTotalAmount(Resource):
+    def post(self):
+        print("ApiGetTxtsTotalAmount")
+        node_pubkey = request.json.get("node_pubkey")
+        print(node_pubkey)
+
+        pool = current_app.config['bigchain_pool']
+        with pool() as b:
+            try:
+                blockCount = b.get_txs_count_by_pubkey(node_pubkey)
+            except:
+                return make_response(constant.RESPONSE_STATUS_SERVER_ERROR,
+                                     constant.RESPONSE_CODE_SERVER_ERROR,
+                                     "None")
+        return make_response(constant.RESPONSE_STATUS_SUCCESS,
+                             constant.RESPONSE_CODE_SUCCESS,
+                             "query success",
+                             blockCount)
+class ApiGetValidTxtsTotalAmount(Resource):
+    def post(self):
+        print("ApiGetValidTxtsTotalAmount")
+        node_pubkey = request.json.get("node_pubkey")
+        print(node_pubkey)
+
+        pool = current_app.config['bigchain_pool']
+        with pool() as b:
+            try:
+                blockCount = b.get_valid_txs_count_by_pubkey(node_pubkey)
+            except:
+                return make_response(constant.RESPONSE_STATUS_SERVER_ERROR,
+                                     constant.RESPONSE_CODE_SERVER_ERROR,
+                                     "None")
+        return make_response(constant.RESPONSE_STATUS_SUCCESS,
+                             constant.RESPONSE_CODE_SUCCESS,
+                             "query success",
+                             blockCount)
 
 ##Router display
 transaction_api.add_resource(ApiCreateByPayload,
@@ -383,4 +419,11 @@ transaction_api.add_resource(ApiOnlySaveData,
 
 transaction_api.add_resource(ApiRecharge,
                              '/recharge',
+                             strict_slashes=False)
+
+transaction_api.add_resource(ApiGetTxtsTotalAmount,
+                             '/getTxtsTotalAmount',
+                             strict_slashes=False)
+transaction_api.add_resource(ApiGetValidTxtsTotalAmount,
+                             '/getValidTxtsTotalAmount',
                              strict_slashes=False)

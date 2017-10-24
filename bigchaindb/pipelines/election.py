@@ -46,6 +46,10 @@ class Election:
         #block_status = self.bigchain.block_election_status(next_block['id'],
         #                                                   next_block['block']['voters'])
         logger.debug('Blocke %s election status %s',next_block['id'] ,block_status)
+        if block_status == self.bigchain.BLOCK_UNDECIDED:
+            return
+        # write to decide_block  next_block['id'] ,block_status , txs_count
+        self.bigchain.save_block_status(next_block['block']['node_pubkey'],next_block['id'],block_status,len(next_block['block']['transactions']))
         if block_status == self.bigchain.BLOCK_INVALID:
             return Block.from_dict(next_block)
 

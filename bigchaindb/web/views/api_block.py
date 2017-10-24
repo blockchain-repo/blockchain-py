@@ -178,6 +178,44 @@ class ApiQueryInvalidBlockByRange(Resource):
                              "query success",
                              list(invalidBlockIdList))
 
+class ApiGetBlocksTotalAmount(Resource):
+    def post(self):
+        print("ApiGetBlocksTotalAmount")
+        node_pubkey = request.json.get("node_pubkey")
+        print(node_pubkey)
+
+        pool = current_app.config['bigchain_pool']
+        with pool() as b:
+            try:
+                blockCount = b.get_block_count_by_pubkey(node_pubkey)
+            except:
+                return make_response(constant.RESPONSE_STATUS_SERVER_ERROR,
+                                     constant.RESPONSE_CODE_SERVER_ERROR,
+                                     "None")
+        return make_response(constant.RESPONSE_STATUS_SUCCESS,
+                             constant.RESPONSE_CODE_SUCCESS,
+                             "query success",
+                             blockCount)
+
+class ApiGetValidBlocksTotalAmount(Resource):
+    def post(self):
+        print("ApiGetValidBlocksTotalAmount")
+        node_pubkey = request.json.get("node_pubkey")
+        print(node_pubkey)
+
+        pool = current_app.config['bigchain_pool']
+        with pool() as b:
+            try:
+                blockCount = b.get_valid_block_count_by_pubkey(node_pubkey)
+            except:
+                return make_response(constant.RESPONSE_STATUS_SERVER_ERROR,
+                                     constant.RESPONSE_CODE_SERVER_ERROR,
+                                     "None")
+        return make_response(constant.RESPONSE_STATUS_SUCCESS,
+                             constant.RESPONSE_CODE_SUCCESS,
+                             "query success",
+                             blockCount)
+
 ##Router display
 block_api.add_resource(ApiQueryByID,
                           '/queryByID',
@@ -199,4 +237,12 @@ block_api.add_resource(ApiQueryInvalidBlockTotal,
                           strict_slashes=False)
 block_api.add_resource(ApiQueryInvalidBlockByRange,
                           '/queryInvalidBlockByRange',
+                          strict_slashes=False)
+
+block_api.add_resource(ApiGetBlocksTotalAmount,
+                          '/getBlocksTotalAmount',
+                          strict_slashes=False)
+
+block_api.add_resource(ApiGetValidBlocksTotalAmount,
+                          '/getValidBlocksTotalAmount',
                           strict_slashes=False)

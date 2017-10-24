@@ -1516,3 +1516,31 @@ class Bigchain(object):
         return account_record
 
         # end user account
+
+    def save_block_status(self,node_pubkey,block_id,block_status,txs_count):
+        return self.backend.save_block_status(node_pubkey,block_id,block_status,txs_count)
+
+    def get_vote_count_by_pubkey(self,node_pubkey=None):
+        if node_pubkey == None:
+            return self.backend.count_votes()
+        return self.backend.count_votes_by_node_pubkey(node_pubkey)
+
+    def get_block_count_by_pubkey(self,node_pubkey=None):
+        if node_pubkey == None:
+            return self.backend.count_blocks()
+        return self.backend.count_blocks_by_node_pubkey(node_pubkey)
+
+    def get_valid_block_count_by_pubkey(self,node_pubkey=None):
+        if node_pubkey == None:
+            return self.backend.count_valid_blocks()
+        return self.backend.count_valid_blocks_by_node_pubkey(node_pubkey)
+
+    def get_txs_count_by_pubkey(self,node_pubkey=None):
+        if node_pubkey == None:
+            return self.backend.count_txs()
+        return self.backend.count_txs_by_node_pubkey(node_pubkey)
+
+    def get_valid_txs_count_by_pubkey(self,node_pubkey=None):
+        if node_pubkey == None:
+            return self.backend.count_valid_txs()
+        return self.backend.count_valid_txs_by_node_pubkey(node_pubkey)

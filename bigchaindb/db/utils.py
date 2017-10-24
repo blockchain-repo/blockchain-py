@@ -191,7 +191,7 @@ def init_database():
     dbname = get_database_name()
     create_database(conn, dbname)
 
-    table_names = ['bigchain', 'backlog', 'votes', 'heartbeat', 'reassignnode', 'rewrite']
+    table_names = ['bigchain', 'backlog', 'votes', 'heartbeat', 'reassignnode', 'rewrite', 'decided_block']
     allkey = bigchaindb.config['keyring'] + [bigchaindb.config['keypair']['public']]
     for key in allkey:
         table_names = table_names + ['backlog'+key[0:5]]
