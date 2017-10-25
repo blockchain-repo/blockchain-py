@@ -33,7 +33,8 @@ class BlockPipeline:
         self.txs = []
         self.txsId = []
         self.starttime = 0
-        self.block_size = config['argument_config']['block_pipeline.block_size']+self.bigchain.nodelist.index(self.bigchain.me)*config['argument_config']['block_pipeline.block_size_detal']
+        self.block_size = config['argument_config']['block_pipeline.block_size'] + self.bigchain.nodelist.index(
+            self.bigchain.me) * config['argument_config']['block_pipeline.block_size_detal']
         self.block_timeout = config['argument_config']['block_pipeline.block_timeout']
         self.query_all_txs = config['argument_config']['query_all_txs']
 
@@ -78,7 +79,7 @@ class BlockPipeline:
         if False:
             # if the transaction already exists, we must check whether
             # it's in a valid or undecided block
-            tx, status = self.bigchain.get_transaction(tx.id,include_status=True)
+            tx, status = self.bigchain.get_transaction(tx.id, include_status=True)
             if status == self.bigchain.TX_VALID or status == self.bigchain.TX_UNDECIDED:
                 # if the tx is already in a valid or undecided block,
                 # then it no longer should be in the backlog, or added
@@ -91,6 +92,7 @@ class BlockPipeline:
                 tx_validated = self.bigchain.is_valid_transaction(tx)
         else:
             tx_validated = self.bigchain.is_valid_transaction(tx)
+        logger.debug("End validating transaction %s", tx.id, bool(tx_validated))
         # tx_validated = self.bigchain.is_valid_transaction(tx)
         if tx_validated:
             return tx
@@ -121,7 +123,7 @@ class BlockPipeline:
         if tx:
             self.txs.append(tx)
             self.txsId.append(tx.id)
-            logger.debug("End validating transaction %s, txs.len = %d", tx.id,len(self.txs))
+            logger.debug("Create get transaction %s, txs.len = %d", tx.id, len(self.txs))
         else:
             self.bigchain.updateHeartbeat(time.time())
 
@@ -129,7 +131,8 @@ class BlockPipeline:
             # 心跳机制，写Node，时间戳。
             self.bigchain.updateHeartbeat(time.time())
             self.starttime = time.time()
-        if len(self.txs) == self.block_size or (timeout and self.txs) or (((time.time()-self.starttime) > self.block_timeout) and self.txs):
+        if len(self.txs) == self.block_size or (timeout and self.txs) or (
+                    ((time.time() - self.starttime) > self.block_timeout) and self.txs):
             req_result = self.bigchain.get_exist_txs(self.txsId)
             exist_tx = list(set(req_result).intersection(set(self.txsId)))
 
@@ -140,7 +143,7 @@ class BlockPipeline:
             if exist_tx:
                 for txid in exist_tx:
                     tx, status = self.bigchain.get_transaction(txid, include_status=True)
-                    logger.info('duplicate tx in %s  block ,tx id : %s ',status,txid)
+                    logger.info('duplicate tx in %s  block ,tx id : %s ', status, txid)
                     if status == self.bigchain.TX_VALID or status == self.bigchain.TX_UNDECIDED:
                         index = self.txsId.index(txid)
                         self.bigchain.delete_transaction(txid)
@@ -162,17 +165,18 @@ class BlockPipeline:
         Returns:
             :class:`~bigchaindb.models.Block`: The Block.
         """
-        logger.info('Writing new block %s with %s transactions', block.id, len(block.transactions))
+        logger.info('Start writing new block %s with %s transactions', block.id, len(block.transactions))
         # logger.info('Write new block %s with %s transactions', block.id, block.transactions)
         # zy@secn
         if monitor is not None:
-            monitor.gauge("transaction_in_block_conut", value=len(block.transactions))
+            monitor.gauge("transaction_in_block_count", value=len(block.transactions))
             # with monitor.timer('write_block', rate=config['statsd']['rate']):
             with monitor.timer('write_block'):
                 self.bigchain.write_block(block)
         else:
             self.bigchain.write_block(block)
         # self.bigchain.write_block(block)
+        logger.info('End writing new block %s with %s transactions', block.id, len(block.transactions))
         return block
 
     def delete_tx(self, block):
@@ -180,13 +184,14 @@ class BlockPipeline:
 
         Args:
             block (:class:`~bigchaindb.models.Block`): the block
-                containg the transactions to delete.
+                containing the transactions to delete.
 
         Returns:
             :class:`~bigchaindb.models.Block`: The block.
         """
-        logger.debug('Delete %s transactions in backlog for block %s',len(block.transactions), block.id)
+        logger.debug('Start delete %s transactions in backlog for block %s', len(block.transactions), block.id)
         self.bigchain.delete_transaction(*[tx.id for tx in block.transactions])
+        logger.debug('End delete %s transactions in backlog for block %s', len(block.transactions), block.id)
 
         return block
 
@@ -220,6 +225,7 @@ def initial():
 def get_tx_in_backlog():
     return BacklogTxToQueue(prefeed=initial())
 
+
 def create_pipeline():
     """Create and return the pipeline of operations to be distributed
     on different processes."""
@@ -227,11 +233,13 @@ def create_pipeline():
     block_pipeline = BlockPipeline()
 
     pipeline = Pipeline([
-        Pipe(maxsize = config['argument_config']['block_pipeline.pipe_maxsize']),
+        Pipe(maxsize=config['argument_config']['block_pipeline.pipe_maxsize']),
         # Node(block_pipeline.filter_tx),
-        Node(block_pipeline.validate_tx, fraction_of_cores=config['argument_config']['block_pipeline.fraction_of_cores']),
+        Node(block_pipeline.validate_tx,
+             fraction_of_cores=config['argument_config']['block_pipeline.fraction_of_cores']),
         Node(block_pipeline.create, timeout=config['argument_config']['block_pipeline.timeout']),
-        Node(block_pipeline.write,number_of_processes=config['argument_config']['block_pipeline.write.number_of_processes']),
+        Node(block_pipeline.write,
+             number_of_processes=config['argument_config']['block_pipeline.write.number_of_processes']),
         Node(block_pipeline.delete_tx),
     ])
 

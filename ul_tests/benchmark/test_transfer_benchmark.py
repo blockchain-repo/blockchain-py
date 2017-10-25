@@ -97,7 +97,9 @@ def post_transfer(p_num):
 
 if __name__ == '__main__':
     if len(sys.argv) > 1:
-        count = sys.argv[1]
+        count = int(sys.argv[1])
+        create_queue = multiprocessing.Queue(maxsize=count)
+        transfer_queue = multiprocessing.Queue(maxsize=count)
     # create_queue and transfer_queue
     print("step 1 :generate keypair, create tx(create_queue), transfer(transfer_queue)")
     for x in range(num_clients):
