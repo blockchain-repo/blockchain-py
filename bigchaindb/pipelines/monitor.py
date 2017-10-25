@@ -6,10 +6,9 @@ It will send unichain data to influxdb,and display it on grafana.
 import logging
 from bigchaindb.monitor import Monitor
 from multipipes import Pipeline, Node
-from bigchaindb import Bigchain,config
-from time import sleep,time
 from bigchaindb import Bigchain, config
-
+from time import sleep, time
+from bigchaindb import Bigchain, config
 
 logger = logging.getLogger(__name__)
 monitor = Monitor()
@@ -27,10 +26,9 @@ class UnichainStaticDataMonitor:
         self.timeout = config['argument_config']['stale_pipeline.timeout']
         self.bigchain = Bigchain()
 
-
     def send_static_data(self):
         sleep(self.timeout)
-        total_transaction_count =self.bigchain.get_txNumber()
+        total_transaction_count = self.bigchain.get_txNumber()
         total_block_count = self.bigchain.get_BlockNumber()
         invalid_block_count = self.bigchain.get_allInvalidBlock_number()
         invalid_block_rate = invalid_block_count / total_block_count
@@ -44,7 +42,6 @@ class UnichainStaticDataMonitor:
         monitor.gauge('invalid_block_rate', value=invalid_block_rate)
         # blocklog 中数据
         monitor.gauge('tx_queue_gauge', value=self.bigchain.get_backlog_tx_number())
-
 
 
 def create_pipeline(timeout=10):

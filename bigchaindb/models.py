@@ -1,3 +1,5 @@
+import logging
+
 from copy import deepcopy
 from bigchaindb.common.crypto import hash_data, VerifyingKey, SigningKey
 from bigchaindb.common.exceptions import (InvalidHash, InvalidSignature,
@@ -9,6 +11,8 @@ from bigchaindb.common.exceptions import (InvalidHash, InvalidSignature,
                                           MutilcontractNode)
 from bigchaindb.common.transaction import Transaction, Asset
 from bigchaindb.common.util import gen_timestamp, serialize
+
+logger = logging.getLogger(__name__)
 
 
 class Asset(Asset):
@@ -66,15 +70,15 @@ class Transaction(Transaction):
         # print(self.operation)
         if self.operation == Transaction.METADATA:
             return self
-        if len(self.fulfillments) == 0 and self.operation !=Transaction.CONTRACT and self.operation !=Transaction.INTERIM:
+        if len(self.fulfillments) == 0 and self.operation != Transaction.CONTRACT and self.operation != Transaction.INTERIM:
             # print(self.id)
             print('Transaction contains no fulfillments')
             raise ValueError('Transaction contains no fulfillments')
         # print("3")
         # print("self::",self)
-        if len(self.conditions) == 0 and self.operation !=Transaction.CONTRACT and self.operation !=Transaction.INTERIM:
+        if len(self.conditions) == 0 and self.operation != Transaction.CONTRACT and self.operation != Transaction.INTERIM:
             print('Transaction contains no conditions')
-            raise  ValueError('Transaction contains no conditions')
+            raise ValueError('Transaction contains no conditions')
 
         input_conditions = []
         inputs_defined = all([ffill.tx_input for ffill in self.fulfillments])
@@ -86,7 +90,7 @@ class Transaction(Transaction):
                 raise ValueError('A CREATE operation has no inputs')
             # validate asset
             self.asset._validate_asset()
-        elif self.operation in (Transaction.CONTRACT,Transaction.INTERIM):
+        elif self.operation in (Transaction.CONTRACT, Transaction.INTERIM):
             pass
         elif self.operation == Transaction.TRANSFER:
             if not inputs_defined:
@@ -99,9 +103,10 @@ class Transaction(Transaction):
             for ffill in self.fulfillments:
                 input_txid = ffill.tx_input.txid
                 input_cid = ffill.tx_input.cid
-                input_tx, status = bigchain.\
+                logger.debug("Start inputs get_transaction %s", self.id)
+                input_tx, status = bigchain. \
                     get_transaction(input_txid, include_status=True)
-
+                logger.debug("End inputs get_transaction  %s, %s", self.id, status)
                 if input_tx is None:
                     raise TransactionDoesNotExist("input `{}` doesn't exist"
                                                   .format(input_txid))
@@ -110,8 +115,9 @@ class Transaction(Transaction):
                     raise FulfillmentNotInValidBlock(
                         'input `{}` does not exist in a valid block'.format(
                             input_txid))
-
+                logger.debug("Start inputs get_spent %s", self.id)
                 spent = bigchain.get_spent(input_txid, ffill.tx_input.cid)
+                logger.debug("End inputs get_spent  %s, %r", self.id, bool(spent))
                 if spent and spent.id != self.id:
                     raise DoubleSpend('input `{}` was already spent'
                                       .format(input_txid))
@@ -135,10 +141,10 @@ class Transaction(Transaction):
             # print("7")
             ContractBody = deepcopy(self.Contract["ContractBody"])
             contract_owners = ContractBody["ContractOwners"]
-            contract_signatures =ContractBody["ContractSignatures"]
+            contract_signatures = ContractBody["ContractSignatures"]
             ContractBody["ContractSignatures"] = None
             detail_serialized = serialize(ContractBody)
-            if contract_owners != None and contract_signatures !=None:
+            if contract_owners != None and contract_signatures != None:
                 if len(contract_owners) < len(contract_signatures):
                     raise MutilContractOwner
                 for index, contract_sign in enumerate(contract_signatures):
@@ -149,8 +155,8 @@ class Transaction(Transaction):
                         raise InvalidSignature()
                 return self
             else:
-                 # TODO 2.validate the contract votes?
-                 return self
+                # TODO 2.validate the contract votes?
+                return self
 
         # print("validate in=3========",self.operation,"==",self.version)
         if self.version == 2:
@@ -166,7 +172,7 @@ class Transaction(Transaction):
             if len(voters) < len(votes):
                 raise MutilcontractNode
 
-            for index,vote in enumerate(votes):
+            for index, vote in enumerate(votes):
                 # print(index)
                 owner_pubkey = voters[index]
                 signature = vote["Signature"]
@@ -178,13 +184,14 @@ class Transaction(Transaction):
                     print("Invalid vote Signature")
                     raise InvalidSignature()
             return self
-
+        logger.debug("Start fulfillments_valid %s", self.id)
         if not self.fulfillments_valid(input_conditions):
             raise InvalidSignature()
         else:
+            logger.debug("End fulfillments_valid %s", self.id)
             return self
 
-    def is_signature_valid(self,detail,verify_key,signature):
+    def is_signature_valid(self, detail, verify_key, signature):
         # only accepts bytesting messages
         detail_serialized = detail.encode()
         verifying_key = VerifyingKey(verify_key)
