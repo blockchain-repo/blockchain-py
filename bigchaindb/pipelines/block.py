@@ -92,7 +92,7 @@ class BlockPipeline:
                 tx_validated = self.bigchain.is_valid_transaction(tx)
         else:
             tx_validated = self.bigchain.is_valid_transaction(tx)
-        logger.debug("End validating transaction %s", tx.id, bool(tx_validated))
+        logger.debug("End validating transaction %s , %r", tx.id, bool(tx_validated))
         # tx_validated = self.bigchain.is_valid_transaction(tx)
         if tx_validated:
             return tx

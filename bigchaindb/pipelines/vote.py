@@ -127,7 +127,7 @@ class Vote:
         """
         logger.debug("Start Validate tx %s in block %s", tx.id, block_id)
         result = bool(self.bigchain.is_valid_transaction(tx))
-        logger.debug("End Validate tx %s in block %s", tx.id, block_id, result)
+        logger.debug("End Validate tx %s in block %s , %r", tx.id, block_id, result)
         return result, block_id, num_tx, begin_time
 
     def vote(self, tx_validity, block_id, num_tx, begin_time):
