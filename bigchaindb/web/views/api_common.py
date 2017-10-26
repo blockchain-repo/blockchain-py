@@ -45,22 +45,32 @@ class ApiGetChainNodeDetail(Resource):
     def get(self):
         parser = reqparse.RequestParser()
         parser.add_argument('node_pubkeys', type=str, required=False)
+        parser.add_argument('show_all_nodes', type=bool, required=False)
+
         args = parser.parse_args()
 
         node_pubkeys = args['node_pubkeys']
-        if node_pubkeys is None:
-            node_pubkey_list = None
+        # 只要传入 show_all_nodes, 且有值,则 为 True, 否则均为 False
+        show_all_nodes = args['show_all_nodes']
+        if show_all_nodes is None:
+            show_all_nodes = False
+
+        if show_all_nodes is False:
+            if node_pubkeys is None:
+                node_pubkey_list = None
+            else:
+                node_pubkey_list = node_pubkeys.split(",")
+                node_pubkey_list = list(set(node_pubkey_list))
         else:
-            node_pubkey_list = node_pubkeys.split(",")
-            node_pubkey_list = list(set(node_pubkey_list))
-            node_pubkey_list = [x for x in node_pubkey_list if x.strip() != '']
-        print("ApiGetChainNodeDetail params: {}".format(node_pubkey_list))
+            node_pubkey_list = None
+
+        print("ApiGetChainNodeDetail params: show_all_nodes={}, node_pubkey_list={}"
+              .format(show_all_nodes, node_pubkey_list))
 
         pool = current_app.config['bigchain_pool']
         with pool() as b:
-            chain_detail = b.get_block_chain_node_detail(node_pubkey_list)
             try:
-                chain_detail = b.get_block_chain_node_detail(node_pubkey_list)
+                chain_detail = b.get_block_chain_node_detail(show_all_nodes, node_pubkey_list)
             except Exception as ex:
                 print(ex)
                 return make_response(constant.RESPONSE_STATUS_SERVER_ERROR,
