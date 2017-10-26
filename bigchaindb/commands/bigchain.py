@@ -51,7 +51,7 @@ def run_show_config(args):
     # TODO Proposal: remove the "hidden" configuration. Only show config. If
     # the system needs to be configured, then display information on how to
     # configure the system.
-    bigchaindb.config_utils.autoconfigure(filename=args.config, force=True)
+    bigchaindb.config_utils.autoconfigure( force=True)
     config = copy.deepcopy(bigchaindb.config)
     del config['CONFIGURED']
     private_key = config['keypair']['private']
@@ -65,75 +65,75 @@ def run_configure(args, skip_if_exists=False):
     Args:
         skip_if_exists (bool): skip the function if a config file already exists
     """
-    config_path = args.config or bigchaindb.config_utils.CONFIG_DEFAULT_PATH
 
-    config_file_exists = False
+    # -------------------------------------------------------------
+    server_config_path = args.config or bigchaindb.config_utils.CONFIG_SERVER_PATH
+    server_config_file_exists = False
     # if the config path is `-` then it's stdout
-    if config_path != '-':
-        config_file_exists = os.path.exists(config_path)
+    if server_config_path != '-':
+        server_config_file_exists = os.path.exists(server_config_path)
 
-    if config_file_exists and skip_if_exists:
+    if server_config_file_exists and skip_if_exists:
         return
 
-    if config_file_exists and not args.yes:
+    if server_config_file_exists and not args.yes:
         want = input('Config file `{}` exists, do you want to override it? '
-                     '(cannot be undone) [y/N]: '.format(config_path))
+                     '(cannot be undone) [y/N]: '.format(server_config_path))
         if want != 'y':
             return
 
-    conf = copy.deepcopy(bigchaindb.config)
+    server_conf = copy.deepcopy(bigchaindb.unichain_server_config)
 
     # Patch the default configuration with the new values
-    conf = bigchaindb.config_utils.update(
-            conf,
-            bigchaindb.config_utils.env_config(bigchaindb.config))
+    server_conf = bigchaindb.config_utils.update(
+            server_conf,
+            bigchaindb.config_utils.env_config(bigchaindb.unichain_server_config))
 
-    print('Generating keypair', file=sys.stderr)
-    conf['keypair']['private'], conf['keypair']['public'] = \
-        crypto.generate_key_pair()
+    # print('Generating keypair', file=sys.stderr)
+    # conf['keypair']['private'], conf['keypair']['public'] = crypto.generate_key_pair()
 
     if not args.yes:
         for key in ('bind', ):
-            val = conf['server'][key]
-            conf['server'][key] = \
+            val = server_conf['server'][key]
+            server_conf['server'][key] = \
                 input('API Server {}? (default `{}`): '.format(key, val)) \
                 or val
 
         for key in ('host', 'port', 'name'):
-            val = conf['database'][key]
-            conf['database'][key] = \
+            val = server_conf['database'][key]
+            server_conf['database'][key] = \
                 input('Database {}? (default `{}`): '.format(key, val)) \
                 or val
 
         for key in ('host', 'port', 'rate'):
-            val = conf['statsd'][key]
-            conf['statsd'][key] = \
+            val = server_conf['statsd'][key]
+            server_conf['statsd'][key] = \
                 input('Statsd {}? (default `{}`): '.format(key, val)) \
                 or val
 
-        val = conf['backlog_reassign_delay']
-        conf['backlog_reassign_delay'] = \
-            input('Stale transaction reassignment delay (in seconds)? (default `{}`): '.format(val)) \
-            or val
+        # val = conf['backlog_reassign_delay']
+        # conf['backlog_reassign_delay'] = \
+        #     input('Stale transaction reassignment delay (in seconds)? (default `{}`): '.format(val)) \
+        #     or val
 
-        for key in ('debug_to_console', 'debug_to_file'):
-            val = conf['logger_config'][key]
-            conf['logger_config'][key] = \
-                input('logger_config {}? (default `{}`): '.format(key, val)) \
-                or val
+        # for key in ('debug_to_console', 'debug_to_file'):
+        #     val = conf['logger_config'][key]
+        #     conf['logger_config'][key] = \
+        #         input('logger_config {}? (default `{}`): '.format(key, val)) \
+        #         or val
 
-        for key in ('block_pipeline.block_size', 'block_pipeline.pipe_maxsize'):
-            val = conf['argument_config'][key]
-            conf['argument_config'][key] = \
-                input('argument_config {}? (default `{}`): '.format(key, val)) \
-                or val
+        # for key in ('block_pipeline.block_size', 'block_pipeline.pipe_maxsize'):
+        #     val = conf['argument_config'][key]
+        #     conf['argument_config'][key] = \
+        #         input('argument_config {}? (default `{}`): '.format(key, val)) \
+        #         or val
 
-        val = conf['restore_server']['bind']
-        conf['restore_server']['bind'] = \
+        val = server_conf['restore_server']['bind']
+        server_conf['restore_server']['bind'] = \
             input('Restore Server {}? (default `{}`): '.format('bind', val)) \
             or val
 
-        val = conf['restore_server']['compress']
+        val = server_conf['restore_server']['compress']
         compress = input('Restore Server {}? (default {}, only input False can be False): '.format('compress', val))
         if compress == 'False':
             compress = False
@@ -141,16 +141,105 @@ def run_configure(args, skip_if_exists=False):
             compress = val
         else:
             compress = True
-        conf['restore_server']['compress'] = compress
+            server_conf['restore_server']['compress'] = compress
 
-    if config_path != '-':
-        if args.encrypt:
-            bigchaindb.config_utils.write_config_encrypt(conf, config_path)
-        else:
-            bigchaindb.config_utils.write_config(conf, config_path)
+    if server_config_path != '-':
+        bigchaindb.config_utils.write_server_config(server_conf, server_config_path)
     else:
-        print(json.dumps(conf, indent=4, sort_keys=True))
-    print('Configuration written to {}'.format(config_path), file=sys.stderr)
+        print(json.dumps(server_conf, indent=4, sort_keys=True))
+    print('server Configuration written to {}'.format(server_config_path), file=sys.stderr)
+    print('Ready!', file=sys.stderr)
+
+
+
+
+    # -------------------------------------------------------------
+
+    key_config_path = args.config or bigchaindb.config_utils.CONFIG_KEY_PATH
+
+    key_config_file_exists = False
+    # if the config path is `-` then it's stdout
+    if key_config_path != '-':
+        key_config_file_exists = os.path.exists(key_config_path)
+
+    if key_config_file_exists and skip_if_exists:
+        return
+
+    if key_config_file_exists and not args.yes:
+        want = input('Config file `{}` exists, do you want to override it? '
+                     '(cannot be undone) [y/N]: '.format(key_config_path))
+        if want != 'y':
+            return
+
+    key_conf = copy.deepcopy(bigchaindb.unichain_key_config)
+
+    # Patch the default configuration with the new values
+    key_conf = bigchaindb.config_utils.update(
+            key_conf,
+        bigchaindb.config_utils.env_config(bigchaindb.unichain_key_config))
+
+    print('Generating keypair', file=sys.stderr)
+    key_conf['keypair']['private'], key_conf['keypair']['public'] = \
+        crypto.generate_key_pair()
+    if key_config_path != '-':
+        if args.encrypt:
+            bigchaindb.config_utils.write_config_encrypt(key_conf, key_config_path)
+        else:
+            bigchaindb.config_utils.write_key_config(key_conf, key_config_path)
+    else:
+        print(json.dumps(key_conf, indent=4, sort_keys=True))
+    print('key Configuration written to {}'.format(key_config_path), file=sys.stderr)
+    print('Ready!', file=sys.stderr)
+
+    # -------------------------------------------------------------
+    param_config_path = args.config or bigchaindb.config_utils.CONFIG_PARAM_PATH
+    param_config_file_exists = False
+    # if the config path is `-` then it's stdout
+    if param_config_path != '-':
+        param_config_file_exists = os.path.exists(param_config_path)
+
+    if param_config_file_exists and skip_if_exists:
+        return
+
+    if param_config_file_exists and not args.yes:
+        want = input('Config file `{}` exists, do you want to override it? '
+                     '(cannot be undone) [y/N]: '.format(param_config_path))
+        if want != 'y':
+            return
+
+    param_conf = copy.deepcopy(bigchaindb.unichain_param_config)
+
+    # Patch the default configuration with the new values
+    param_conf = bigchaindb.config_utils.update(
+            param_conf,
+        bigchaindb.config_utils.env_config(bigchaindb.unichain_param_config))
+
+    # print('Generating keypair', file=sys.stderr)
+    # conf['keypair']['private'], conf['keypair']['public'] = \
+    #     crypto.generate_key_pair()
+
+    if not args.yes:
+        val = param_conf['backlog_reassign_delay']
+        param_conf['backlog_reassign_delay'] = \
+            input('Stale transaction reassignment delay (in seconds)? (default `{}`): '.format(val)) \
+            or val
+
+        for key in ('debug_to_console', 'debug_to_file'):
+            val = param_conf['logger_config'][key]
+            param_conf['logger_config'][key] = \
+                input('logger_config {}? (default `{}`): '.format(key, val)) \
+                or val
+
+        for key in ('block_pipeline.block_size', 'block_pipeline.pipe_maxsize'):
+            val = param_conf['argument_config'][key]
+            param_conf['argument_config'][key] = \
+                input('argument_config {}? (default `{}`): '.format(key, val)) \
+                or val
+    if param_config_path != '-':
+        bigchaindb.config_utils.write_param_config(param_conf, param_config_path)
+    else:
+        print(json.dumps(param_conf, indent=4, sort_keys=True))
+    print('param Configuration written to {}'.format(param_config_path), file=sys.stderr)
     print('Ready to go!', file=sys.stderr)
 
 
@@ -158,7 +247,7 @@ def run_export_my_pubkey(args):
     """Export this node's public key to standard output
     """
     # logger.debug('{} args = {}'.format(app_service_name, args))
-    bigchaindb.config_utils.autoconfigure(filename=args.config, force=True)
+    bigchaindb.config_utils.autoconfigure( force=True)
     pubkey = bigchaindb.config['keypair']['public']
     if pubkey is not None:
         print(pubkey)
@@ -174,7 +263,7 @@ def run_export_my_ip(args):
     """Export this node's api_endpoint ip to standard output
     """
     # logger.debug('{} args = {}'.format(app_service_name, args))
-    bigchaindb.config_utils.autoconfigure(filename=args.config, force=True)
+    bigchaindb.config_utils.autoconfigure( force=True)
     from urllib.parse import urlparse
     api_endpoint = urlparse(bigchaindb.config['api_endpoint'])
     node_ip = api_endpoint.netloc.lstrip().split(':')[0]
@@ -190,7 +279,7 @@ def run_export_my_ip(args):
 
 def run_init(args):
     """Initialize the database"""
-    bigchaindb.config_utils.autoconfigure(filename=args.config, force=True)
+    bigchaindb.config_utils.autoconfigure( force=True)
     # TODO Provide mechanism to:
     # 1. prompt the user to inquire whether they wish to drop the db
     # 2. force the init, (e.g., via -f flag)
@@ -203,7 +292,7 @@ def run_init(args):
 
 def run_drop(args):
     """Drop the database"""
-    bigchaindb.config_utils.autoconfigure(filename=args.config, force=True)
+    bigchaindb.config_utils.autoconfigure( force=True)
     db.drop(assume_yes=args.yes)
 
 
@@ -211,7 +300,7 @@ def run_start(args):
     """Start the processes to run the node"""
     logger.info('{} Version {}'.format(app_setup_name, bigchaindb.__version__))
 
-    bigchaindb.config_utils.autoconfigure(filename=args.config, force=True)
+    bigchaindb.config_utils.autoconfigure(force=True)
 
     if args.allow_temp_keypair:
         if not (bigchaindb.config['keypair']['private'] or
@@ -276,7 +365,7 @@ def _run_load(tx_left, stats):
     #             break
 
 def run_load(args):
-    bigchaindb.config_utils.autoconfigure(filename=args.config, force=True)
+    bigchaindb.config_utils.autoconfigure( force=True)
     logger.info('Starting %s processes', args.multiprocess)
     stats = logstats.Logstats()
     logstats.thread.start(stats)

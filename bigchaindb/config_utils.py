@@ -27,10 +27,19 @@ import bigchaindb
 logging.getLogger('requests').setLevel(logging.WARNING)
 logger = logging.getLogger(__name__)
 
-CONFIG_DEFAULT_PATH = os.environ.setdefault(
-    'BIGCHAINDB_CONFIG_PATH',
-    os.path.join(os.path.expanduser('~'), '.{}'.format(bigchaindb.config['app']['service_name'])),
+CONFIG_SERVER_PATH = os.environ.setdefault(
+    'BIGCHAINDB_SERVER_CONFIG_PATH',
+    os.path.join(os.path.expanduser('~'), '.{}'.format(bigchaindb.config['app']['server_config'])),
 )
+CONFIG_KEY_PATH = os.environ.setdefault(
+    'BIGCHAINDB_KEY_CONFIG_PATH',
+    os.path.join(os.path.expanduser('~'), '.{}'.format(bigchaindb.config['app']['key_config'])),
+)
+CONFIG_PARAM_PATH = os.environ.setdefault(
+    'BIGCHAINDB_PARAM_CONFIG_PATH',
+    os.path.join(os.path.expanduser('~'), '.{}'.format(bigchaindb.config['app']['param_config'])),
+)
+
 
 CONFIG_PREFIX = 'BIGCHAINDB'
 CONFIG_SEP = '_'
@@ -80,7 +89,7 @@ def update(d, u):
     return d
 
 
-def file_config(filename=None):
+def file_config(server_filename=None,key_filename=None,param_filename=None):
     """Returns the config values found in a configuration file.
 
     Args:
@@ -91,30 +100,61 @@ def file_config(filename=None):
         dict: The config values in the specified config file (or the
               file at CONFIG_DEFAULT_PATH, if filename == None)
     """
-    logger.debug('On entry into file_config(), filename = {}'.format(filename))
+    # logger.debug('On entry into file_config(), server_filename={},key_filename={},param_filename={}',format(server_filename),format(key_filename),format(param_filename))
 
-    if filename is None:
-        filename = CONFIG_DEFAULT_PATH
-    logger.debug('file_config() will try to open `{}`'.format(filename))
-    with open(filename) as f:
+
+# read server
+    if server_filename is None:
+        server_filename = CONFIG_SERVER_PATH
+    logger.debug('file_config() will try to open `{}`'.format(server_filename))
+    with open(server_filename) as f:
         try:
-            config = json.load(f)
-            return config
+            server_config = json.load(f)
         except ValueError:
             pass
-    with open(filename) as f:
+    logger.info('Configuration loaded from `{}`'.format(server_filename))
+
+# read key
+    if key_filename is None:
+        key_filename = CONFIG_KEY_PATH
+    logger.debug('file_config() will try to open `{}`'.format(key_filename))
+    with open(key_filename) as f:
         try:
-            line = f.readline()
-            de = ac.decrypt(line)
-            config = json.loads(de)
-        except ValueError as err:
-            raise exceptions.ConfigurationError(
-                'Failed to parse the JSON/encrypt configuration from `{}`, {}'.format(filename, err)
-             )
+            key_config = json.load(f)
+        except ValueError:
+            with open(key_filename) as f:
+                try:
+                    line = f.readline()
+                    de = ac.decrypt(line)
+                    config = json.loads(de)
+                except ValueError as err:
+                    raise exceptions.ConfigurationError(
+                        'Failed to parse the JSON/encrypt configuration from `{}`, {}'.format(key_filename, err)
+                    )
+            pass
+    logger.info('Configuration loaded from `{}`'.format(key_filename))
 
-    logger.info('Configuration loaded from `{}`'.format(filename))
 
-    return config
+# read param
+    if param_filename is None:
+        param_filename = CONFIG_PARAM_PATH
+    logger.debug('file_config() will try to open `{}`'.format(param_filename))
+    with open(param_filename) as f:
+        try:
+            param_config = json.load(f)
+        except ValueError:
+            pass
+    logger.info('Configuration loaded from `{}`'.format(param_filename))
+
+    # print("file_config   server_config:::",server_config)
+    # print("file_config   key_config:::",key_config)
+    # print("file_config   param_config:::",param_config)
+    # TODO server_config + key_config + param_config  --> config ?
+    config = dict(server_config, **key_config)
+    config_all = dict(config, **param_config)
+
+    print(config_all)
+    return config_all
 
 
 def env_config(config):
@@ -209,7 +249,7 @@ def update_config(config):
     bigchaindb.config['CONFIGURED'] = True
 
 
-def write_config(config, filename=None):
+def write_config(server_config,key_config,param_config, server_filename=None,key_filename=None,param_filename=None):
     """Write the provided configuration to a specific location.
 
     Args:
@@ -217,13 +257,23 @@ def write_config(config, filename=None):
         filename (str): the name of the file that will store the new configuration. Defaults to ``None``.
             If ``None``, the HOME of the current user and the string ``.bigchaindb`` will be used.
     """
-    if not filename:
-        filename = CONFIG_DEFAULT_PATH
 
-    with open(filename, 'w') as f:
-        json.dump(config, f, indent=4)
+    if server_filename is None:
+        server_filename = CONFIG_SERVER_PATH
+    with open(server_filename, 'w') as f:
+        json.dump(server_config, f, indent=4)
 
-def write_config_encrypt(config, filename=None):
+    if key_filename is None:
+        key_filename = CONFIG_KEY_PATH
+    with open(key_filename, 'w') as f:
+        json.dump(key_config, f, indent=4)
+
+    if param_filename is None:
+        param_filename = CONFIG_PARAM_PATH
+    with open(param_filename, 'w') as f:
+        json.dump(param_config, f, indent=4)
+
+def write_server_config(server_config,server_filename=None):
     """Write the provided configuration to a specific location.
 
     Args:
@@ -231,15 +281,58 @@ def write_config_encrypt(config, filename=None):
         filename (str): the name of the file that will store the new configuration. Defaults to ``None``.
             If ``None``, the HOME of the current user and the string ``.bigchaindb`` will be used.
     """
-    if not filename:
-        filename = CONFIG_DEFAULT_PATH
 
-    with open(filename, 'w') as f:
-        encrypt_config = ac.encrypt(json.dumps(config))
+    if server_filename is None:
+        server_filename = CONFIG_SERVER_PATH
+    with open(server_filename, 'w') as f:
+        json.dump(server_config, f, indent=4)
+
+
+def write_key_config( key_config,  key_filename=None):
+    """Write the provided configuration to a specific location.
+
+    Args:
+        config (dict): a dictionary with the configuration to load.
+        filename (str): the name of the file that will store the new configuration. Defaults to ``None``.
+            If ``None``, the HOME of the current user and the string ``.bigchaindb`` will be used.
+    """
+    if key_filename is None:
+        key_filename = CONFIG_KEY_PATH
+    with open(key_filename, 'w') as f:
+        json.dump(key_config, f, indent=4)
+
+
+def write_param_config(param_config,param_filename=None):
+    """Write the provided configuration to a specific location.
+
+    Args:
+        config (dict): a dictionary with the configuration to load.
+        filename (str): the name of the file that will store the new configuration. Defaults to ``None``.
+            If ``None``, the HOME of the current user and the string ``.bigchaindb`` will be used.
+    """
+    if param_filename is None:
+        param_filename = CONFIG_PARAM_PATH
+    with open(param_filename, 'w') as f:
+        json.dump(param_config, f, indent=4)
+
+
+def write_config_encrypt(key_config, key_filename=None):
+    """Write the provided configuration to a specific location.
+
+    Args:
+        config (dict): a dictionary with the configuration to load.
+        filename (str): the name of the file that will store the new configuration. Defaults to ``None``.
+            If ``None``, the HOME of the current user and the string ``.bigchaindb`` will be used.
+    """
+    if not key_filename:
+        key_filename = CONFIG_KEY_PATH
+
+    with open(key_filename, 'w') as f:
+        encrypt_config = ac.encrypt(json.dumps(key_config))
         f.write(encrypt_config)
 
 
-def autoconfigure(filename=None, config=None, force=False):
+def autoconfigure(server_filename=None,key_filename=None,param_filename=None, config=None, force=False):
     """Run ``file_config`` and ``env_config`` if the module has not
     been initialized."""
 
@@ -252,7 +345,7 @@ def autoconfigure(filename=None, config=None, force=False):
 
     # update configuration from file
     try:
-        newconfig = update(newconfig, file_config(filename=filename))
+        newconfig = update(newconfig, file_config(server_filename=server_filename,key_filename=key_filename,param_filename=param_filename))
     except FileNotFoundError as e:
         logger.warning('Cannot find config file `%s`.' % e.filename)
 

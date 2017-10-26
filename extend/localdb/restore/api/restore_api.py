@@ -30,7 +30,7 @@ def run_start(args):
         logger.error(error_info)
         exit(-1)
 
-    bigchaindb.config_utils.autoconfigure(filename=args.config, force=True)
+    bigchaindb.config_utils.autoconfigure( force=True)
     logger.info('{} Version {}'.format(app_setup_name, bigchaindb.__version__))
     logger.info('start {} service...'.format(app_service_name))
     processes.start_restore()
