@@ -10,6 +10,7 @@ from cryptoconditions import crypto
 
 from bigchaindb.common.transaction import Transaction, Asset, Fulfillment
 from bigchaindb.common.util import gen_timestamp
+from bigchaindb import Bigchain
 
 CryptoKeypair = namedtuple('CryptoKeypair', ('private_key', 'public_key'))
 
@@ -21,6 +22,8 @@ num_clients = 56
 count = 10000
 create_queue = multiprocessing.Queue(maxsize=count)
 transfer_queue = multiprocessing.Queue(maxsize=count)
+
+b = Bigchain()
 
 
 def generate_keypair():
@@ -75,8 +78,9 @@ def post_create(p_num):
                 continue
             print(p_num, ":create_queue empty", create_queue.qsize())
             break
-        value = json.dumps(value.to_dict())
-        requests.post(url, data=value, headers=headers)
+        b.write_transaction(value)
+        # value = json.dumps(value.to_dict())
+        # requests.post(url, data=value, headers=headers)
 
 
 def post_transfer(p_num):
@@ -91,8 +95,9 @@ def post_transfer(p_num):
                 continue
             print(p_num, ":transfer_queue empty", transfer_queue.qsize())
             break
-        value = json.dumps(value.to_dict())
-        requests.post(url, data=value, headers=headers)
+        b.write_transaction(value)
+        # value = json.dumps(value.to_dict())
+        # requests.post(url, data=value, headers=headers)
 
 
 if __name__ == '__main__':
@@ -117,6 +122,7 @@ if __name__ == '__main__':
 
     # post create
     print("step 2 :post create tx ,please wait for all create tx valid")
+    transfer_start = gen_timestamp()
     for x in range(num_clients):
         p = multiprocessing.Process(target=post_create, args=(x,))
         p.start()
@@ -127,7 +133,11 @@ if __name__ == '__main__':
             break
         time.sleep(1)
         print("m :create qsize:", create_queue.qsize())
-
+    transfer_end = gen_timestamp()
+    transfer_cost = (int(transfer_end) - int(transfer_start)) / 1000
+    print("m :transfer_start:", transfer_start)
+    print("m :transfer_end:", transfer_end)
+    print("m :transfer_cost:", transfer_cost)
     #
     input("Press enter key to continue...")
 
