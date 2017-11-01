@@ -1,6 +1,5 @@
 """Utility classes and functions to work with the pipelines."""
 
-
 import time
 import datetime
 import rethinkdb as r
@@ -9,17 +8,15 @@ from multipipes import Node
 import multiprocessing as mp
 from bigchaindb import Bigchain, config
 
-
 logger = logging.getLogger(__name__)
 
 
 class BacklogTxToQueue(Node):
-
     INSERT = 1
     DELETE = 2
     UPDATE = 4
 
-    def __init__(self,operation=1, prefeed=None, bigchain=None):
+    def __init__(self, operation=1, prefeed=None, bigchain=None):
 
         super().__init__(name='changefeed')
         self.prefeed = prefeed if prefeed else []
@@ -37,7 +34,6 @@ class BacklogTxToQueue(Node):
                 logger.exception(exc)
                 time.sleep(1)
 
-
     def get_tx_in_backlog(self):
         processes_num = config['argument_config']['block_pipeline.get_txs_processes_num']
         pool = mp.Pool(processes=int(processes_num))
@@ -49,16 +45,18 @@ class BacklogTxToQueue(Node):
         pool.close()
         pool.join()
 
+
 def get_batch_txs(num):
     get_txs_everytime = config['argument_config']['block_pipeline.get_txs_everytime']
     start = get_txs_everytime * num
-    end = get_txs_everytime * (num+1)
+    end = get_txs_everytime * (num + 1)
     start_time = time.time() * 1000
     bigchain = Bigchain()
-    result = bigchain.update_assign_flag_limit(start=start,end=end)
+    result = bigchain.update_assign_flag_limit(start=start, end=end)
     end_time = time.time() * 1000
     if 'changes' in result:
-        print('len::',len(result['changes']),",update: start-", start_time, ",end-", end_time, ",cost-", end_time - start_time)
-    if (len(result)):
+        logger.debug('len::%d, update: start-%d ,end-%d ,cost-%d', len(result['changes']), start_time, end_time,
+                     end_time - start_time)
+    if len(result):
         time.sleep(1)
     return result

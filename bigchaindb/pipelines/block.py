@@ -176,7 +176,7 @@ class BlockPipeline:
         else:
             self.bigchain.write_block(block)
         # self.bigchain.write_block(block)
-        logger.info('End writing new block %s with %s transactions', block.id, len(block.transactions))
+        logger.debug('End writing new block %s with %s transactions', block.id, len(block.transactions))
         return block
 
     def delete_tx(self, block):

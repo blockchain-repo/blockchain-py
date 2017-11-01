@@ -43,6 +43,7 @@ config = {
         'port': 8125,
         'rate': 0.01,
     },
+    'local_keyring': False,
     'need_local': False,
     'api_need_permission': False,
     'api_endpoint': os.environ.get('BIGCHAINDB_API_ENDPOINT') or 'http://localhost:{}/uniledger/v1'
@@ -135,6 +136,7 @@ unichain_key_config = {
 }
 
 unichain_param_config = {
+    'local_keyring': False,
     'need_local': False,
     'api_need_permission': False,
     'backlog_reassign_delay': 120,
