@@ -1612,3 +1612,6 @@ class Bigchain(object):
         }
         # print("get_block_chain_node_detail:\n{}".format(result))
         return result
+
+    def sel_payload_by_cond(self,condition,order=""):
+        return self.backend.sel_payload_by_cond(condition,order)

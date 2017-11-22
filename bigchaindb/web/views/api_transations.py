@@ -380,6 +380,26 @@ class ApiGetValidTxtsTotalAmount(Resource):
                              "query success",
                              blockCount)
 
+class ApiSelPayloadByCon(Resource):
+    def post(self):
+        print("ApiSelPayloadByCon")
+        pool = current_app.config['bigchain_pool']
+        condition = request.json.get("condition")
+        order = request.json.get("order")
+        print("1:", condition)
+        print("2:", order)
+        with pool() as b:
+            try:
+                payload = b.sel_payload_by_cond(condition,order=order)
+            except:
+                return make_response(constant.RESPONSE_STATUS_SERVER_ERROR,
+                                     constant.RESPONSE_CODE_SERVER_ERROR,
+                                     "None")
+        return make_response(constant.RESPONSE_STATUS_SUCCESS,
+                             constant.RESPONSE_CODE_SUCCESS,
+                             "query success",
+                             payload)
+
 ##Router display
 transaction_api.add_resource(ApiCreateByPayload,
                              '/createByPayload',
@@ -427,3 +447,6 @@ transaction_api.add_resource(ApiGetTxtsTotalAmount,
 transaction_api.add_resource(ApiGetValidTxtsTotalAmount,
                              '/getValidTxtsTotalAmount',
                              strict_slashes=False)
+transaction_api.add_resource(ApiSelPayloadByCon,
+                         '/selPayloadByCon',
+                         strict_slashes=False)

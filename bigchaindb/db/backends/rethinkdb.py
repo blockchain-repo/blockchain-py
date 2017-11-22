@@ -1057,3 +1057,8 @@ class RethinkDBBackend:
     def save_block_status(self,node_pubkey,block_id,block_status,txs_count):
         return self.connection.run(
             r.table('decided_block').insert({'block_id': block_id, 'node_pubkey':node_pubkey,'block_status': block_status ,'txs_count':txs_count},durability=self.durability))
+
+    def sel_payload_by_cond(self,condition,order=""):
+        return self.connection.run(r.table('bigchain').concat_map(lambda doc: doc['block']['transactions'])
+                            .filter({'transaction': {'metadata': {'data': condition}}})
+                            .get_field("transaction").get_field("metadata").get_field('data').order_by(order))
